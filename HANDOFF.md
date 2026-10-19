@@ -22,7 +22,7 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
   - Full name per a MapQuest listing: "Douglas A. Post – Harry C. Wilson II Memorial Post". Who they were is not yet sourced.
 - **Address:** 645 Louis Dr, Warminster, PA 18974.
 - **Phone:** 215-773-0693.
-- **Email:** not known yet. Hall inquiries go to the `POST_EMAIL` setting.
+- **Hall inquiry email:** set `POST_EMAIL` on the host (the owner has the address; it is in the local `.env`, never committed).
 - **Motto they use:** "No One Does More for Veterans".
 - **Membership:** open to veterans and non-veterans. "Ask for details."
 - **Meetings:** 2nd Monday, 7 pm (see `docs/research.md` for the source).
@@ -93,7 +93,6 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
 Staff only: `/admin` (noindex, blocked in robots.txt).
 
 ## Open questions for the post
-- The email address that hall inquiries should go to.
 - Bar hours, kitchen hours and menu prices, if they aren't on Facebook.
 - The charter year and the story of the post's namesakes.
 - Hosting and domain.
