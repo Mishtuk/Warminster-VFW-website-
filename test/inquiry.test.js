@@ -55,12 +55,16 @@ test('rate limit: 5 per address per hour, then 429', async () => {
   assert.equal((await submit(form, '198.51.100.5')).status, 200); // another address is fine
 });
 
-test('mail failure keeps the inquiry (emailed = 0); no POST_EMAIL also keeps it', async () => {
+test('mail failure keeps the inquiry (emailed = 0); no POST_EMAIL writes a placeholder .eml', async () => {
   const a = setup(undefined, { send: async () => { throw new Error('smtp down'); }, log: () => {} });
   assert.equal((await a.submit(form, '198.51.100.6')).status, 200);
   assert.equal(a.rows()[0].emailed, 0);
   const b = setup({}, { log: () => {} });
   assert.equal((await b.submit(form, '198.51.100.7')).status, 200);
   assert.equal(b.rows().length, 1);
-  assert.equal(b.rows()[0].emailed, 0);
+  assert.equal(b.rows()[0].emailed, 1); // no SMTP_URL: still written to the outbox, with a placeholder To
+  assert.equal(readdirSync(join(b.dataDir, 'outbox')).length, 1);
+  const c = setup({ SMTP_URL: 'smtp://x' }, { log: () => {}, send: async () => { throw new Error('no'); } });
+  await c.submit(form, '198.51.100.8');
+  assert.equal(c.rows()[0].emailed, 0);
 });

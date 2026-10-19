@@ -56,11 +56,13 @@ export const PROGRAMS = {
 // [year, text, source url]
 export const NATIONAL_TIMELINE = [
   ['1899', 'Veterans of the Spanish-American War meet in Columbus, Ohio on September 29 and form the American Veterans of Foreign Service. Similar groups form in Denver, Colorado and Altoona, Pennsylvania.', 'https://www.vfw.org/media-and-events/latest-releases/archives/2024/9/vfw-was-born-of-battle'],
-  ['1914', 'The group takes the name Veterans of Foreign Wars of the U.S.', 'https://www.vfw.org/vfw126'],
+  ['1914', 'According to the VFW history page, the group takes the name Veterans of Foreign Wars of the U.S.', 'https://www.vfw.org/vfw126'],
   ['1917', 'The VFW helps shape changes to the War Risk Insurance Act.', 'https://www.vfw.org/media-and-events/latest-releases/archives/2024/9/vfw-was-born-of-battle'],
   ['1919', 'The National Service Bureau is created. It is now the VFW National Veterans Service.', 'https://www.vfw.org/media-and-events/latest-releases/archives/2024/9/vfw-was-born-of-battle'],
   ['1922', 'The first national Buddy Poppy distribution.', 'https://www.vfw.org/community/community-initiatives/buddy-poppy'],
-  ['1936', 'Congress charters the VFW on May 28.', 'https://www.vfw.org/vfw126'],
+  ['1936', 'According to the VFW history page, Congress chartered the VFW on May 28.', 'https://www.vfw.org/vfw126'],
   ['1944', 'The VFW helps win passage of the GI Bill of Rights.', 'https://www.vfw.org/media-and-events/latest-releases/archives/2024/9/vfw-was-born-of-battle'],
   ['2024', 'The VFW marks its 125th anniversary.', 'https://www.vfw.org/media-and-events/latest-releases/archives/2024/9/vfw-was-born-of-battle'],
 ];
+
+export const DISCOUNTS_CHECKED = 'October 2026';

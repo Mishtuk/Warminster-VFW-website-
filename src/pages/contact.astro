@@ -2,7 +2,6 @@
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
 import Subnav from '../components/Subnav.astro';
-import Membership from '../components/Membership.astro';
 import { POST, href, photo } from '../lib/site';
 const tabs = [{ label: 'About', path: '/about' }, { label: 'History', path: '/history' }, { label: 'Contact', path: '/contact' }];
 ---
@@ -36,5 +35,4 @@ const tabs = [{ label: 'About', path: '/about' }, { label: 'History', path: '/hi
     <div class="container" style="margin-top:2rem"><p>Want to rent the hall? <a class="link" href={href('/hall#inquiry')}>Send an inquiry</a>.</p></div>
   </section>
 
-  <Membership />
 </Base>

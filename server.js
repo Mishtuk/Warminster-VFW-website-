@@ -221,6 +221,7 @@ async function adminApi(req, url, user) {
 
   if (FIELDS[section] && ['PUT', 'DELETE'].includes(req.method)) { // /api/admin/<events|specials|news>/<id or "new">
     const items = list(section);
+    if (a1 !== 'new' && !items.some((x) => x.id === a1)) return bad('not_found', 404);
     if (req.method === 'DELETE') { state[section] = items.filter((x) => x.id !== a1); setState(db, state); return json({ ok: true, items: state[section] }); }
     const v = FIELDS[section]({ ...body, id: a1 === 'new' ? undefined : a1 });
     if (v.error) return bad(v.error);

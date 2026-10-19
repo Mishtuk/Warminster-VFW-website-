@@ -72,6 +72,14 @@ test('events: add, list on the public page, disable hides it, delete removes it'
   assert.equal((await (await admin('DELETE', `events/${item.id}`)).json()).items.length, 0);
 });
 
+test('update, disable or delete of an unknown id is 404 and creates nothing', async () => {
+  for (const sec of ['events', 'specials', 'news']) {
+    assert.equal((await admin('PUT', `${sec}/zzzz9999`, { title: 'x', label: 'x', body: 'x', date: '2026-10-20', category: 'Post', period: 'daily' })).status, 404);
+    assert.equal((await admin('DELETE', `${sec}/zzzz9999`)).status, 404);
+  }
+  assert.equal((await (await admin('GET', 'state')).json()).events.length, 0);
+});
+
 test('specials, menu and news save and validate', async () => {
   assert.equal((await admin('PUT', 'specials/new', { label: 'Pitchers', period: 'weekly' })).status, 400);
   assert.equal((await admin('PUT', 'specials/new', { label: 'Pitchers', period: 'weekly', weekday: 5 })).status, 200);

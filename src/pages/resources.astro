@@ -3,7 +3,7 @@ import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
 import Subnav from '../components/Subnav.astro';
 import { POST } from '../lib/site';
-import { BENEFITS, DISCOUNTS } from '../lib/resources.js';
+import { BENEFITS, DISCOUNTS, DISCOUNTS_CHECKED } from '../lib/resources.js';
 const tabs = [{ label: 'Programs', path: '/programs' }, { label: 'Resources', path: '/resources' }];
 const host = (u: string) => new URL(u).host.replace(/^www\./, '');
 ---
@@ -46,7 +46,8 @@ const host = (u: string) => new URL(u).host.replace(/^www\./, '');
           </ul>
         </div>
       ))}
-      <p class="hint">Know another business that honors veterans? Tell the post: <a href={POST.tel}>{POST.phone}</a>.</p>
+      <p><strong>Checked {DISCOUNTS_CHECKED}. Offers change, so confirm at the store.</strong></p>
+      <p class="hint" style="margin-top:0.75rem">Know another business that honors veterans? Tell the post: <a href={POST.tel}>{POST.phone}</a>.</p>
     </div>
   </section>
 </Base>

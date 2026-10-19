@@ -39,7 +39,7 @@ export function createInquiryHandler({ db, env, dataDir, log = () => {}, send = 
     const at = now();
     const r = db.prepare('INSERT INTO inquiries (at, day, name, phone, email, event_date, event_type, guests, message) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
       .run(+at, etDay(at), q.name, q.phone, q.email, q.eventDate, q.eventType, q.guests, q.message);
-    const to = env.POST_EMAIL;
+    const to = env.POST_EMAIL || (env.SMTP_URL ? '' : 'post@localhost.invalid'); // no SMTP: always write the .eml to the outbox
     if (!to) log('inquiry saved, but POST_EMAIL is not set so nothing was emailed');
     else {
       try {
