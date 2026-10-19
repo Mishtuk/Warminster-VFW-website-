@@ -1,0 +1,56 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Membership from '../components/Membership.astro';
+import { POST, href, photo } from '../lib/site';
+import { seed } from '../lib/seed';
+---
+<Base title={`${POST.name}, ${POST.city}, PA`} overlay>
+  <Hero />
+
+  <section class="section band-paper">
+    <div class="container">
+      <div class="section-head"><h2>This week at the bar</h2></div>
+      <Fragment set:html={seed.specials} />
+      <p class="section-foot"><a class="link link-arrow" href={href('/bar')}>See specials and menu</a></p>
+    </div>
+  </section>
+
+  <section class="section band-stone">
+    <div class="container split-wide">
+      <div>
+        <h2>Coming up</h2>
+        <div style="margin-top:1.5rem"><Fragment set:html={seed.upcoming} /></div>
+      </div>
+      <div class="card card-rule">
+        <h3>Every event is on the calendar</h3>
+        <p style="margin-top:0.6rem">See the full year, month by month.</p>
+        <p style="margin-top:1.25rem"><a class="btn btn-outline" href={href('/events')}>See the calendar</a></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section band-paper">
+    <div class="container split">
+      <div class="media" style="aspect-ratio:4/3"><img {...photo('hall-07')} sizes="(min-width: 900px) 45vw, 100vw" alt="Inside the hall at the post" loading="lazy" /></div>
+      <div class="stack">
+        <h2>Rent our hall</h2>
+        <ul class="facts">
+          {POST.hallFacts.slice(0, 4).map(([t, d]) => <li><strong>{t}</strong><span>{d}</span></li>)}
+        </ul>
+        <p><a class="btn" href={href('/hall')}>Rent the Hall</a></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section band-stone">
+    <div class="container">
+      <div class="section-head"><h2>From the post</h2></div>
+      <Fragment set:html={seed.newsLatest} />
+      <p class="section-foot"><a class="link link-arrow" href={href('/news')}>All news</a></p>
+    </div>
+  </section>
+
+  <Membership />
+  <Fragment set:html={seed.data} />
+</Base>

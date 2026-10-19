@@ -1,0 +1,20 @@
+{
+  "name": "warminster-vfw",
+  "type": "module",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "test": "node --test",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "astro": "^7.3.8",
+    "nodemailer": "^10.0.14"
+  },
+  "engines": {
+    "node": ">=22.13"
+  }
+}

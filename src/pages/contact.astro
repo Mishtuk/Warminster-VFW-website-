@@ -1,0 +1,40 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Subnav from '../components/Subnav.astro';
+import Membership from '../components/Membership.astro';
+import { POST, href, photo } from '../lib/site';
+const tabs = [{ label: 'About', path: '/about' }, { label: 'History', path: '/history' }, { label: 'Contact', path: '/contact' }];
+---
+<Base title="Contact" description={`Address, phone and Facebook group for ${POST.name}.`}>
+  <PageHead title="Contact" lede="Visit, call or find us online." />
+  <Subnav items={tabs} label="About" />
+
+  <section class="section band-paper">
+    <div class="container split">
+      <ul class="facts" style="grid-template-columns:1fr">
+        <li>
+          <strong>Address</strong>
+          <span>{POST.street}<br />{POST.city}, {POST.region} {POST.zip}</span>
+          <p style="margin-top:0.75rem"><a class="btn btn-outline" href={POST.mapsUrl} rel="noopener">Directions</a></p>
+        </li>
+        <li>
+          <strong>Phone</strong>
+          <a href={POST.tel} style="font-family:var(--font-display);font-weight:700;font-size:var(--step-3)">{POST.phone}</a>
+        </li>
+        <li>
+          <strong>Hours</strong>
+          <span>{POST.hours ?? 'Call the post for hours.'}</span>
+        </li>
+        <li>
+          <strong>Online</strong>
+          <p style="margin-top:0.5rem"><a class="btn btn-outline" href={POST.facebook} rel="noopener">Facebook group</a></p>
+        </li>
+      </ul>
+      <div class="media" style="aspect-ratio:4/3"><img {...photo('hall-01')} sizes="(min-width: 900px) 45vw, 100vw" alt="The outside of the post building" loading="lazy" /></div>
+    </div>
+    <div class="container" style="margin-top:2rem"><p>Want to rent the hall? <a class="link" href={href('/hall#inquiry')}>Send an inquiry</a>.</p></div>
+  </section>
+
+  <Membership />
+</Base>

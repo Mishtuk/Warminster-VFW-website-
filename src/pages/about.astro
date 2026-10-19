@@ -1,0 +1,30 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Subnav from '../components/Subnav.astro';
+import Membership from '../components/Membership.astro';
+import { POST, href } from '../lib/site';
+const tabs = [{ label: 'About', path: '/about' }, { label: 'History', path: '/history' }, { label: 'Contact', path: '/contact' }];
+---
+<Base title="About the post" description={`About ${POST.name} in ${POST.city}, PA.`}>
+  <PageHead title="About the post" lede={POST.motto} />
+  <Subnav items={tabs} label="About" />
+
+  <section class="section band-paper">
+    <div class="container prose">
+      <h2>Who we are</h2>
+      <p>{POST.name} is a Veterans of Foreign Wars post and auxiliary in {POST.city}, Pennsylvania. Our Facebook group describes us with one line: "{POST.motto}."</p>
+      <p>The post is at {POST.address}. Call us at <a href={POST.tel}>{POST.phone}</a>.</p>
+      <p>The post has a bar, hosts events, and rents its hall for private parties. See <a href={href('/bar')}>The Bar</a>, <a href={href('/events')}>Events</a> and <a href={href('/hall')}>Hall Rental</a>. You can also read about the <a href={href('/history')}>history</a> of the VFW and the post, or find us on the <a href={POST.facebook} rel="noopener">Facebook group</a>.</p>
+    </div>
+  </section>
+
+  <Membership />
+
+  <section class="section band-stone">
+    <div class="container" style="text-align:center">
+      <ul class="branches" aria-label="Branches of service" style="justify-content:center"><li>Army</li><li>Marine Corps</li><li>Navy</li><li>Air Force</li><li>Coast Guard</li></ul>
+      <p class="remembrance" style="justify-content:center;margin-top:1.5rem"><span class="star" aria-hidden="true">&#9733;</span>POW/MIA: You Are Not Forgotten.</p>
+    </div>
+  </section>
+</Base>

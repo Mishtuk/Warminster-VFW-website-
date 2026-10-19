@@ -1,0 +1,86 @@
+---
+import { POST, NAV, EXTRA, href } from '../lib/site';
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer on-dark">
+  <hr class="flag-stripe" aria-hidden="true" />
+  <div class="container footer-grid">
+    <div class="footer-brand">
+      <a href={href('/')} aria-label={`${POST.name} home`}><img src={href('/brand/logo-mono.svg')} alt="" width="96" height="96" loading="lazy" /></a>
+      <p class="footer-name">{POST.name}</p>
+      <p class="motto">{POST.motto}</p>
+    </div>
+
+    <div>
+      <p class="fh">Visit</p>
+      <address><a href={POST.mapsUrl} rel="noopener">{POST.street}<br />{POST.city}, {POST.region} {POST.zip}</a></address>
+      <a class="link" href={POST.mapsUrl} rel="noopener">Directions</a>
+    </div>
+
+    <div>
+      <p class="fh">Call</p>
+      <a class="phone" href={POST.tel}>{POST.phone}</a>
+      <p class="join">{POST.membership}</p>
+    </div>
+
+    <nav aria-label="Footer">
+      <p class="fh">Pages</p>
+      <ul class="link-list">
+        {NAV.map((l) => <li><a href={href(l.path)}>{l.label}</a></li>)}
+        {EXTRA.map((l) => <li><a href={href(l.path)}>{l.label}</a></li>)}
+      </ul>
+    </nav>
+  </div>
+
+  <div class="container footer-honor">
+    <p class="remembrance"><span class="star" aria-hidden="true">&#9733;</span>POW/MIA: You Are Not Forgotten.</p>
+    <ul class="branches" aria-label="Branches of service">
+      <li>Army</li><li>Marine Corps</li><li>Navy</li><li>Air Force</li><li>Coast Guard</li>
+    </ul>
+  </div>
+
+  <div class="container footer-bottom">
+    <p>&copy; {year} {POST.name}, {POST.city}, {POST.region}</p>
+    <a class="staff" href={href('/admin')} rel="nofollow">Staff login</a>
+  </div>
+</footer>
+
+<style>
+  .site-footer { background: var(--night); color: var(--on-dark); }
+  .site-footer .flag-stripe { margin: 0 0 clamp(3rem, 2rem + 4vw, 5rem); }
+  .footer-grid { display: grid; gap: 2.5rem; grid-template-columns: 1fr; }
+  @media (min-width: 960px) { .footer-grid { grid-template-columns: 1.3fr 1fr 1.1fr 1.3fr; gap: 3rem; } }
+
+  .footer-brand img { display: block; width: 96px; height: auto; }
+  .footer-name { margin-top: 1rem; font-family: var(--font-display); font-weight: 700; font-size: var(--step-1); }
+  .motto { margin-top: 0.4rem; color: var(--brass); }
+
+  .fh { margin-bottom: 0.9rem; font-size: var(--step--1); font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--brass); }
+  address { font-style: normal; margin-bottom: 0.25rem; }
+  address a { text-decoration: none; }
+  .phone { display: inline-block; min-height: 44px; font-family: var(--font-display); font-weight: 700; font-size: var(--step-2); text-decoration: none; }
+  .phone:hover, .footer-grid a:hover { color: var(--brass); }
+  .join { margin-top: 0.5rem; color: var(--on-dark-2); }
+
+  ul { list-style: none; padding: 0; }
+  .link-list { columns: 2; column-gap: 1.5rem; }
+  .link-list li + li { border-top: 0; }
+  .link-list a { display: block; padding-block: 0.6rem; min-height: 44px; font-weight: 600; }
+  .link-list a { color: var(--on-dark); }
+
+  .footer-honor {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.25rem 2rem;
+    margin-top: clamp(2.5rem, 2rem + 3vw, 4rem); padding-top: 1.75rem; border-top: 1px solid rgb(236 233 225 / 0.15);
+  }
+  .footer-honor .branches { color: var(--on-dark-2); }
+  @media (max-width: 699px) { .footer-honor { flex-direction: column; text-align: center; } }
+
+  .footer-bottom {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1.5rem;
+    padding-block: 1.25rem 2rem; color: var(--on-dark-2); font-size: var(--step--1);
+  }
+  .staff { display: inline-flex; align-items: center; min-height: 44px; font-size: 1.0625rem; color: var(--on-dark-2); text-decoration: underline; text-underline-offset: 4px; }
+  .staff:hover { color: var(--on-dark); }
+  @media (max-width: 699px) { .site-footer { padding-bottom: var(--bar-h); } }
+</style>

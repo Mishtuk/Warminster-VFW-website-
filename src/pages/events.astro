@@ -1,0 +1,29 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Subnav from '../components/Subnav.astro';
+import { POST } from '../lib/site';
+import { seed, year } from '../lib/seed';
+const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((label, i) => ({ label, path: `#month-${i + 1}` }));
+---
+<Base title="Events and calendar" description={`Upcoming events and the ${year} calendar at ${POST.name}.`}>
+  <PageHead title="Events and calendar" lede={`Everything on the calendar at the post for ${year}.`} />
+  <Subnav items={months} label="Jump to a month" />
+
+  <section class="section band-paper">
+    <div class="container">
+      <div class="section-head"><h2>Upcoming</h2></div>
+      <Fragment set:html={seed.upcoming} />
+    </div>
+  </section>
+
+  <section class="section band-stone">
+    <div class="container">
+      <div class="section-head"><h2>Full year</h2></div>
+      <div class="cal-key" aria-hidden="true"><span class="k-event">Event day</span><span class="k-today">Today</span></div>
+      <p class="no-print" style="margin-bottom:1.5rem"><button class="btn btn-outline" type="button" onclick="print()">Print this calendar</button></p>
+      <Fragment set:html={seed.calendar} />
+    </div>
+  </section>
+  <Fragment set:html={seed.data} />
+</Base>

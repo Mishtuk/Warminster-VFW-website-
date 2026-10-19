@@ -1,0 +1,13 @@
+---
+import { href } from '../lib/site';
+interface Props { items: { label: string; path: string }[]; label?: string }
+const { items, label = 'Sections' } = Astro.props;
+const here = Astro.url.pathname.replace(/\/$/, '');
+---
+<nav class="subnav" aria-label={label}>
+  <div class="container">
+    <ul class="chips">
+      {items.map((i) => <li><a href={i.path.startsWith('#') ? i.path : href(i.path)} aria-current={here === href(i.path) ? 'page' : undefined}>{i.label}</a></li>)}
+    </ul>
+  </div>
+</nav>

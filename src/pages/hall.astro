@@ -1,0 +1,100 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { POST, href, photo } from '../lib/site';
+const order = ['02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '01'].map((n) => `hall-${n}`);
+const alts: Record<string, string> = { 'hall-01': 'The outside of the post building', 'hall-02': 'The stage with a blue curtain and a US flag' };
+---
+<Base title="Rent the Hall" description={POST.hallBlurb}>
+  <PageHead title="Rent the Hall" lede={POST.hallBlurb} image="hall-02" />
+
+  <section class="section band-paper">
+    <div class="container">
+      <div class="section-head"><h2>What's included</h2></div>
+      <ul class="facts">
+        {POST.hallFacts.map(([t, d]) => <li><strong>{t}</strong><span>{d}</span></li>)}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section band-card">
+    <div class="container">
+      <div class="section-head"><h2>Photos of the hall</h2></div>
+      <ul class="gallery">
+        {order.map((n) => (
+          <li><a href={href(`/media/photos/${n}.webp`)}><img {...photo(n)} sizes="(min-width: 800px) 33vw, 100vw" alt={alts[n] ?? 'Inside the hall at the post'} loading="lazy" /></a></li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section band-stone" id="inquiry">
+    <div class="container split-wide" style="align-items:start">
+      <div>
+        <h2>Ask about renting the hall</h2>
+        <div id="form-status" class="form-status" role="status" hidden style="margin-top:1.5rem"></div>
+        <form class="form" id="hall-form" method="post" action={href('/api/hall-inquiry')} style="margin-top:1.5rem" novalidate>
+          <input type="hidden" name="_page" value="/hall" />
+          <div class="form-row">
+            <div class="field"><label for="f-name">Your name</label><input id="f-name" name="name" type="text" autocomplete="name" required maxlength="120" /></div>
+            <div class="field"><label for="f-phone">Phone <span class="opt">(optional)</span></label><input id="f-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="40" aria-describedby="f-contact" /></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label for="f-email">Email <span class="opt">(optional)</span></label><input id="f-email" name="email" type="email" autocomplete="email" maxlength="200" aria-describedby="f-contact" /></div>
+            <div class="field"><label for="f-date">Event date <span class="opt">(optional)</span></label><input id="f-date" name="eventDate" type="date" /></div>
+          </div>
+          <p class="hint" id="f-contact">Phone or email, so we can reach you.</p>
+          <div class="field">
+            <label for="f-type">Type of event <span class="opt">(optional)</span></label>
+            <select id="f-type" name="eventType">
+              <option value="">Choose one</option>
+              <option>Birthday</option><option>Anniversary</option><option>Wedding or shower</option><option>Memorial / repast</option><option>Meeting</option><option>Other</option>
+            </select>
+          </div>
+          <div class="field"><label for="f-guests">Approximate guests <span class="opt">(optional)</span></label><input id="f-guests" name="guests" type="number" inputmode="numeric" min="1" max="1000" /></div>
+          <div class="field"><label for="f-msg">Message <span class="opt">(optional)</span></label><textarea id="f-msg" name="message" maxlength="2000"></textarea></div>
+          <div class="hp" aria-hidden="true"><label>Leave this empty <input name="website" type="text" tabindex="-1" autocomplete="off" /></label></div>
+          <p><button class="btn" type="submit">Send inquiry</button></p>
+        </form>
+      </div>
+      <aside class="callout">
+        <h3>Prefer to talk?</h3>
+        <p style="margin-top:0.5rem"><a href={POST.tel} style="font-family:var(--font-display);font-weight:700;font-size:var(--step-2)">{POST.phone}</a></p>
+        <p style="margin-top:0.75rem">{POST.address}</p>
+        <p style="margin-top:0.75rem">We'll call you back to confirm dates and details.</p>
+      </aside>
+    </div>
+  </section>
+
+  <script is:inline define:vars={{ phone: POST.phone }}>
+    (() => {
+      const form = document.getElementById('hall-form');
+      const box = document.getElementById('form-status');
+      const msgs = {
+        name: 'Please enter your name.',
+        phone: 'That phone number does not look right.',
+        email: 'That email address does not look right.',
+        contact: 'Please give a phone number or an email so we can reach you.',
+        eventDate: 'That event date does not look right.',
+        guests: 'Please enter the number of guests as a number.',
+        rate: 'Too many inquiries from this device. Please try again later or call the post.',
+      };
+      const show = (text, ok) => { box.hidden = false; box.className = 'form-status ' + (ok ? 'ok' : 'err'); box.textContent = text; box.scrollIntoView({ block: 'center' }); };
+      const q = new URLSearchParams(location.search);
+      if (q.get('sent') === '1') show("Thank you. We got your inquiry and will call you back to confirm.", true);
+      else if (q.get('error')) show(msgs[q.get('error')] || 'Something went wrong. Please call the post at ' + phone + '.', false);
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(form));
+        try {
+          const res = await fetch(form.action, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+          const out = await res.json();
+          if (out.ok) { form.reset(); show('Thank you. We got your inquiry and will call you back to confirm.', true); }
+          else show(msgs[out.error] || 'Something went wrong. Please call the post at ' + phone + '.', false);
+        } catch {
+          show('Please call the post at ' + phone, false);
+        }
+      });
+    })();
+  </script>
+</Base>

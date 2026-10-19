@@ -1,0 +1,59 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Subnav from '../components/Subnav.astro';
+import { POST, href, photo } from '../lib/site';
+import { PROGRAMS } from '../lib/resources.js';
+const tabs = [{ label: 'Programs', path: '/programs' }, { label: 'Resources', path: '/resources' }];
+const host = (u: string) => new URL(u).host.replace(/^www\./, '');
+---
+<Base title="Programs" description={`VFW programs for community service, veteran outreach and youth and education, and how to reach ${POST.name}.`}>
+  <PageHead title="Programs" lede="The VFW serves veterans, families and neighbors. These are the national VFW programs. Ask the post which ones it takes part in." />
+  <Subnav items={tabs} label="Programs and resources" />
+
+  <section class="section band-paper">
+    <div class="container split">
+      <div class="stack">
+        <h2>Community service</h2>
+        <p>VFW posts give back where they live. These are national VFW community programs.</p>
+        <ul class="link-list">
+          {PROGRAMS.service.map((p) => <li><a href={p.url} rel="noopener"><span>{p.name}</span><small>{p.line} ({host(p.url)})</small></a></li>)}
+        </ul>
+      </div>
+      <div class="media" style="aspect-ratio:4/3"><img {...photo('hall-04')} sizes="(min-width: 900px) 45vw, 100vw" alt="Inside the hall at the post" loading="lazy" /></div>
+    </div>
+  </section>
+
+  <section class="section band-stone">
+    <div class="container prose">
+      <h2>Veteran outreach</h2>
+      <p>Free help is available for veterans and their families, including help with VA claims. These are VFW national services.</p>
+      <ul class="link-list">
+        {PROGRAMS.outreach.map((p) => <li><a href={p.url} rel="noopener"><span>{p.name}</span><small>{p.line} ({host(p.url)})</small></a></li>)}
+      </ul>
+      <p>More help is on the <a href={href('/resources')}>Resources page</a>.</p>
+    </div>
+  </section>
+
+  <section class="section band-paper">
+    <div class="container">
+      <div class="section-head"><h2>Youth and education</h2><p>National VFW programs for students, scouts and teachers.</p></div>
+      <div class="cards-grid">
+        {PROGRAMS.youth.map((p) => (
+          <a class="card card-rule" href={p.url} rel="noopener">
+            <h3>{p.name}</h3><p style="margin-top:0.5rem">{p.line}</p><small class="hint">{host(p.url)}</small>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section band-stone">
+    <div class="container-narrow">
+      <div class="callout">
+        <h2 style="font-size:var(--step-2)">What does Post 6493 do?</h2>
+        <p style="margin-top:0.6rem">To learn which programs the post runs and how to take part, call the post at <a href={POST.tel}><strong>{POST.phone}</strong></a>.</p>
+      </div>
+    </div>
+  </section>
+</Base>

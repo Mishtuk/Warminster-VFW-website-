@@ -1,0 +1,34 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Subnav from '../components/Subnav.astro';
+import { POST } from '../lib/site';
+import { NATIONAL_TIMELINE } from '../lib/resources.js';
+const tabs = [{ label: 'About', path: '/about' }, { label: 'History', path: '/history' }, { label: 'Contact', path: '/contact' }];
+---
+<Base title="History" description="The history of the Veterans of Foreign Wars and of VFW Post 6493 in Warminster.">
+  <PageHead title="History" lede="From the VFW's start in 1899 to Post 6493 today." />
+  <Subnav items={tabs} label="About" />
+
+  <section class="section band-paper">
+    <div class="container prose">
+      <h2>The VFW</h2>
+      <p>The Veterans of Foreign Wars began on September 29, 1899, when veterans of the Spanish-American War formed a group to look after one another and their families. Here is how it grew.</p>
+      <ol class="timeline">
+        {NATIONAL_TIMELINE.map(([y, t, u]) => (
+          <li><span class="year">{y}</span>{t} <a href={u} rel="noopener">Source</a></li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section band-stone">
+    <div class="container prose">
+      <h2>Post 6493</h2>
+      <p>A business listing names the post "{POST.listingName}", at {POST.street} in {POST.city}. We have not confirmed who it honors or when it was chartered. To learn the story of the post, call <a href={POST.tel}>{POST.phone}</a>.</p>
+      <p>In March 2022, State Senator Maria Collett presented the post with a $50,000 Keystone Communities Program grant for a new roof and parking-lot resurfacing. <a href="https://pasenate.com/?p=129750" rel="noopener">Source: PA Senate</a>.</p>
+      <p>Warminster's annual Memorial Day parade ends at the post, with refreshments afterward. <a href="https://www.buckscountyherald.com/community/events/warminster-township-honors-sacrifice-of-nations-service-members/article_195fd6e6-1884-4ebd-ba19-f199eb01fed2.html" rel="noopener">Source: Bucks County Herald, 2026</a>.</p>
+      <p>Have a story or a photo from the post's past? <a href={POST.tel}>Call {POST.phone}</a> and tell us.</p>
+    </div>
+  </section>
+</Base>

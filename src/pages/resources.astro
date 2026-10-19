@@ -1,0 +1,52 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Subnav from '../components/Subnav.astro';
+import { POST } from '../lib/site';
+import { BENEFITS, DISCOUNTS } from '../lib/resources.js';
+const tabs = [{ label: 'Programs', path: '/programs' }, { label: 'Resources', path: '/resources' }];
+const host = (u: string) => new URL(u).host.replace(/^www\./, '');
+---
+<Base title="Resources" description="Veteran benefits, assistance and discounts, with links to official sources.">
+  <PageHead title="Resources" lede="Benefits, help and discounts for veterans, with links to the official sources." />
+  <Subnav items={tabs} label="Programs and resources" />
+
+  <section class="section band-paper">
+    <div class="container">
+      <div class="callout callout-crisis" style="margin-bottom:3rem">
+        <p><strong>Veterans Crisis Line:</strong> dial 988, then press 1. Free, confidential and open all day, every day.</p>
+      </div>
+      <div class="section-head"><h2>Benefits and assistance</h2></div>
+      <div class="cards-grid">
+        {BENEFITS.map((b) => (
+          <a class="card card-rule" href={b.url} rel="noopener">
+            <h3>{b.name}</h3><p style="margin-top:0.5rem">{b.line}</p><small class="hint">{host(b.url)}</small>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section band-stone">
+    <div class="container">
+      <div class="section-head">
+        <h2>Veteran discounts</h2>
+        <p>Offers change. Ask at checkout, and check the source link before you go. Offers marked "Veterans Day only" are not year round.</p>
+      </div>
+      {DISCOUNTS.map((g) => (
+        <div class="stack" style="margin-bottom:2.5rem">
+          <h3>{g.cat}</h3>
+          <ul class="link-list">
+            {g.items.map((i) => (
+              <li><a href={i.url} rel="noopener">
+                <span>{i.biz}{i.vdOnly && <> <span class="tag">Veterans Day only</span></>}</span>
+                <small>{i.offer} Source: {host(i.url)}</small>
+              </a></li>
+            ))}
+          </ul>
+        </div>
+      ))}
+      <p class="hint">Know another business that honors veterans? Tell the post: <a href={POST.tel}>{POST.phone}</a>.</p>
+    </div>
+  </section>
+</Base>

@@ -1,0 +1,194 @@
+---
+import { POST, NAV, EXTRA, href } from '../lib/site';
+
+interface Props {
+  /** Transparent header over the full-bleed home hero. Solid night otherwise. */
+  overlay?: boolean;
+}
+const { overlay = false } = Astro.props;
+const here = Astro.url.pathname.replace(/\/$/, '');
+const cur = (l: { path: string; match: readonly string[] }) =>
+  l.path === '/' ? here === href('/').replace(/\/$/, '') : l.match.some((p) => here === href(p) || here.startsWith(href(p) + '/'));
+---
+
+{overlay && <div class="header-sentinel" aria-hidden="true"></div>}
+<header class:list={['site-header', { 'is-overlay': overlay }]} data-overlay={overlay ? '' : undefined}>
+  <div class="container header-bar">
+    <a class="brand" href={href('/')}>
+      <img src={href('/brand/logo.svg')} alt="" width="56" height="56" />
+      <span class="brand-text"><strong>VFW Post 6493</strong><span>Warminster, PA</span></span>
+    </a>
+
+    <nav class="nav-desktop" aria-label="Main">
+      <ul>
+        {NAV.map((l) => (
+          <li><a href={href(l.path)} aria-current={cur(l) ? 'page' : undefined}>{l.label}</a></li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <a class="btn btn-brass btn-sm call-btn" href={POST.tel}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" /></svg>
+        Call
+      </a>
+      <details class="nav-mobile">
+        <summary>
+          <span class="menu-word"><span class="w-open">Menu</span><span class="w-close">Close</span></span>
+          <span class="burger" aria-hidden="true"><span></span></span>
+        </summary>
+        <div class="sheet">
+          <nav aria-label="Main menu">
+            <ul class="sheet-main">
+              {NAV.map((l) => (
+                <li><a href={href(l.path)} aria-current={cur(l) ? 'page' : undefined}>{l.label}</a></li>
+              ))}
+            </ul>
+            <ul class="sheet-more">
+              {EXTRA.map((l) => (
+                <li><a href={href(l.path)} aria-current={here === href(l.path) ? 'page' : undefined}>{l.label}</a></li>
+              ))}
+            </ul>
+          </nav>
+          <div class="sheet-info">
+            <a class="btn btn-brass btn-block" href={POST.tel}>Call {POST.phone}</a>
+            <a href={POST.mapsUrl} rel="noopener">Directions: {POST.address}</a>
+            <a href={POST.facebook} rel="noopener">Facebook group</a>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+</header>
+
+<script is:inline>
+  // Phone menu: focus moves in on open and stays inside; Escape or tapping a link closes it.
+  (() => {
+    const d = document.querySelector('.nav-mobile');
+    if (!d) return;
+    const sum = d.querySelector('summary');
+    const items = () => [sum, ...d.querySelectorAll('.sheet a')];
+    d.addEventListener('toggle', () => { if (d.open) d.querySelector('.sheet a').focus(); });
+    d.addEventListener('click', (e) => { if (e.target.closest('.sheet a')) d.open = false; });
+    addEventListener('keydown', (e) => {
+      if (!d.open) return;
+      if (e.key === 'Escape') { d.open = false; sum.focus(); return; }
+      if (e.key !== 'Tab') return;
+      const l = items(), i = l.indexOf(document.activeElement);
+      if (e.shiftKey && i <= 0) { e.preventDefault(); l[l.length - 1].focus(); }
+      else if (!e.shiftKey && i === l.length - 1) { e.preventDefault(); l[0].focus(); }
+    });
+  })();
+</script>
+
+{overlay && (
+  <script is:inline>
+    // Solid header once the hero top scrolls away. No JS: header stays transparent over the hero and scrolls off.
+    (() => {
+      const h = document.querySelector('.site-header[data-overlay]');
+      const s = document.querySelector('.header-sentinel');
+      if (!h || !s || !('IntersectionObserver' in window)) return;
+      h.classList.add('is-fixed');
+      new IntersectionObserver(([e]) => h.classList.toggle('is-solid', !e.isIntersecting)).observe(s);
+    })();
+  </script>
+)}
+
+<style>
+  .header-sentinel { position: absolute; inset: 0 0 auto; height: 120px; pointer-events: none; }
+
+  .site-header {
+    position: fixed; inset: 0 0 auto; z-index: 50;
+    background: var(--night); color: var(--on-dark); --focus: var(--brass);
+    border-bottom: 1px solid rgb(194 171 114 / 0.35);
+    padding-top: env(safe-area-inset-top);
+    transition: background-color 0.35s var(--ease), border-color 0.35s var(--ease);
+  }
+  .site-header.is-overlay { position: absolute; background: transparent; border-color: transparent; }
+  .site-header.is-overlay.is-fixed { position: fixed; }
+  .site-header.is-overlay.is-solid,
+  .site-header.is-overlay:has(details[open]) { background: var(--night); border-color: rgb(194 171 114 / 0.35); }
+
+  .header-bar { display: flex; align-items: center; gap: 1.25rem; min-height: var(--header-h); }
+  .brand { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; margin-right: auto; padding-block: 0.3rem; color: var(--on-dark); text-decoration: none; }
+  .brand img { height: 56px; width: auto; }
+  .brand-text { display: grid; line-height: 1.15; }
+  .brand-text strong { font-family: var(--font-display); font-weight: 700; font-size: 1.375rem; }
+  .brand-text span { font-size: 1.0625rem; color: var(--on-dark-2); }
+  @media (max-width: 699px) { .brand img { height: 44px; } }
+  @media (max-width: 379px) { .brand-text span { display: none; } }
+
+  ul { list-style: none; padding: 0; }
+
+  .nav-desktop { display: none; }
+  .nav-desktop ul { display: flex; gap: 0.15rem; }
+  .nav-desktop a {
+    position: relative; display: inline-flex; align-items: center; min-height: 48px; padding-inline: 0.85rem;
+    color: var(--on-dark); text-decoration: none; font-weight: 650; font-size: 1.0625rem; white-space: nowrap;
+  }
+  .nav-desktop a::after {
+    content: ''; position: absolute; left: 0.85rem; right: 0.85rem; bottom: 6px; height: 3px;
+    background: var(--brass); transform: scaleX(0); transform-origin: left; transition: transform 0.3s var(--ease);
+  }
+  .nav-desktop a:hover::after, .nav-desktop a[aria-current='page']::after { transform: scaleX(1); }
+
+  .header-actions { display: flex; align-items: center; gap: 0.75rem; }
+  .call-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .call-btn { gap: 0.5rem; }
+  @media (max-width: 699px) { .call-btn { display: none; } }
+
+  /* Phone menu (native details) */
+  .nav-mobile summary {
+    display: flex; align-items: center; gap: 0.6rem; min-height: 48px; padding: 0 0.9rem;
+    border: 2px solid var(--on-dark); border-radius: var(--radius); color: var(--on-dark);
+    font-weight: 700; font-size: 1.0625rem; list-style: none; cursor: pointer;
+  }
+  .nav-mobile summary::-webkit-details-marker { display: none; }
+  .w-close { display: none; }
+  details[open] .w-close { display: inline; }
+  details[open] .w-open { display: none; }
+  .burger { position: relative; display: block; width: 22px; height: 16px; }
+  .burger::before, .burger::after, .burger span {
+    content: ''; position: absolute; left: 0; right: 0; height: 3px; border-radius: 2px; background: currentColor;
+    transition: transform 0.3s var(--ease), opacity 0.2s;
+  }
+  .burger::before { top: 0; }
+  .burger span { top: 6px; }
+  .burger::after { top: 12px; }
+  details[open] .burger::before { transform: translateY(6px) rotate(45deg); }
+  details[open] .burger span { opacity: 0; }
+  details[open] .burger::after { transform: translateY(-6px) rotate(-45deg); }
+
+  /* Full-screen sheet below the header bar (absolute: fixed would be trapped by an ancestor effect). */
+  .sheet {
+    position: absolute; left: 0; right: 0; top: 100%;
+    height: calc(100dvh - var(--header-h) - env(safe-area-inset-top));
+    display: flex; flex-direction: column; gap: 1.25rem;
+    padding: 0 max(var(--gutter), env(safe-area-inset-right)) calc(1.5rem + env(safe-area-inset-bottom)) max(var(--gutter), env(safe-area-inset-left));
+    background: var(--night); border-top: 1px solid rgb(194 171 114 / 0.25);
+    overflow-y: auto; overscroll-behavior: contain;
+  }
+  .sheet > * { width: 100%; max-width: 40rem; margin-inline: auto; }
+  .sheet li + li { border-top: 1px solid rgb(194 171 114 / 0.25); }
+  .sheet-main a {
+    display: flex; align-items: center; min-height: 64px; padding-left: 0.5rem; border-left: 4px solid transparent;
+    font-family: var(--font-display); font-size: 1.75rem; font-weight: 650; color: var(--on-dark); text-decoration: none;
+  }
+  .sheet-more { border-top: 1px solid rgb(194 171 114 / 0.25); }
+  .sheet-more a { display: flex; align-items: center; min-height: 52px; padding-left: 0.5rem; border-left: 4px solid transparent; font-size: 1.25rem; font-weight: 650; color: var(--on-dark); text-decoration: none; }
+  .sheet a[aria-current='page'] { color: var(--brass); border-left-color: var(--brass); }
+  .sheet-info { display: grid; gap: 0.25rem; margin-top: auto; padding-top: 1rem; }
+  .sheet-info a:not(.btn) { display: flex; align-items: center; min-height: 48px; color: var(--on-dark); font-weight: 600; text-decoration: underline 1.5px var(--brass); text-underline-offset: 4px; }
+
+  @media (max-width: 1239px) {
+    :global(html:has(.nav-mobile[open])), :global(html:has(.nav-mobile[open]) body) { overflow: hidden; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    details[open] .sheet { animation: sheet-in 0.3s var(--ease); }
+    @keyframes sheet-in { from { opacity: 0; transform: translateY(-10px); } }
+  }
+  @media (min-width: 1240px) {
+    .nav-desktop { display: block; }
+    .nav-mobile { display: none; }
+  }
+</style>

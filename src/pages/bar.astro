@@ -1,0 +1,25 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { POST } from '../lib/site';
+import { seed } from '../lib/seed';
+const lede = POST.hours ? `Drink specials and food at the post. ${POST.hours}` : 'Drink specials and food at the post. For hours, call the post.';
+---
+<Base title="The Bar" description={`Drink specials and the food menu at ${POST.name}, ${POST.city}, PA.`}>
+  <PageHead title="The Bar" {lede} />
+
+  <section class="section band-paper">
+    <div class="container">
+      <div class="section-head"><h2>Drink specials</h2></div>
+      <Fragment set:html={seed.specials} />
+    </div>
+  </section>
+
+  <section class="section band-stone">
+    <div class="container">
+      <div class="section-head"><h2>Food menu</h2></div>
+      <Fragment set:html={seed.menu} />
+      <p class="hint" style="margin-top:1.5rem">Questions about hours or the menu? <a href={POST.tel}>Call {POST.phone}</a>.</p>
+    </div>
+  </section>
+</Base>
