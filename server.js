@@ -137,8 +137,9 @@ function resolveFile(pathname) {
 }
 function notFound(nreq, nres, url) {
   const f = join(DIST, '404.html');
-  nres.writeHead(404, { ...baseHeaders(url), 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
-  nres.end(nreq.method === 'HEAD' || !existsSync(f) ? undefined : readFileSync(f));
+  const body = existsSync(f) ? readFileSync(f) : undefined;
+  nres.writeHead(404, { ...baseHeaders(url, body?.toString('utf8')), 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' }); // hashes the 404 page's own inline scripts
+  nres.end(nreq.method === 'HEAD' ? undefined : body);
 }
 /** Public shape of the open shifts and the public part of the settings, only when the page has a marker that needs them. Never sign-ups, never responderEmail. */
 function publicExtras(html) {

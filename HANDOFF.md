@@ -21,7 +21,7 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Task issues:** work is handed out as GitHub issues labeled `laptop` or `desktop`, each a full brief with a "Done when" checklist. Check `gh issue list -l <your machine> --state open` at the start of a session and about every 15 minutes while idle. Take the lowest number, comment "Started", claim it below, and close it with the commit hash when done.
 
 ### Now working on
-- **Laptop:** full-site check, measuring only; findings filed as issues.
+- **Laptop:** copy sweep: rewrite parentheses out of visible copy (about, bar, history, programs, resources pages and src/lib/*.js copy they use).
 
 ## Status (handoff, 2026-10-20)
 **The site is feature-complete on the preview. The next steps are the owner's choices.**
@@ -215,8 +215,8 @@ Two machines work on this repo at the same time. Live coordination happens on th
   - `logo-mark(-reverse).svg`: small sizes (the header)
   - `logo-1c.svg` and `logo-mono.svg`: one colour, for merch
   - Red is `#952f32` and gold is `#a58c52`. The VFW marks are VFW National trademarks, so check their licensing rules before selling merch.
-- **Hero:** a muted, looping, AI-enhanced background video made from the post's own Facebook clips, with a pause button, posters and reduced-motion handling.
-- **Photos:** real photos only, from the post's Facebook group and the hall-rental listing. No stock or AI images.
+- **Hero:** a muted, looping, enhanced background video made from the post's own Facebook clips, with a pause button, posters and reduced-motion handling.
+- **Photos:** real photos only, from the post's Facebook group and the hall-rental listing. No stock or generated images.
 - **Quality bar:** the user's Riverside site (`V:\RiversideWebsite`, https://mishtuk.github.io/Riverside-Website/), with the same stack and patterns.
 
 ## Stack (mirrors the Riverside site)
