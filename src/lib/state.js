@@ -294,10 +294,12 @@ const shortDay = (ymd) => parseDay(ymd).toLocaleDateString('en-US', { weekday: '
 const clock = (t) => { const [h, m] = t.split(':').map(Number); return `${h % 12 || 12}${m ? `:${String(m).padStart(2, '0')}` : ''} ${h < 12 ? 'AM' : 'PM'}`; };
 export const timeLabel = (start, end) => (start ? clock(start) + (end ? ` to ${clock(end)}` : '') : '');
 const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+// Anchor on /events for an event: a one-off sits in its calendar month list (by id, else title and date); a repeating night sits in its regular card (title and times).
+const anchorOf = (o) => 'ev-' + String((o.recurring ?? 'none') === 'none' ? (o.eventId ?? o.id ?? `${o.title}-${o.date}`) : `${o.title}-${o.start}-${o.end}`).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 const empty = (msg) => `<p class="vfw-empty">${esc(msg)}</p>`;
 
 /** opts.today mutes past one-off events; opts.brief drops the description of recurring nights (shown once in regularHtml). */
-const eventItem = (o, { today, brief } = {}) => `<li class="vfw-event vfw-cat-${slug(o.category)}${today && o.recurring === 'none' && o.date < today ? ' vfw-past' : ''}"><time class="vfw-event-date" datetime="${o.date}">${esc(shortDay(o.date))}</time>`
+const eventItem = (o, { today, brief, anchor } = {}) => `<li${anchor ? ` id="${anchorOf(o)}"` : ''} class="vfw-event vfw-cat-${slug(o.category)}${today && o.recurring === 'none' && o.date < today ? ' vfw-past' : ''}"><time class="vfw-event-date" datetime="${o.date}">${esc(shortDay(o.date))}</time>`
   + `${o.start ? ` <span class="vfw-event-time">${esc(timeLabel(o.start, o.end))}</span>` : ''} <strong class="vfw-event-title">${esc(o.title)}</strong>`
   + ` <span class="vfw-event-cat">${esc(o.category)}</span>${o.description && !(brief && o.recurring !== 'none') ? `<p class="vfw-event-desc">${esc(o.description)}</p>` : ''}</li>`;
 
@@ -332,7 +334,7 @@ export function calendarHtml(events, year, today, { nav = false } = {}) {
     const label = new Date(Date.UTC(year, m, 1)).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
     return `<section class="vfw-month" id="month-${m + 1}"><h3 class="vfw-month-title">${label}</h3><table class="vfw-grid"><caption class="vfw-sr">${label}</caption>`
       + `<thead><tr>${head}</tr></thead><tbody>${rows.join('')}</tbody></table>`
-      + (oneOff.length ? `<ul class="vfw-month-list vfw-events">${oneOff.map((o) => eventItem(o, { today, brief: true })).join('')}</ul>` : '')
+      + (oneOff.length ? `<ul class="vfw-month-list vfw-events">${oneOff.map((o) => eventItem(o, { today, brief: true, anchor: true })).join('')}</ul>` : '')
       + (evs.length === oneOff.length ? '' : '<p class="vfw-month-regular">Plus the regular nights: <a href="#regular">see Every week and every month</a>.</p>')
       + (evs.length ? '' : '<p class="vfw-month-none">No events listed this month.</p>') + '</section>';
   });
@@ -364,7 +366,9 @@ export function regularHtml(events = [], { empty: none = 'No regular nights are 
   }
   if (!rows.size) return empty(none);
   for (const r of rows.values()) r.labels = r.labels.map((l) => (l.day ? `${list(r.ords.get(l.day).sort())} ${l.day} of the month` : l));
-  return `<ul class="vfw-events vfw-regular">${[...rows.values()].map(({ e, labels }) => `<li class="vfw-event vfw-cat-${slug(e.category)}"><strong class="vfw-event-date">${esc(labels.join(', '))}</strong>`
+  const seen = new Set(); // ids stay unique even when two cards share a title and times
+  const anchorId = (e) => { const a = anchorOf(e); return seen.has(a) ? '' : (seen.add(a), ` id="${a}"`); };
+  return `<ul class="vfw-events vfw-regular">${[...rows.values()].map(({ e, labels }) => `<li${anchorId(e)} class="vfw-event vfw-cat-${slug(e.category)}"><strong class="vfw-event-date">${esc(labels.join(', '))}</strong>`
     + `${e.start ? ` <span class="vfw-event-time">${esc(timeLabel(e.start, e.end))}</span>` : ''} <strong class="vfw-event-title">${esc(e.title)}</strong>`
     + ` <span class="vfw-event-cat">${esc(e.category)}</span>${e.description ? `<p class="vfw-event-desc">${esc(e.description)}</p>` : ''}${guideLink(e.title)}</li>`).join('')}</ul>`;
 }
@@ -475,8 +479,8 @@ export function featuredHtml(events, today, { compact = 4, days = 120, empty: no
     + `<p class="vfw-badges">${whenBadge(top.date, today)}<span class="vfw-event-cat">${esc(top.category)}</span></p>`
     + `<h3 class="vfw-feature-title">${esc(top.title)}</h3><p class="vfw-feature-time">${time(top)}</p>`
     + `${top.description ? `<p class="vfw-feature-desc">${esc(top.description.split(/(?<=[.!?])\s/)[0])}</p>` : ''}`
-    + `<a class="vfw-feature-more btn btn-outline" href="${esc(eventsHref)}">Details<span class="sr-only"> about ${esc(top.title)}</span><span aria-hidden="true"> ›</span></a></div></article>`;
-  const small = rest.slice(0, compact).map((o) => `<li class="vfw-card vfw-cat-${slug(o.category)}">${evImg(o, photoBase, 'vfw-card-thumb', '96px', true)}${dateBox(o.date)}<div>${whenBadge(o.date, today)}<strong class="vfw-card-title">${esc(o.title)}</strong>${time(o)}</div></li>`).join('');
+    + `<a class="vfw-feature-more btn btn-outline" href="${esc(eventsHref)}#${anchorOf(top)}">Details<span class="sr-only"> about ${esc(top.title)}</span><span aria-hidden="true"> ›</span></a></div></article>`;
+  const small = rest.slice(0, compact).map((o) => `<li class="vfw-card vfw-cat-${slug(o.category)}">${evImg(o, photoBase, 'vfw-card-thumb', '96px', true)}${dateBox(o.date)}<div>${whenBadge(o.date, today)}<strong class="vfw-card-title"><a href="${esc(eventsHref)}#${anchorOf(o)}">${esc(o.title)}</a></strong>${time(o)}</div></li>`).join('');
   return `<div class="vfw-featured">${big}${small ? `<ul class="vfw-cards">${small}</ul>` : ''}</div>`;
 }
 

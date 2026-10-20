@@ -54,5 +54,10 @@ const sections = [
   :global(#calendar .otp li) { flex: 0 0 auto; }
   :global(#calendar .otp a) { width: auto; min-width: 4.75rem; justify-content: center; }
   :global(.vfw-month) { scroll-margin-top: calc(var(--header-h) + 0.5rem); }
+  /* Each event is a link target from the home page ("Details"): clear the sticky header and show which one it is. */
+  :global(.vfw-event[id]) { scroll-margin-top: calc(var(--header-h) + 1rem); }
+  :global(.vfw-event[id]:target) { background: var(--olive-tint); outline: 3px solid var(--gold); outline-offset: 4px; border-radius: var(--radius); }
+  @media (prefers-reduced-motion: no-preference) { :global(.vfw-event[id]:target) { animation: ev-flash 1.6s ease-out; } }
+  @keyframes ev-flash { from { outline-color: var(--red); } to { outline-color: var(--gold); } }
   @media print { :global(.otp) { display: none; } }
 </style>
