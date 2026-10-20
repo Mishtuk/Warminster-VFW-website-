@@ -547,3 +547,15 @@ a.card:hover h3 { text-decoration: underline 2px var(--gold); text-underline-off
   .vfw-month-list .vfw-event-date, .vfw-month-list .vfw-event-time { color: #000; margin-right: 1mm; }
   .cal-key { display: none; }
 }
+
+/* Past one-off events stay on the year view, quieter */
+.vfw-past { border-left-color: var(--line); }
+.vfw-past .vfw-event-title { font-weight: 500; color: var(--ink-2); }
+.vfw-past .vfw-event-date::after { content: ' (past)'; font-weight: 400; }
+.vfw-regular .vfw-event-date { color: var(--gold-ink); }
+
+/* Hall FAQ: native details, 48px rows */
+.faq details { border-top: 1px solid var(--line); }
+.faq details:last-child { border-bottom: 1px solid var(--line); }
+.faq summary { display: flex; align-items: center; min-height: 56px; padding-block: 0.5rem; font-weight: 700; cursor: pointer; }
+.faq details p { padding: 0 0 1rem; max-width: 68ch; }

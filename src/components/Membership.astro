@@ -1,15 +1,26 @@
 ---
-/** Membership: shown once, on /about (#membership). Home links here from the board. */
+/** Join the post: shown once, on /about (#membership, #join). Wording follows team/eligibility.md. */
 import { POST } from '../lib/site';
 ---
 <section class="section band-stone" id="membership">
-  <div class="container split">
-    <div>
-      <h2 class="bars">Join the post</h2>
-      <p class="lede" style="margin-top:1rem">{POST.membership}</p>
-    </div>
-    <div class="stack">
-      <p>{POST.joinPrice}</p>
+  <div class="container">
+    <span id="join"></span>
+    <div class="section-head"><h2 class="bars">Join the post</h2><p class="lede">{POST.membership}</p></div>
+    <div class="panel prose">
+      <h3>VFW membership (veterans)</h3>
+      <p>You can join the Veterans of Foreign Wars if you served honorably, or are serving now, in a war, campaign or expedition on foreign soil or in hostile waters. Any one of these shows it: a campaign or expeditionary medal, ribbon or badge; Hostile Fire Pay or Imminent Danger Pay; or 30 days in a row (60 days in all) in Korea. Proof is usually the DD-214. <a href="https://www.vfw.org/join/eligibility" rel="noopener">VFW eligibility, vfw.org</a>.</p>
+      <p>National dues are listed at $45 a calendar year. The post may charge differently, so ask at the bar. <a href="https://www.vfw.org/join" rel="noopener">Join the VFW, vfw.org</a>. To find a post, use <a href="https://www.vfw.org/find-a-post" rel="noopener">Find a Post</a>.</p>
+      <h3>Home Association (social) membership</h3>
+      <p>{POST.joinPrice} This is a post membership, not VFW membership. It is for people who are not eligible for the VFW and for friends and family of members. Ask the post for details.</p>
+      <h3>The Auxiliary</h3>
+      <p>Relatives of a person who is or was eligible for VFW membership can join the Auxiliary: a current or surviving spouse, parents, grandparents, children, grandchildren and siblings. Step, adopted and half relatives count the same. You must be 16 or older, and proof of the veteran's service is required. <a href="https://www.vfwauxiliary.org/eligibility" rel="noopener">Auxiliary eligibility, vfwauxiliary.org</a>.</p>
+      <h3>How to join at the post</h3>
+      <ul>
+        <li>Ask at the bar, or call <a href={POST.tel}>{POST.phone}</a>.</li>
+        <li>Come to the office: {POST.officeHours}.</li>
+        <li>{POST.meetings}</li>
+        <li>{POST.barRule}</li>
+      </ul>
       <p><a class="btn" href={POST.tel}>Call {POST.phone}</a></p>
     </div>
   </div>

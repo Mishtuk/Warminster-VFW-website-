@@ -21,6 +21,7 @@
 </dialog>
 
 <script>
+  type Item = { src: string; alt: string; cap: string };
   const dlg = document.getElementById('lightbox') as HTMLDialogElement | null;
   if (dlg && typeof dlg.showModal === 'function') {
     const img = dlg.querySelector('.lb-img') as HTMLImageElement;
@@ -29,33 +30,45 @@
     const prev = dlg.querySelector('.lb-prev') as HTMLButtonElement;
     const next = dlg.querySelector('.lb-next') as HTMLButtonElement;
     const full = (el: HTMLImageElement) => (el.getAttribute('src') || el.currentSrc).replace('-800.', '.');
-    const text = (el: HTMLImageElement) => el.closest('figure')?.querySelector('figcaption')?.textContent?.trim() || el.alt || '';
+    const capOf = (el: HTMLImageElement) => el.closest('figure')?.querySelector('figcaption')?.textContent?.trim() || el.alt || '';
+    const item = (el: HTMLImageElement): Item => ({ src: full(el), alt: el.alt, cap: capOf(el) });
 
     const all = [...document.querySelectorAll<HTMLImageElement>('.snap img, .gallery img')]
       .filter((el) => !el.closest('[aria-hidden="true"]') && !el.closest('dialog'));
-    const groupOf = (el: HTMLElement) => el.closest('.food-snaps, .life, .gallery, .hall-photos, section, main');
-    let list: HTMLImageElement[] = [];
+    const groupOf = (el: HTMLElement) => el.closest('[data-gallery], .food-snaps, .life, .gallery, .hall-photos, section, main');
+    let list: Item[] = [];
     let i = 0;
 
     const show = (n: number) => {
       i = (n + list.length) % list.length;
-      const el = list[i];
-      // The full-size file loads only now. Facebook photos have an uncropped 1600px "-full" copy; others fall back to the page file.
-      const base = full(el);
-      img.onerror = () => { img.onerror = null; img.src = base; };
-      img.src = /\/(food|life)-[^/]+\.webp$/.test(base) ? base.replace(/\.webp$/, '-full.webp') : base;
-      img.alt = el.alt;
-      cap.textContent = text(el);
+      const it = list[i];
+      img.src = it.src; // the full-size file loads only now
+      img.alt = it.alt;
+      cap.textContent = it.cap;
       count.textContent = `${i + 1} of ${list.length}`;
     };
-    const open = (el: HTMLImageElement) => {
-      const g = groupOf(el);
-      list = all.filter((x) => groupOf(x) === g);
+    const openList = (items: Item[], start: number) => {
+      list = items;
       const many = list.length > 1;
-      prev.hidden = next.hidden = !many;
-      count.hidden = !many;
-      show(list.indexOf(el));
+      prev.hidden = next.hidden = count.hidden = !many;
+      show(Math.max(0, start));
       dlg.showModal();
+    };
+    // A group that declares data-gallery="x" opens a bigger list kept in <script type="application/json" data-gallery-list="x">.
+    // Nothing from it loads until the viewer shows that photo.
+    const galleryItems = (name: string): Item[] | null => {
+      const raw = document.querySelector(`script[data-gallery-list="${name}"]`)?.textContent;
+      try { return raw ? (JSON.parse(raw) as Item[]) : null; } catch { return null; }
+    };
+    const open = (el: HTMLImageElement) => {
+      const g = groupOf(el) as HTMLElement | null;
+      const big = g?.dataset.gallery ? galleryItems(g.dataset.gallery) : null;
+      if (big) {
+        const at = big.findIndex((x) => x.src === full(el));
+        return openList(big, at < 0 ? 0 : at);
+      }
+      const mine = all.filter((x) => groupOf(x) === g);
+      openList(mine.map(item), mine.indexOf(el));
     };
 
     for (const el of all) {
@@ -72,11 +85,13 @@
       }
       target.addEventListener('click', (e) => { e.preventDefault(); open(el); });
     }
+    for (const b of document.querySelectorAll<HTMLElement>('[data-open-gallery]')) {
+      b.addEventListener('click', () => { const big = galleryItems(b.dataset.openGallery || ''); if (big) openList(big, 0); });
+    }
 
     prev.addEventListener('click', () => show(i - 1));
     next.addEventListener('click', () => show(i + 1));
     dlg.querySelector('.lb-close')!.addEventListener('click', () => dlg.close());
-    // Backdrop: a click that lands on the dialog itself (outside the content) closes it.
     dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
     dlg.addEventListener('close', () => { img.removeAttribute('src'); });
     dlg.addEventListener('keydown', (e) => {
@@ -84,7 +99,6 @@
       if (e.key === 'ArrowLeft') { e.preventDefault(); show(i - 1); }
       if (e.key === 'ArrowRight') { e.preventDefault(); show(i + 1); }
     });
-    // Swipe on phones
     let x0 = 0, y0 = 0;
     dlg.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
     dlg.addEventListener('touchend', (e) => {

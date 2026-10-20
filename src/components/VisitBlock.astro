@@ -1,0 +1,43 @@
+---
+/** "New here?": hours, address, phone, who is welcome. Used on home (below the hero) and /contact. */
+import { POST, href } from '../lib/site';
+interface Props { office?: boolean }
+const { office = false } = Astro.props;
+---
+<section class="section visit" aria-labelledby="visit-title">
+  <div class="container">
+    <div class="panel">
+      <h2 id="visit-title" class="bars">New here?</h2>
+      <div class="visit-grid">
+        <div>
+          <h3>Bar hours</h3>
+          <dl class="hours">{POST.hours.map(([d, h]) => <div><dt>{d}</dt><dd>{h}</dd></div>)}</dl>
+        </div>
+        <div>
+          <h3>Kitchen hours</h3>
+          <dl class="hours">{POST.kitchen.map(([d, h]) => <div><dt>{d}</dt><dd>{h}</dd></div>)}</dl>
+          <p class="hint">Call to confirm; the kitchen is closed on hall rental days.</p>
+        </div>
+        <div>
+          <h3>Find us</h3>
+          <p>{POST.street}<br />{POST.city}, {POST.region} {POST.zip}</p>
+          <p><a class="btn btn-outline" href={POST.mapsUrl} rel="noopener">Directions</a></p>
+          <p><a class="visit-tel" href={POST.tel}>{POST.phone}</a></p>
+          {office && <p>Office: {POST.officeHours}.</p>}
+        </div>
+      </div>
+      <p><strong>The bar is for members and their guests, and joining is easy.</strong> <a href={href('/about#join')}>How to join</a></p>
+      <p>Events marked Open to the Public need no membership: {POST.publicNights.join(', ')}.</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .visit-grid { display: grid; gap: 1.75rem 2.5rem; margin: 1.25rem 0 1.5rem; }
+  @media (min-width: 800px) { .visit-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .visit h3 { font-size: var(--step-1); margin-bottom: 0.5rem; }
+  .hours div { display: flex; justify-content: space-between; gap: 1rem; padding-block: 0.3rem; border-bottom: 1px solid var(--line); }
+  .hours dt { font-weight: 700; }
+  .visit-tel { font-family: var(--font-display); font-weight: 700; font-size: var(--step-2); }
+  .visit .panel > p { margin-top: 0.75rem; }
+</style>

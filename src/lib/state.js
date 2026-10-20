@@ -161,9 +161,10 @@ export const timeLabel = (start, end) => (start ? clock(start) + (end ? ` to ${c
 const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-');
 const empty = (msg) => `<p class="vfw-empty">${esc(msg)}</p>`;
 
-const eventItem = (o) => `<li class="vfw-event vfw-cat-${slug(o.category)}"><time class="vfw-event-date" datetime="${o.date}">${esc(shortDay(o.date))}</time>`
+/** opts.today mutes past one-off events; opts.brief drops the description of recurring nights (shown once in regularHtml). */
+const eventItem = (o, { today, brief } = {}) => `<li class="vfw-event vfw-cat-${slug(o.category)}${today && o.recurring === 'none' && o.date < today ? ' vfw-past' : ''}"><time class="vfw-event-date" datetime="${o.date}">${esc(shortDay(o.date))}</time>`
   + `${o.start ? ` <span class="vfw-event-time">${esc(timeLabel(o.start, o.end))}</span>` : ''} <strong class="vfw-event-title">${esc(o.title)}</strong>`
-  + ` <span class="vfw-event-cat">${esc(o.category)}</span>${o.description ? `<p class="vfw-event-desc">${esc(o.description)}</p>` : ''}</li>`;
+  + ` <span class="vfw-event-cat">${esc(o.category)}</span>${o.description && !(brief && o.recurring !== 'none') ? `<p class="vfw-event-desc">${esc(o.description)}</p>` : ''}</li>`;
 
 /** Next events from today: <ul class="vfw-events">. opts: limit (5), days (120), empty. */
 export function upcomingHtml(events, today, { limit = 5, days = 120, empty: none = `No upcoming events are listed right now. ${CALL}` } = {}) {
@@ -195,10 +196,32 @@ export function calendarHtml(events, year, today, { nav = false } = {}) {
     const label = new Date(Date.UTC(year, m, 1)).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
     return `<section class="vfw-month" id="month-${m + 1}"><h3 class="vfw-month-title">${label}</h3><table class="vfw-grid"><caption class="vfw-sr">${label}</caption>`
       + `<thead><tr>${head}</tr></thead><tbody>${rows.join('')}</tbody></table>`
-      + (evs.length ? `<ul class="vfw-month-list vfw-events">${evs.map(eventItem).join('')}</ul>` : '<p class="vfw-month-none">No events listed this month.</p>') + '</section>';
+      + (evs.length ? `<ul class="vfw-month-list vfw-events">${evs.map((o) => eventItem(o, { today, brief: true })).join('')}</ul>` : '<p class="vfw-month-none">No events listed this month.</p>') + '</section>';
   });
   const links = nav ? `<nav class="vfw-cal-nav" aria-label="Choose a year"><a href="?year=${year - 1}">${year - 1}</a> <strong>${year}</strong> <a href="?year=${year + 1}">${year + 1}</a></nav>` : '';
   return `<div class="vfw-calendar" data-year="${year}">${links}${months.join('')}</div>`;
+}
+
+const ORD = ['', '1st', '2nd', '3rd', '4th', '5th'];
+const scheduleLabel = (e) => {
+  const d = parseDay(e.date), day = DAYS[d.getUTCDay()], nth = Math.ceil(d.getUTCDate() / 7);
+  if (e.recurring === 'weekly') return `Every ${day}`;
+  if (e.recurring === 'monthly_weekday') return `${ORD[nth]} ${day} of the month`;
+  return `Monthly on the ${d.getUTCDate()}${['th', 'st', 'nd', 'rd'][(d.getUTCDate() % 100 > 10 && d.getUTCDate() % 100 < 14) || d.getUTCDate() % 10 > 3 ? 0 : d.getUTCDate() % 10]}`;
+};
+/** Regular nights (anything that repeats), each described once: <ul class="vfw-events vfw-regular">. Same title, time and text merge into one row. */
+export function regularHtml(events = [], { empty: none = 'No regular nights are listed right now.' } = {}) {
+  const rows = new Map();
+  for (const e of events.filter((x) => x.enabled !== false && x.recurring !== 'none')) {
+    const key = [e.title, e.start, e.end, e.description].join('|');
+    const row = rows.get(key) ?? { e, labels: [] };
+    row.labels.push(scheduleLabel(e));
+    rows.set(key, row);
+  }
+  if (!rows.size) return empty(none);
+  return `<ul class="vfw-events vfw-regular">${[...rows.values()].map(({ e, labels }) => `<li class="vfw-event vfw-cat-${slug(e.category)}"><strong class="vfw-event-date">${esc(labels.join(', '))}</strong>`
+    + `${e.start ? ` <span class="vfw-event-time">${esc(timeLabel(e.start, e.end))}</span>` : ''} <strong class="vfw-event-title">${esc(e.title)}</strong>`
+    + ` <span class="vfw-event-cat">${esc(e.category)}</span>${e.description ? `<p class="vfw-event-desc">${esc(e.description)}</p>` : ''}</li>`).join('')}</ul>`;
 }
 
 const PERIOD_LABEL = (s) => (s.period === 'weekly' ? `Every ${DAYS[s.weekday]}` : { daily: 'Daily', monthly: 'This month', seasonal: 'Seasonal' }[s.period]);
@@ -251,6 +274,7 @@ export function injectMarkers(html, state, today, year) {
   const y = Number.isInteger(+year) && year >= 2000 && year <= 2100 ? +year : +today.slice(0, 4);
   const parts = {
     'events-upcoming': () => upcomingHtml(state.events, today),
+    'events-regular': () => regularHtml(state.events),
     calendar: () => calendarHtml(state.events, y, today, { nav: true }),
     specials: () => specialsHtml(state.specials, today),
     menu: () => menuHtml(state.menu),

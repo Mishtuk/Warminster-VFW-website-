@@ -1,9 +1,12 @@
 ---
 import Base from '../layouts/Base.astro';
 import Hero from '../components/Hero.astro';
+import VisitBlock from '../components/VisitBlock.astro';
 import FoodSnaps from '../components/FoodSnaps.astro';
 import { POST, href, photo } from '../lib/site';
 import { seed } from '../lib/seed';
+import { HALL_PHOTOS } from '../lib/hall-photos';
+const hallGallery = JSON.stringify(HALL_PHOTOS.map((p) => ({ src: photo(p.name).src, alt: p.alt, cap: p.cap })));
 
 const life = [
   { name: 'life-60th-dinner', cap: "The post's 60th anniversary dinner, September 2025", alt: 'Members at dinner in the hall for the 60th anniversary' },
@@ -16,6 +19,7 @@ const life = [
     <link rel="preload" as="image" href={href('/media/hero-poster.jpg')} media="not all and (max-width: 700px) and (orientation: portrait)" fetchpriority="high" />
   </Fragment>
   <Hero />
+  <VisitBlock />
 
   <!-- Food and drink: photos first, then the week's specials on a printed menu card -->
   <section class="section band-paper" aria-labelledby="food-title">
@@ -33,7 +37,7 @@ const life = [
   <!-- The hall: a rental service, so it gets a big, plain band and one clear action -->
   <section class="section band-stone" aria-labelledby="hall-title">
     <div class="container hall-grid">
-      <div class="hall-photos">
+      <div class="hall-photos" data-gallery="hall">
         <figure class="snap hall-main" style="--tilt:-0.8deg">
           <img {...photo('hall-07')} sizes="(min-width: 900px) 45vw, 100vw" alt="The hall set with round tables" loading="lazy" decoding="async" fetchpriority="low" />
         </figure>
@@ -48,6 +52,8 @@ const life = [
         <ul class="facts">
           {POST.hallFacts.slice(0, 4).map(([t, d]) => <li><strong>{t}</strong><span>{d}</span></li>)}
         </ul>
+        <p style="margin-top:1.25rem"><button type="button" class="btn btn-outline" data-open-gallery="hall">See all {HALL_PHOTOS.length} hall photos</button></p>
+        <script type="application/json" data-gallery-list="hall" set:html={hallGallery}></script>
         <div class="btn-row" style="margin-top:1.75rem">
           <a class="btn" href={href('/hall#inquiry')}>Rent the Hall</a>
           <a class="btn btn-outline" href={POST.tel}>Call {POST.phone}</a>

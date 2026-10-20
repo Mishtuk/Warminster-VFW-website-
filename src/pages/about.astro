@@ -28,7 +28,21 @@ const tabs = [{ label: 'About', path: '/about' }, { label: 'History', path: '/hi
         {POST.pastCommanders.map(([n, d]) => <li><span class="year">{n}</span>{d}</li>)}
         <li><span class="year">{POST.pastAuxPresident}</span>Auxiliary President until June 2026</li>
       </ol>
-      <p>The post's official name is {POST.officialName}. {POST.joinPrice} {POST.barRule}</p>
+      <p>The post's official name is {POST.officialName}.</p>
+    </div></div>
+  </section>
+
+  <section class="section" id="auxiliary">
+    <div class="container"><div class="panel prose">
+      <h2 class="bars">The Auxiliary</h2>
+      <p>The VFW Auxiliary at Post 6493 marked its 50th year in 2025. Its president is {POST.auxPresident}, from June 2026.</p>
+      <ul>
+        <li>Runs the Thursday bingo and the Auxiliary Cash Bash.</li>
+        <li>Prepared 50 Easter baskets for F.E.A.S.T. in spring 2025.</li>
+        <li>Volunteers at the Delaware Valley Veterans Home, and received the Citation of Excellence, Outstanding Hospital of the Year, from the PA Auxiliary.</li>
+        <li>Honored Ruth Mann, age 93, for 50 years of membership in November 2025. The youngest member is 16.</li>
+      </ul>
+      <p>Who can join is explained in <a href="#join">Join the post</a>.</p>
     </div></div>
   </section>
 
