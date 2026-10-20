@@ -1,0 +1,21 @@
+---
+/**
+ * The bar's tap tower above the home food section (desktop only; hidden below 900px and on touch screens).
+ * Marker: the seed is wrapped as <!--vfw:taps-->...<!--/vfw:taps--> inside div.taps, the same convention as docs/markers.md.
+ * Contract (the server renderer reproduces it):
+ *   <div class="taps" data-pour aria-label="Beer taps"><!--vfw:taps--><ul class="tap-row">
+ *     <li class="tap" style="--tap-bg:BG;--tap-fg:FG"><button type="button" class="tap-handle" aria-label="Pour a NAME">
+ *       <span class="tap-badge"><span class="tap-name">NAME</span></span></button><span class="tap-nozzle" aria-hidden="true"></span></li>
+ *   </ul><!--/vfw:taps--></div>
+ * Styles live in global.css (.taps, .tap-*), so injected markup is styled too. Seed: src/content/taps.json.
+ */
+import taps from '../content/taps.json';
+
+const esc = (s: string) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+const color = (s: string) => (/^#[0-9a-f]{3,8}$/i.test(s) ? s : '#333');
+const seed = `<!--vfw:taps--><ul class="tap-row">${taps.map((t) =>
+  `<li class="tap" style="--tap-bg:${color(t.bg)};--tap-fg:${color(t.fg)}"><button type="button" class="tap-handle" aria-label="Pour a ${esc(t.name)}"><span class="tap-badge"><span class="tap-name">${esc(t.name)}</span></span></button><span class="tap-nozzle" aria-hidden="true"></span></li>`
+).join('')}</ul><!--/vfw:taps-->`;
+---
+<div class="taps" data-pour aria-label="Beer taps"><Fragment set:html={seed} /></div>
+<script>import '../scripts/pour.ts';</script>

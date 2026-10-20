@@ -62,6 +62,7 @@
       .fld.bad input, .fld.bad select, .fld.bad textarea { border-color: var(--red-ink); }
       .ferr, .err { color: var(--red-ink); font-weight: 700; margin: .3rem 0 0; }
       label.check { display: flex; gap: .75rem; align-items: center; font-weight: 600; min-height: 44px; margin: 0 0 .5rem; }
+      input[type=color] { display: block; width: 100%; min-height: 52px; margin-top: .3rem; padding: .25rem; background: var(--card); border: 2px solid var(--field); border-radius: 6px; cursor: pointer; }
       input[type=checkbox] { width: 28px; height: 28px; flex: none; accent-color: var(--night); }
       .ff { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }
       .ff .wide { grid-column: 1 / -1; }
@@ -217,6 +218,7 @@
         <section data-section="dashboard"></section>
         <section data-section="events" hidden></section>
         <section data-section="specials" hidden></section>
+        <section data-section="taps" hidden></section>
         <section data-section="menu" hidden></section>
         <section data-section="news" hidden></section>
         <section data-section="shop" hidden></section>
@@ -268,9 +270,9 @@
         upload: 'The picture could not be saved. Try again.', in_use: 'A news item or a product still uses that picture.',
         past: 'Pick today or a later date.', slots: 'Enter a number from 1 to 100.', responder: 'Add who answers before turning the form on.', responderEmail: 'That email address does not look right.',
         donateUrl: 'That link must start with https:// and be a full web address.', donateLabel: 'Keep the button words under 40 characters.',
-        checkoutUrl: 'That link must start with https:// and be a full web address.', options: 'Keep it to 12 choices, each under 30 characters.', name: 'Please enter a name.', order: 'The order could not be saved. Reload the page and try again.' };
+        checkoutUrl: 'That link must start with https:// and be a full web address.', options: 'Keep it to 12 choices, each under 30 characters.', name: 'Please enter a name of up to 40 characters.', bg: 'Pick a badge colour.', fg: 'Pick a text colour.', order: 'The order could not be saved. Reload the page and try again.' };
       const ALT_HINT = 'For people who cannot see it, for example: Members at the 60th anniversary dinner. If you leave it empty, the headline is used.';
-      const ERRF = { title: 'title', date: 'date', start: 'start', end: 'end', label: 'label', body: 'body', range: 'end', name: 'name', checkoutUrl: 'checkoutUrl', options: 'options' }; // error key -> the field it belongs to
+      const ERRF = { title: 'title', date: 'date', start: 'start', end: 'end', label: 'label', body: 'body', range: 'end', name: 'name', bg: 'bg', fg: 'fg', checkoutUrl: 'checkoutUrl', options: 'options' }; // error key -> the field it belongs to
       const money = (n) => Number(n).toLocaleString('en-US');
       const plural = (n, one, many) => `${money(n)} ${n === 1 ? one : many}`;
       const UTC = (d, o) => new Date(d + 'T12:00:00Z').toLocaleDateString('en-US', { ...o, timeZone: 'UTC' });
@@ -330,7 +332,7 @@
         f.password.value = '';
         start();
       });
-      const NAV = [['dashboard', 'Dashboard', 'home'], ['events', 'Events', 'calendar'], ['specials', 'Drink specials', 'glass'], ['menu', 'Food menu', 'plate'], ['news', 'News', 'news'], ['shop', 'Shop', 'bag'],
+      const NAV = [['dashboard', 'Dashboard', 'home'], ['events', 'Events', 'calendar'], ['specials', 'Drink specials', 'glass'], ['taps', 'Beers on tap', 'glass'], ['menu', 'Food menu', 'plate'], ['news', 'News', 'news'], ['shop', 'Shop', 'bag'],
         ['volunteers', 'Volunteers', 'hand'], ['inquiries', 'Hall inquiries', 'mail'], ['help', 'Help requests', 'lifebuoy'], ['security', 'Security log', 'shield'], ['settings', 'Site settings', 'gear'], ['account', 'Account', 'person']];
       const navLinks = () => NAV.map(([id, t, i]) => h('a', { href: '#' + id, 'data-view': id }, ico(i), h('span', {}, t), (id === 'inquiries' || id === 'help' || id === 'shop') && h('span', { class: 'count', 'data-count': id === 'inquiries' ? '' : id, hidden: true })));
       const navTail = () => [h('a', { href: '/', target: '_blank', rel: 'noopener' }, ico('ext'), 'View the website'), h('button', { class: 'linkbtn', type: 'button', onclick: signOut }, 'Sign out')];
@@ -375,6 +377,11 @@
           pre: (v) => ({ ...v, options: (v.options || []).join('\n') }), post: (o) => ({ ...o, options: o.options.split('\n') }),
           line: (x) => x.name, chips: (x) => (x.checkoutUrl ? h('span', { class: 'chip edit' }, 'Buy online') : h('span', { class: 'chip muted' }, 'Pay at pickup')),
           sub: (x) => [x.price, x.options.length && 'Options: ' + x.options.join(', ')].filter(Boolean).join(' · ') },
+        taps: { title: 'Beers on tap', one: 'beer tap', add: 'Add a beer', empty: 'No beers on tap yet.', more: ' The row of taps on the home page stays hidden until a beer is on the website.', gone: 'It will be gone for good. To keep it but take it off the website, choose Hide instead.', fields: [
+          ['name', 'Name of the beer', 'text', null, null, { hint: 'Up to 40 characters, like Yuengling.' }], ['bg', 'Badge colour', 'color', null, null, { half: true }], ['fg', 'Text colour', 'color', null, null, { half: true }],
+          ['preview', 'How the badge will look', 'preview'], ['enabled', 'Show on the website', 'check']],
+          blank: { name: '', bg: '#c8102e', fg: '#ffffff', enabled: true },
+          line: (x) => x.name, chips: (x) => h('span', { class: 'chip', style: `background:${x.bg};color:${x.fg}` }, x.name), sub: (x) => `Badge ${x.bg}, text ${x.fg}` },
       };
       const thumbOf = (n) => '/media/photos/' + (S.photos.find((p) => p.name === n)?.thumb || n);
 
@@ -428,6 +435,11 @@
         const [k, label, type, opts, , x = {}] = f;
         if (type === 'check') return h('label', { class: 'check wide' }, h('input', { type: 'checkbox', name: k, checked: !!v[k] }), label);
         if (type === 'photo') return photoField(f, v, form);
+        if (type === 'preview') {
+          const chip = h('span', { class: 'chip' }), upd = () => { const e = form.elements; chip.textContent = e.name.value || 'Beer name'; chip.style.background = e.bg.value; chip.style.color = e.fg.value; };
+          form.addEventListener('input', upd); queueMicrotask(upd);
+          return h('div', { class: 'fld wide' }, h('label', {}, label), chip);
+        }
         const ctl = type === 'textarea' ? h('textarea', { name: k, value: v[k] ?? '', rows: x.rows, maxlength: x.max }) : type === 'select' ? h('select', { name: k }, opts.map(([val, t]) => h('option', { value: val, selected: String(v[k]) === val }, t))) : h('input', { type, name: k, value: v[k] ?? '' });
         return fld('f-' + k, label, ctl, type === 'date' ? { ...x, cls: 'dt' } : x);
       }
@@ -436,13 +448,13 @@
         h('a', { class: 'btn' + (here === 'shop-orders' ? '' : ' alt'), href: '#shop-orders' }, 'Orders' + (S.newOrders ? ` · ${S.newOrders} new` : '')));
       function renderCrud(name, hl, focus = []) {
         guard = null;
-        const c = CFG[name], sec = $(`[data-section=${c.sec || name}]`), items = S[name], shop = name === 'products';
+        const c = CFG[name], sec = $(`[data-section=${c.sec || name}]`), items = S[name], shop = name === 'products', ordered = shop || name === 'taps';
         const mvb = (it, i, d) => ((d < 0 ? i > 0 : i < items.length - 1) ? h('button', { class: 'btn alt mv', type: 'button', 'data-f': it.id + (d < 0 ? 'up' : 'down'), onclick: () => move(i, d) }, ico(d < 0 ? 'up' : 'down'), d < 0 ? 'Move up' : 'Move down') : h('span', { class: 'mv-gap', 'aria-hidden': 'true' }));
         const row = (it, i) => h('div', { class: 'item', 'data-id': it.id },
           (name === 'news' || shop) && (it.photo ? h('img', { class: 'thumb', src: thumbOf(it.photo), alt: '', loading: 'lazy' }) : shop && h('img', { class: 'thumb thumb-ph', src: '/brand/logo-mark.svg', alt: '' })),
           h('div', { class: 'what' }, h('div', { class: 't' }, h('strong', {}, c.line(it)), it.enabled ? h('span', { class: 'chip ok' }, 'On the website') : h('span', { class: 'chip muted' }, 'Not on the website'), c.chips?.(it)), h('div', { class: 'meta' }, c.sub(it))),
           h('div', { class: 'acts' },
-            shop && mvb(it, i, -1), shop && mvb(it, i, 1),
+            ordered && mvb(it, i, -1), ordered && mvb(it, i, 1),
             h('button', { class: 'btn alt', type: 'button', onclick: () => edit(it) }, 'Edit'),
             h('button', { class: 'btn alt', type: 'button', onclick: () => setOn(it.id, !it.enabled) }, it.enabled ? 'Hide' : 'Show'),
             h('button', { class: 'btn danger', type: 'button', onclick: () => remove(it) }, 'Delete')));
@@ -461,10 +473,10 @@
         async function move(i, d) {
           const ids = items.map((x) => x.id), old = [...ids], id = ids[i];
           [ids[i], ids[i + d]] = [ids[i + d], ids[i]];
-          const r = await api('PUT', 'admin/products-order', { ids });
+          const r = await api('PUT', `admin/${name}-order`, { ids });
           if (!r.ok) return toast(say(r));
           S[name] = r.data.items; renderCrud(name, null, [id + (d < 0 ? 'up' : 'down'), id + (d < 0 ? 'down' : 'up')]);
-          toast('Moved.', { label: 'Undo', fn: async () => { const u = await api('PUT', 'admin/products-order', { ids: old }); if (u.ok) { S[name] = u.data.items; renderCrud(name, id); } else toast(say(u)); } });
+          toast('Moved.', { label: 'Undo', fn: async () => { const u = await api('PUT', `admin/${name}-order`, { ids: old }); if (u.ok) { S[name] = u.data.items; renderCrud(name, id); } else toast(say(u)); } });
         }
 
         async function setOn(id, on) {
@@ -482,7 +494,7 @@
           const v = c.pre ? c.pre(it || c.blank) : it || { ...c.blank }, form = h('form', { novalidate: true }), err = h('p', { class: 'err', role: 'alert', hidden: true });
           const rows = c.fields.map((f) => field(f, v, form));
           const sync = () => c.fields.forEach((f, i) => { if (f[4]) rows[i].hidden = !f[4]({ period: form.elements.period?.value }); });
-          const vals = () => { const out = { id: v.id }; for (const f of c.fields) out[f[0]] = f[2] === 'check' ? form.elements[f[0]].checked : form.elements[f[0]].value; return c.post ? c.post(out) : out; };
+          const vals = () => { const out = { id: v.id }; for (const f of c.fields) if (f[2] !== 'preview') out[f[0]] = f[2] === 'check' ? form.elements[f[0]].checked : form.elements[f[0]].value; return c.post ? c.post(out) : out; };
           const back = async () => { if (await leave()) renderCrud(name); };
           put(form, h('div', { class: 'ff' }, rows), err, h('div', { class: 'formbar' }, h('button', { class: 'btn', type: 'submit' }, 'Save'), h('button', { class: 'btn quiet', type: 'button', onclick: back }, 'Cancel')));
           form.addEventListener('change', sync);
@@ -825,9 +837,9 @@
         help_honeypot: ['Stopped a spam message on the help form', 'warn'], volunteer_honeypot: ['Stopped a spam message on the volunteer form', 'warn'],
         help_rate_limited: ['Too many messages from one visitor', 'warn'], volunteer_rate_limited: ['Too many messages from one visitor', 'warn'], settings_update: ['Changed the site settings', 'edit', 'gear'],
         shop_order: ['A shop order arrived', 'edit', 'bag'], order_delete: ['Deleted a shop order', 'edit', 'bin'], orders_purged: ['Old shop orders cleared automatically', 'muted', 'clock'],
-        shop_honeypot: ['Stopped a spam message on the shop form', 'warn'], shop_rate_limited: ['Too many shop orders from one visitor', 'warn'], products_reorder: ['Reordered the shop products', 'muted', 'bag'] };
+        shop_honeypot: ['Stopped a spam message on the shop form', 'warn'], shop_rate_limited: ['Too many shop orders from one visitor', 'warn'], products_reorder: ['Reordered the shop products', 'muted', 'bag'], taps_reorder: ['Reordered the beers on tap', 'muted', 'glass'] };
       for (const [a, w] of [['create', 'Added'], ['update', 'Changed'], ['delete', 'Deleted']]) EVT[`shifts_${a}`] = [`${w} a volunteer shift`, 'edit', a === 'delete' ? 'bin' : 'hand'];
-      for (const [k, t] of [['events', 'an event'], ['specials', 'a drink special'], ['news', 'a news item'], ['products', 'a shop product']]) for (const [a, w] of [['create', 'Added'], ['update', 'Changed'], ['delete', 'Deleted']]) EVT[`${k}_${a}`] = [`${w} ${t}`, 'edit', a === 'delete' ? 'bin' : 'pencil'];
+      for (const [k, t] of [['events', 'an event'], ['specials', 'a drink special'], ['news', 'a news item'], ['products', 'a shop product'], ['taps', 'a beer on tap']]) for (const [a, w] of [['create', 'Added'], ['update', 'Changed'], ['delete', 'Deleted']]) EVT[`${k}_${a}`] = [`${w} ${t}`, 'edit', a === 'delete' ? 'bin' : 'pencil'];
       const KIND_ICON = { ok: 'check', warn: 'warn', bad: 'bshield', edit: 'pencil', muted: 'clock' };
       function evInfo(e) {
         let [name, kind, icon] = EVT[e.type] || ['Other activity', 'muted'], detail = e.detail;
@@ -881,7 +893,7 @@
       }
 
       // ---------- navigation ----------
-      const VIEWS = { dashboard: renderDashboard, events: () => renderCrud('events'), specials: () => renderCrud('specials'), menu: renderMenu, news: () => renderCrud('news'), shop: () => renderCrud('products'), 'shop-orders': renderShopOrders, volunteers: renderVolunteers, inquiries: renderInquiries, help: renderHelp, security: renderSecurity, settings: renderSettings, account: renderAccount };
+      const VIEWS = { dashboard: renderDashboard, events: () => renderCrud('events'), specials: () => renderCrud('specials'), taps: () => renderCrud('taps'), menu: renderMenu, news: () => renderCrud('news'), shop: () => renderCrud('products'), 'shop-orders': renderShopOrders, volunteers: renderVolunteers, inquiries: renderInquiries, help: renderHelp, security: renderSecurity, settings: renderSettings, account: renderAccount };
       let cur = '', restoring = false;
       function show() {
         const v = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'dashboard';

@@ -1,0 +1,11 @@
+[
+  { "id": "t1", "name": "Yuengling", "bg": "#17402e", "fg": "#ead9a6" },
+  { "id": "t2", "name": "Bud Light", "bg": "#0b3c91", "fg": "#ffffff" },
+  { "id": "t3", "name": "Miller Lite", "bg": "#f5f2ea", "fg": "#0c2a6e" },
+  { "id": "t4", "name": "Coors Light", "bg": "#c9cfd6", "fg": "#9e1420" },
+  { "id": "t5", "name": "Michelob Ultra", "bg": "#eef1f4", "fg": "#1b2b5c" },
+  { "id": "t6", "name": "Budweiser", "bg": "#b3121c", "fg": "#ffffff" },
+  { "id": "t7", "name": "Blue Moon", "bg": "#1c3a6b", "fg": "#f2a65a" },
+  { "id": "t8", "name": "Modelo", "bg": "#0e2442", "fg": "#dcb760" },
+  { "id": "t9", "name": "Guinness", "bg": "#141210", "fg": "#d9bd78" }
+]

@@ -19,7 +19,6 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Commits** are authored as Mish (see the top of this file).
 
 ### Now working on
-- **Desktop:** beer tap tower on the home page (src/components/BeerTaps.astro, src/scripts/pour.ts, src/content/taps.json, the "taps" state/marker/admin section in state.js, server.js and admin.astro, the .taps block at the end of global.css).
 - **Desktop:** hero photo bank to 150+ (src/lib/hero-photos.ts, public/media/photos/hero-*, src/components/HeroCarousel.astro).
 
 ## Status (handoff, 2026-10-20)
@@ -76,6 +75,11 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Veteran help request `/help`:** off until the admin turns it on and names who answers (Site settings). The crisis line comes first; requests are kept 90 days, and the email to the post leaves out the message.
 - **Youth contests `/youth`:** Voice of Democracy and Patriot's Pen 2026-27 (theme, deadline countdown, prizes) and VFW scholarships, linked to vfw.org.
 - **Admin:** Volunteers, Help requests and Site settings views. Public forms have rate limits, origin checks, a honeypot and size caps.
+
+### Beer taps on the home page (2026-10-20)
+- A tap tower sits above the food snapshots (`src/components/BeerTaps.astro`, styles in the `.taps` block of global.css). Each handle has an oval name badge in the brand's colours; no logo artwork.
+- Pressing a handle pours beer (`src/scripts/pour.ts`, a canvas overlay). It splashes on the photos, the menu card and other boxes, runs off the nearest edge, and leaves the bottom of the screen. It only runs on desktop with a mouse (900px or wider) and is off with reduced motion; phones don't get the tower at all.
+- The taps are placeholders (9 common drafts). Staff edit them in Admin > Beers on tap: name, badge colours, Show on website, order. Marker `taps`.
 
 ### Post shop `/shop` (2026-10-20)
 - Products are added in Admin > Shop: name, price, description, sizes, picture (same upload as news), Show on website, Move up/down. With no products it shows "Coming soon".

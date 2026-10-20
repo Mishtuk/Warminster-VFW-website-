@@ -263,9 +263,9 @@ a.card:hover h3 { text-decoration: underline 2px var(--gold); text-underline-off
   line-height: 1.15; letter-spacing: 0.04em; text-transform: uppercase; transform: rotate(-1.2deg);
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.2 0 0 0 1.95'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.2 0 0 0 1.95'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
-:nth-child(4n+2) > .snap figcaption, .snap:nth-child(4n+2) figcaption { color: #1f3a5f; transform: rotate(0.9deg); }
-:nth-child(4n+3) > .snap figcaption, .snap:nth-child(4n+3) figcaption { color: #2f5d3a; transform: rotate(-0.6deg); }
-:nth-child(4n+4) > .snap figcaption, .snap:nth-child(4n+4) figcaption { color: #6e5418; transform: rotate(1.4deg); }
+li.car-slide:nth-child(4n+2) > .snap figcaption, .snap:nth-child(4n+2) figcaption { color: #1f3a5f; transform: rotate(0.9deg); }
+li.car-slide:nth-child(4n+3) > .snap figcaption, .snap:nth-child(4n+3) figcaption { color: #2f5d3a; transform: rotate(-0.6deg); }
+li.car-slide:nth-child(4n+4) > .snap figcaption, .snap:nth-child(4n+4) figcaption { color: #6e5418; transform: rotate(1.4deg); }
 .snap:not(:has(figcaption)) { padding-bottom: 8px; }
 @media (prefers-reduced-motion: reduce) { .snap { transform: none; } }
 .media, .frame { position: relative; overflow: hidden; background: var(--stone); border: 8px solid var(--snap); box-shadow: var(--shadow); }
@@ -705,3 +705,103 @@ li.car-slide:nth-child(5n+2) .snap figcaption { left: auto; right: 6%; transform
 li.car-slide:nth-child(5n+3) .snap figcaption { left: 16%; transform: rotate(-1.5deg); bottom: 1.35rem; -webkit-mask-position: 81px 53px; mask-position: 81px 53px; }
 li.car-slide:nth-child(5n+4) .snap figcaption { left: 5%; transform: rotate(2.5deg); bottom: 0.8rem; -webkit-mask-position: 19px 97px; mask-position: 19px 97px; }
 li.car-slide:nth-child(5n+5) .snap figcaption { left: auto; right: 9%; transform-origin: right bottom; transform: rotate(-6deg); bottom: 0.7rem; -webkit-mask-position: 120px 30px; mask-position: 120px 30px; }
+
+/* ---- Beer taps (home, above the food): a chrome tap bar on a dark wood back bar; desktop pointers only ---- */
+.taps {
+  --focus: var(--brass);
+  --chrome: linear-gradient(180deg, #f4f4f2 0%, #c9c9c6 18%, #8e8f8d 45%, #d9d9d6 62%, #f7f7f5 74%, #9a9b98 100%);
+  --chrome-x: linear-gradient(90deg, #8a8b88 0%, #e9e9e6 30%, #ffffff 42%, #b4b5b2 70%, #7d7e7b 100%);
+  grid-column: 1 / -1;
+  position: relative;
+  padding: 1.5rem clamp(1rem, 2vw, 2.5rem) 0;
+  border-radius: 10px 10px 4px 4px;
+  background:
+    linear-gradient(180deg, rgb(0 0 0 / 0.35), transparent 22%, transparent 78%, rgb(0 0 0 / 0.45)),
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.025) 0 3px, transparent 3px 11px, rgb(0 0 0 / 0.06) 11px 13px, transparent 13px 29px),
+    linear-gradient(90deg, #3a2618, #4a3121 35%, #3d281a 60%, #47301f);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06), inset 0 -10px 18px rgb(0 0 0 / 0.35), var(--shadow);
+}
+/* brass trim along the top of the back bar */
+.taps::before { content: ''; position: absolute; inset: 0 0 auto; height: 6px; border-radius: 10px 10px 0 0; background: linear-gradient(180deg, #e5d1a2, #a58c52 60%, #6a521d); }
+.tap-row {
+  --handle-h: clamp(150px, 13vw, 190px);
+  --bar-h: 30px;
+  list-style: none; margin: 0; padding: 0;
+  position: relative;
+  display: flex; justify-content: space-around; gap: 0.25rem;
+}
+/* the chrome tap bar the handles screw into */
+.tap-row::before {
+  content: ''; position: absolute; z-index: 1;
+  left: -0.75rem; right: -0.75rem; top: var(--handle-h); height: var(--bar-h);
+  border-radius: calc(var(--bar-h) / 2);
+  background: var(--chrome);
+  box-shadow: 0 6px 10px rgb(0 0 0 / 0.45), inset 0 -2px 3px rgb(0 0 0 / 0.25);
+}
+.tap { display: flex; flex-direction: column; align-items: center; flex: 1 1 0; min-width: 0; }
+.tap-handle {
+  position: relative; z-index: 2;
+  width: 100%; max-width: 120px; height: var(--handle-h);
+  margin: 0; padding: 0; border: 0; background: none; cursor: pointer;
+  transform-origin: 50% 100%;
+  transition: transform 180ms var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+/* lacquered black shaft, wider at the top, with a chrome ferrule at the base */
+.tap-handle::before {
+  content: ''; position: absolute; left: 50%; bottom: 22px; translate: -50% 0;
+  width: 40px; height: calc(100% - 34px);
+  clip-path: polygon(6% 0, 94% 0, 72% 100%, 28% 100%);
+  background: linear-gradient(90deg, #050505 0%, #2b2a29 28%, #5a5856 40%, #1a1918 58%, #070707 100%);
+}
+.tap-handle::after {
+  content: ''; position: absolute; left: 50%; bottom: 0; translate: -50% 0;
+  width: 22px; height: 24px; border-radius: 3px 3px 0 0;
+  background: var(--chrome-x);
+  box-shadow: inset 0 3px 0 rgb(0 0 0 / 0.25), inset 0 8px 0 -5px rgb(255 255 255 / 0.5);
+}
+/* the oval badge: a chrome ring around the brand colours */
+.tap-badge {
+  position: absolute; z-index: 1; left: 50%; top: 0; translate: -50% 0;
+  width: min(100%, 112px); aspect-ratio: 4 / 3;
+  padding: 4px; border-radius: 50%;
+  background: var(--chrome);
+  box-shadow: 0 4px 8px rgb(0 0 0 / 0.5);
+}
+.tap-name {
+  display: grid; place-items: center; width: 100%; height: 100%;
+  padding: 0 8%; border-radius: 50%;
+  background: radial-gradient(ellipse at 40% 25%, rgb(255 255 255 / 0.22), transparent 55%), var(--tap-bg);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--tap-fg) 55%, transparent), inset 0 -4px 8px rgb(0 0 0 / 0.25);
+  color: var(--tap-fg);
+  font-family: var(--font-ui); font-stretch: 62%; font-weight: 800;
+  font-size: clamp(0.8rem, 0.45rem + 0.6vw, 1.08rem); line-height: 1.05;
+  text-transform: uppercase; letter-spacing: 0.02em; text-align: center;
+  overflow-wrap: anywhere;
+}
+/* faucet: a chrome body out of the bar, then a short spout */
+.tap-nozzle {
+  position: relative; z-index: 2;
+  width: 26px; height: 34px; margin-top: calc(var(--bar-h) - 8px);
+  border-radius: 4px 4px 8px 8px;
+  background: var(--chrome-x);
+  box-shadow: 0 4px 6px rgb(0 0 0 / 0.4);
+}
+.tap-nozzle::after {
+  content: ''; position: absolute; left: 50%; top: 100%; translate: -50% 0;
+  width: 12px; height: 18px; border-radius: 0 0 5px 5px;
+  background: var(--chrome-x);
+  box-shadow: inset 0 -3px 0 rgb(0 0 0 / 0.35);
+}
+/* drip rail under the spouts */
+.taps::after {
+  content: ''; display: block; height: 14px; margin: 26px calc(-1 * clamp(1rem, 2vw, 2.5rem)) 0;
+  border-radius: 0 0 4px 4px;
+  background: repeating-linear-gradient(90deg, #2a2a29 0 3px, #9a9b98 3px 6px), #555;
+  box-shadow: inset 0 3px 0 #d9d9d6, inset 0 -2px 0 rgb(0 0 0 / 0.5);
+}
+.tap-handle:hover { transform: perspective(500px) rotateX(-8deg); }
+.tap-handle:active, .tap.pouring .tap-handle, .tap-handle.pouring { transform: perspective(500px) rotateX(-24deg) rotate(-2deg); }
+.tap-handle:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; border-radius: 8px; }
+@media (prefers-reduced-motion: reduce) { .tap-handle { transition: none; } }
+@media (max-width: 899.98px), (pointer: coarse) { .taps { display: none; } }

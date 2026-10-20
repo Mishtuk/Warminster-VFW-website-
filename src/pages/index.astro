@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import Hero from '../components/Hero.astro';
 import VisitBlock from '../components/VisitBlock.astro';
 import FoodSnaps from '../components/FoodSnaps.astro';
+import BeerTaps from '../components/BeerTaps.astro';
 import { POST, href, photo } from '../lib/site';
 import { seed } from '../lib/seed';
 import { HALL_PHOTOS } from '../lib/hall-photos';
@@ -27,6 +28,7 @@ const hallGallery = JSON.stringify(HALL_PHOTOS.map((p) => ({ src: photo(p.name).
   <!-- Food and drink: photos first, then the week's specials on a printed menu card -->
   <section class="section band-paper" aria-labelledby="food-title">
     <div class="container food-grid">
+      <BeerTaps />
       <FoodSnaps limit={4} sizes="(min-width: 900px) 25vw, 50vw" />
       <div class="menu-card">
         <h2 id="food-title">This week at the bar</h2>

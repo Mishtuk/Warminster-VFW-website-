@@ -74,3 +74,6 @@ Only enabled products are rendered. Orders (names, phones, emails, notes) never 
 `POST /api/shop-order` takes `item` (`productId/N`, N the choice number from 1, or 0 when the product has no choices), `qty` (1 to 20), `name`, `phone`, `email`, `note`, `website`, `_page`. It answers `{ok:true, item:{name, option, qty}}` or `{error}` (item, qty, name, phone, email, contact 400; rate 429; origin 403). Plain posts get a 303 to `/shop/?sent=1#order` or `?error=CODE#order`. Five orders an hour per address, 60 an hour in all; each order is emailed to POST_EMAIL.
 Admin API: `PUT products/<id|new>` and `DELETE products/<id>` (array order is the display order; edits keep their place, new products go last), `PUT products-order {ids}`, `GET orders`, `PUT orders/<n> {handled}`, `DELETE orders/<n>`; `GET state` also returns `products` and `newOrders`.
 Retention: orders are deleted after SHOP_RETENTION_DAYS (default 365), logged as `orders_purged`.
+
+## Beer taps (marker: taps)
+`tapsHtml(state.taps)`: `ul.tap-row > li.tap` (style `--tap-bg`/`--tap-fg`, only `#rrggbb`) with `button.tap-handle` and `span.tap-nozzle`, inside `div.taps[data-pour]` on the home page. Hidden taps are skipped; none shown renders an empty string. Seed: `src/content/taps.json`; admin: Beers on tap.

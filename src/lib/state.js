@@ -87,6 +87,21 @@ export function validateNews(b, { photos } = {}) {
   return { value: { id: id(b.id), title, date: b.date, body, photo, alt: text(b.alt, 150), enabled: flag(b.enabled) } };
 }
 
+const HEX = /^#[0-9a-f]{6}$/i;
+/** A beer tap on the home page (admin): name up to 40 characters, badge colour bg and text colour fg as strict #rrggbb. */
+export function validateTap(b) {
+  b = b ?? {};
+  const name = text(b.name, 40);
+  if (!name) return { error: 'name' };
+  for (const k of ['bg', 'fg']) if (typeof b[k] !== 'string' || !HEX.test(b[k])) return { error: k };
+  return { value: { id: id(b.id), name, bg: b.bg.toLowerCase(), fg: b.fg.toLowerCase(), enabled: flag(b.enabled) } };
+}
+/** The beer taps (marker: taps): the ul.tap-row inside div.taps[data-pour]. Hidden taps are skipped; none enabled gives '' so the tower hides. */
+export function tapsHtml(taps = []) {
+  const list = taps.filter((t) => t.enabled !== false && HEX.test(t.bg) && HEX.test(t.fg));
+  return list.length ? `<ul class="tap-row">${list.map((t) => `<li class="tap" style="--tap-bg:${t.bg};--tap-fg:${t.fg}"><button type="button" class="tap-handle" aria-label="Pour a ${esc(t.name)}"><span class="tap-badge"><span class="tap-name">${esc(t.name)}</span></span></button><span class="tap-nozzle" aria-hidden="true"></span></li>`).join('')}</ul>` : '';
+}
+
 /** A shop product (admin). options = choices like sizes, an array or one per line. checkoutUrl = optional https payment link. */
 export function validateProduct(b, { photos } = {}) {
   b = b ?? {};
@@ -421,6 +436,7 @@ export function injectMarkers(html, state, today, year, { photos, photoBase, shi
     'volunteer-board': () => volunteerHtml(shifts),
     'help-form': () => helpFormHtml(settings),
     'donate-link': () => donateHtml(settings),
+    taps: () => tapsHtml(state.taps),
     shop: () => shopHtml(state.products, { photos, photoBase }),
     data: () => dataScript(state, today),
   };
