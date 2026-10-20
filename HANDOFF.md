@@ -13,7 +13,7 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
 ## Status
 **2026-10-20:** the Canteen redesign is live and has passed final QA (2147127).
 - **Live on the preview:**
-  - **Pages:** 11 pages in the cozy "Canteen" look. Each has a dark/light theme toggle in the header (on phones it is in the Menu sheet). The theme follows the system setting and is remembered per visitor.
+  - **Pages:** 11 pages in the cozy "Canteen" look. Each has a dark/light theme toggle in the header (an icon in the phone header). The theme follows the system setting and is remembered per visitor.
   - **Home:** a background-video hero, real food snapshots beside a printed menu card of specials, a large hall-rental band, What's on with event photos, the namesakes plaque (six branches and POW/MIA), and post news.
   - **Hero video:** cut from the post's own Facebook clips (the Memorial Day parade and line dancing in the hall), upscaled with Real-ESRGAN, and encoded to `public/media/hero*.mp4`. The re-cut scripts are local only.
   - **Content:** real content from the Facebook group, the official VFW Post 6493 logo, and veteran news led by VA News.
