@@ -693,3 +693,15 @@ a.card:hover h3 { text-decoration: underline 2px var(--gold); text-underline-off
 .snap-stamped:nth-child(4n+3) figcaption { left: 8%; top: 14%; transform: rotate(-8deg); }
 .snap-stamped:nth-child(4n+4) figcaption { right: 9%; bottom: 12%; transform-origin: right bottom; transform: rotate(-3deg); }
 @container (max-width: 15rem) { .snap-stamped figcaption { white-space: normal; max-width: 78%; } }
+
+/* Hero polaroids: the stamp floats in the polaroid's white strip, at a different spot, tilt and ink speckle on each print
+   (mask-position shifts the speckle). The strip has a fixed height so the stack keeps its shape. */
+li.car-slide .snap { padding-bottom: 4.4rem; }
+li.car-slide .snap figcaption {
+  position: absolute; bottom: 0.95rem; left: 7%; max-width: 84%; min-height: 0; margin: 0;
+  padding: 0.12em 0.4em 0.06em; font-size: var(--step--1); transform-origin: left bottom; transform: rotate(-4deg);
+}
+li.car-slide:nth-child(5n+2) .snap figcaption { left: auto; right: 6%; transform-origin: right bottom; transform: rotate(3deg); bottom: 1.15rem; -webkit-mask-position: 37px 11px; mask-position: 37px 11px; }
+li.car-slide:nth-child(5n+3) .snap figcaption { left: 16%; transform: rotate(-1.5deg); bottom: 1.35rem; -webkit-mask-position: 81px 53px; mask-position: 81px 53px; }
+li.car-slide:nth-child(5n+4) .snap figcaption { left: 5%; transform: rotate(2.5deg); bottom: 0.8rem; -webkit-mask-position: 19px 97px; mask-position: 19px 97px; }
+li.car-slide:nth-child(5n+5) .snap figcaption { left: auto; right: 9%; transform-origin: right bottom; transform: rotate(-6deg); bottom: 0.7rem; -webkit-mask-position: 120px 30px; mask-position: 120px 30px; }
