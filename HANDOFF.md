@@ -11,7 +11,7 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
   - `source/fb/` holds the Facebook group photos, videos and flyers.
 
 ## Working together (two workstations: Desktop and Laptop)
-Two machines work on this repo at the same time. To avoid stepping on each other:
+Two machines work on this repo at the same time. Live coordination happens on the pinned issue "Coordination board: Desktop and Laptop" (https://github.com/Mishtuk/Warminster-VFW-website-/issues/5). To avoid stepping on each other:
 - **Before starting a task:** `git pull --rebase`, then add a line under "Now working on" below with your machine, the task and the files or areas you will touch, and push that line on its own first. Don't start on files the other machine has claimed; ask it there or on the coordination issue instead.
 - **Small, focused commits.** Always `git pull --rebase` right before `git push`. Never force-push `main`, and never rewrite pushed history.
 - **Shared files** (`src/styles/global.css`, `src/lib/state.js`, `server.js`, `src/pages/admin.astro`, `HANDOFF.md`): append rather than reorder, keep edits local to your feature, and pull right before editing them.
