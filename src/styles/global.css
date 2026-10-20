@@ -1,4 +1,4 @@
-/* VFW Post 6493 & Auxiliary: design system
+/* VFW Post 6493 & Auxiliary: design system (accents follow the post's official red/gold logo)
    Dark frame (header, hero, page heads, footer) around a light reading page.
    Long text stays dark-on-light for older eyes; brass is decoration and text-on-dark only.
    One accent (brass). Flag red is for the stripe, the crisis line and errors only. */
@@ -21,13 +21,14 @@
   --line: rgb(21 28 37 / 0.14);  /* decorative dividers only */
   --field: #3a4450;        /* input borders (8.8:1, UI needs 3:1) */
 
-  /* Accents */
-  --brass: #c2ab72;        /* rules, stars, buttons on dark; text only on dark (7.9:1 on night) */
+  /* Accents: official VFW red and gold (sampled from the post's logo) + a lighter gold for text on dark */
+  --gold: #a58c52;         /* official gold: logo bars, rules, stars, card edges (decoration; 5.5:1 on night) */
+  --brass: #c2ab72;        /* same hue, lighter: text, links and buttons on dark (7.9:1 on night) */
   --brass-soft: #d6c597;   /* brass hover */
   --brass-ink: #6c5a26;    /* brass-toned text on light: 5.9:1, use bold >= 17px */
   --olive: #4a5233;        /* tags (paper text 7.3:1) */
   --olive-tint: #dfe1d3;   /* soft tag / success background (ink 13:1) */
-  --red: #8c2b2c;          /* flag stripe, crisis line, error text (7.4:1 on paper) */
+  --red: #952f32;          /* official VFW red: flag stripe, crisis line, errors, red accents (6.8:1 on paper, 7.4 on card) */
 
   --focus: var(--navy);
 
@@ -157,13 +158,13 @@ strong, b { font-weight: 700; }
   font-size: var(--step--1); font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
   color: var(--brass-ink);
 }
-.eyebrow::before { content: ''; width: 2rem; height: 3px; background: var(--brass); }
+.eyebrow::before { content: ''; width: 2rem; height: 3px; background: var(--gold); }
 .on-dark .eyebrow, .band-dark .eyebrow, .band-navy .eyebrow { color: var(--brass); }
 .motto { font-family: var(--font-display); font-weight: 600; font-style: normal; letter-spacing: 0.01em; }
 
 /* Military touches (decoration, aria-hidden in markup) */
-.rule-brass { width: 4rem; height: 3px; background: var(--brass); border: 0; }
-.star-rule { display: flex; align-items: center; gap: 1rem; color: var(--brass); }
+.rule-brass { width: 4rem; height: 3px; background: var(--gold); border: 0; }
+.star-rule { display: flex; align-items: center; gap: 1rem; color: var(--gold); }
 .star-rule::before, .star-rule::after { content: ''; flex: 1; height: 1px; background: currentColor; opacity: 0.7; }
 .star, .star-rule > i {
   display: inline-block; width: 1em; height: 1em; background: currentColor; flex: none;
@@ -177,11 +178,11 @@ strong, b { font-weight: 700; }
 }
 .branches li + li::before {
   content: ''; display: inline-block; width: 0.6em; height: 0.6em; margin-right: 1.1rem; vertical-align: 0.1em;
-  background: var(--brass);
+  background: var(--gold);
   clip-path: polygon(50% 0, 61.2% 34.5%, 97.6% 34.5%, 68.2% 55.9%, 79.4% 90.5%, 50% 69.1%, 20.6% 90.5%, 31.8% 55.9%, 2.4% 34.5%, 38.8% 34.5%);
 }
 .remembrance { display: flex; align-items: center; gap: 0.9rem; font-family: var(--font-display); font-weight: 600; }
-.remembrance .star { color: var(--brass); font-size: 1.25rem; }
+.remembrance .star { color: var(--gold); font-size: 1.25rem; }
 
 /* ---------- Links ---------- */
 .link {
@@ -235,7 +236,7 @@ strong, b { font-weight: 700; }
 .card p { color: var(--ink-2); }
 a.card:hover { box-shadow: var(--shadow-m); border-color: var(--ink-2); }
 a.card:active { transform: translateY(1px); }
-.card-rule { border-top: 4px solid var(--brass); }
+.card-rule { border-top: 4px solid var(--gold); }
 .media { position: relative; overflow: hidden; border-radius: var(--radius); background: var(--stone); }
 .media img { width: 100%; height: 100%; object-fit: cover; }
 .tag {
@@ -247,7 +248,7 @@ a.card:active { transform: translateY(1px); }
 
 /* Callouts: "Call the post" fallback and the crisis line */
 .callout {
-  background: var(--card); border: 1px solid var(--line); border-left: 6px solid var(--brass);
+  background: var(--card); border: 1px solid var(--line); border-left: 6px solid var(--gold);
   border-radius: var(--radius); padding: 1.1rem 1.4rem;
 }
 .callout a { font-weight: 700; text-underline-offset: 4px; }
@@ -294,7 +295,7 @@ a.card:active { transform: translateY(1px); }
 .prose > * + * { margin-top: 1.1em; }
 .prose > :first-child { margin-top: 0; }
 .prose h2 { font-size: var(--step-3); margin-top: 2.2em; }
-.prose h2::before { content: ''; display: block; width: 3rem; height: 3px; margin-bottom: 0.6em; background: var(--brass); }
+.prose h2::before { content: ''; display: block; width: 3rem; height: 3px; margin-bottom: 0.6em; background: var(--gold); }
 .prose h3 { font-size: var(--step-2); margin-top: 1.8em; }
 .prose h2 + *, .prose h3 + * { margin-top: 0.6em; }
 .prose a { font-weight: 700; text-decoration-color: var(--brass-ink); text-decoration-thickness: 2px; text-underline-offset: 4px; }
@@ -302,12 +303,12 @@ a.card:active { transform: translateY(1px); }
 .prose ul, .prose ol { padding-left: 1.3em; }
 .prose li + li { margin-top: 0.45em; }
 .prose li::marker { color: var(--brass-ink); }
-.prose blockquote { border-left: 4px solid var(--brass); padding: 0.4em 0 0.4em 1.2em; font-family: var(--font-display); font-size: var(--step-1); line-height: 1.5; }
+.prose blockquote { border-left: 4px solid var(--gold); padding: 0.4em 0 0.4em 1.2em; font-family: var(--font-display); font-size: var(--step-1); line-height: 1.5; }
 .prose img { border-radius: var(--radius); }
 .prose hr { border: 0; height: 1px; background: var(--line); margin-block: 2.5em; }
 
 /* History timeline */
-.timeline { list-style: none; padding: 0; border-left: 3px solid var(--brass); max-width: 52rem; }
+.timeline { list-style: none; padding: 0; border-left: 3px solid var(--gold); max-width: 52rem; }
 .timeline li { position: relative; padding: 0 0 1.75rem 1.75rem; }
 .timeline li::before { content: ''; position: absolute; left: -0.6rem; top: 0.45rem; width: 0.9rem; height: 0.9rem; background: var(--navy); border: 3px solid var(--paper); border-radius: 50%; }
 .timeline .year { display: block; font-family: var(--font-display); font-weight: 700; font-size: var(--step-1); color: var(--brass-ink); }
@@ -326,7 +327,7 @@ a.card:active { transform: translateY(1px); }
 .vfw-specials { list-style: none; padding: 0; display: grid; gap: clamp(1rem, 0.6rem + 1.5vw, 1.5rem); grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); }
 .vfw-special {
   display: flex; flex-direction: column; gap: 0.45rem;
-  background: var(--card); border: 1px solid var(--line); border-top: 4px solid var(--brass); border-radius: var(--radius);
+  background: var(--card); border: 1px solid var(--line); border-top: 4px solid var(--gold); border-radius: var(--radius);
   padding: 1.3rem 1.5rem 1.5rem;
 }
 .vfw-special-period {
@@ -340,8 +341,8 @@ a.card:active { transform: translateY(1px); }
 /* Food menu: div.vfw-menu > p.vfw-menu-hours, section.vfw-menu-section */
 .vfw-menu { display: grid; gap: clamp(2rem, 1.5rem + 2vw, 3rem); }
 @media (min-width: 900px) { .vfw-menu { grid-template-columns: 1fr 1fr; column-gap: 4rem; } .vfw-menu-hours { grid-column: 1 / -1; } }
-.vfw-menu-hours { justify-self: start; padding: 0.8rem 1.2rem; background: var(--card); border-left: 6px solid var(--brass); border-radius: var(--radius); }
-.vfw-menu-heading { font-size: var(--step-2); padding-bottom: 0.5rem; border-bottom: 3px solid var(--brass); margin-bottom: 0.4rem; }
+.vfw-menu-hours { justify-self: start; padding: 0.8rem 1.2rem; background: var(--card); border-left: 6px solid var(--gold); border-radius: var(--radius); }
+.vfw-menu-heading { font-size: var(--step-2); padding-bottom: 0.5rem; border-bottom: 3px solid var(--gold); margin-bottom: 0.4rem; }
 .vfw-menu-items { list-style: none; padding: 0; }
 .vfw-menu-item { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 0.6rem; padding-block: 0.8rem; }
 .vfw-menu-item + .vfw-menu-item { border-top: 1px solid var(--line); }
@@ -384,7 +385,7 @@ a.card:active { transform: translateY(1px); }
 .vfw-grid th { font-size: var(--step--1); font-weight: 700; color: var(--ink-2); padding-bottom: 0.35rem; }
 .vfw-grid td { padding: 2px; }
 .vfw-daynum { display: grid; place-items: center; min-height: 44px; border-radius: var(--radius); }
-.vfw-has-events .vfw-daynum { background: var(--navy); color: var(--on-dark); font-weight: 700; box-shadow: inset 0 -4px 0 var(--brass); }
+.vfw-has-events .vfw-daynum { background: var(--navy); color: var(--on-dark); font-weight: 700; box-shadow: inset 0 -4px 0 var(--gold); }
 .vfw-today .vfw-daynum { outline: 3px solid var(--red); outline-offset: -3px; font-weight: 700; }
 .vfw-day-events { /* titles stay for screen readers; the month list below shows them */
   position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; padding: 0;
@@ -396,7 +397,7 @@ a.card:active { transform: translateY(1px); }
 .vfw-month-list .vfw-event-title { font-size: var(--step-0); }
 .vfw-month-none { margin: 1rem 0 0 0.25rem; }
 .cal-key { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; color: var(--ink-2); font-size: var(--step--1); margin-bottom: 1.25rem; }
-.cal-key span::before { content: ''; display: inline-block; width: 1.1em; height: 1.1em; margin-right: 0.5em; vertical-align: -0.15em; border-radius: 2px; background: var(--navy); box-shadow: inset 0 -3px 0 var(--brass); }
+.cal-key span::before { content: ''; display: inline-block; width: 1.1em; height: 1.1em; margin-right: 0.5em; vertical-align: -0.15em; border-radius: 2px; background: var(--navy); box-shadow: inset 0 -3px 0 var(--gold); }
 .cal-key .k-today::before { background: transparent; box-shadow: inset 0 0 0 3px var(--red); }
 
 /* News: article.vfw-news-item > h3, time, div.vfw-news-body */
@@ -423,7 +424,7 @@ a.card:active { transform: translateY(1px); }
 
 /* Fact tiles (hall facts, contact facts) */
 .facts { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); list-style: none; padding: 0; }
-.facts li { padding: 1.1rem 1.25rem; background: var(--card); border-left: 4px solid var(--brass); border-radius: var(--radius); }
+.facts li { padding: 1.1rem 1.25rem; background: var(--card); border-left: 4px solid var(--gold); border-radius: var(--radius); }
 .facts strong { display: block; font-family: var(--font-display); font-size: var(--step-1); }
 .facts span { color: var(--ink-2); }
 

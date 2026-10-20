@@ -14,9 +14,9 @@ const cur = (l: { path: string; match: readonly string[] }) =>
 {overlay && <div class="header-sentinel" aria-hidden="true"></div>}
 <header class:list={['site-header', { 'is-overlay': overlay }]} data-overlay={overlay ? '' : undefined}>
   <div class="container header-bar">
-    <a class="brand" href={href('/')}>
-      <img src={href('/brand/logo.svg')} alt="" width="56" height="56" />
-      <span class="brand-text"><strong>VFW Post 6493</strong><span>Warminster, PA</span></span>
+    <a class="brand" href={href('/')} aria-label="VFW Post 6493 home">
+      <img src={href('/brand/logo-mark-reverse.svg')} alt="" width="142" height="56" />
+      <span class="brand-text"><span>Warminster, PA</span></span>
     </a>
 
     <nav class="nav-desktop" aria-label="Main">
@@ -116,7 +116,8 @@ const cur = (l: { path: string; match: readonly string[] }) =>
   .brand-text strong { font-family: var(--font-display); font-weight: 700; font-size: 1.375rem; }
   .brand-text span { font-size: 1.0625rem; color: var(--on-dark-2); }
   @media (max-width: 699px) { .brand img { height: 44px; } }
-  @media (max-width: 379px) { .brand-text span { display: none; } }
+  .brand img { height: 56px; width: auto; }
+  @media (max-width: 699px) { .brand-text { display: none; } .brand img { height: 44px; } }
 
   ul { list-style: none; padding: 0; }
 
