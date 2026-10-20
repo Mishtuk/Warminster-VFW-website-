@@ -97,3 +97,14 @@ test('injectMarkers: fills markers, replaces baked seed regions, leaves unknown 
   const data = out.match(/<script type="application\/json" id="vfw-data">(.*?)<\/script>/s)[1];
   assert.ok(JSON.parse(data).news[0].title.includes('</script>') && !data.includes('</script>'));
 });
+
+test('calendar month lists show one-off events only; repeating nights stay marked on the grid with one pointer line', () => {
+  const html = calendarHtml([ev({ title: 'Trivia', date: '2026-03-04', recurring: 'weekly' }), ev({ id: 'two', title: 'Fish Fry', date: '2026-03-20' })], 2026, '2026-10-19');
+  const march = html.slice(html.indexOf('id="month-3"'), html.indexOf('id="month-4"'));
+  assert.equal((march.match(/vfw-has-events/g) ?? []).length, 4 + 1); // 4 Wednesdays in March 2026 from the 4th + the fish fry day
+  assert.equal((march.match(/Trivia/g) ?? []).length, 4); // grid only, none in the list
+  const list = march.slice(march.indexOf('vfw-month-list'));
+  assert.ok(list.includes('Fish Fry') && !list.includes('Trivia'));
+  assert.ok(march.includes('href="#regular"'));
+  assert.equal((html.match(/href="#regular"/g) ?? []).length, 10); // March to December: the weekly night starts March 4
+});

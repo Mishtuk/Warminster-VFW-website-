@@ -559,3 +559,6 @@ a.card:hover h3 { text-decoration: underline 2px var(--gold); text-underline-off
 .faq details:last-child { border-bottom: 1px solid var(--line); }
 .faq summary { display: flex; align-items: center; min-height: 56px; padding-block: 0.5rem; font-weight: 700; cursor: pointer; }
 .faq details p { padding: 0 0 1rem; max-width: 68ch; }
+
+/* Calendar month list: pointer to the regular nights instead of repeating them every week. */
+.vfw-month-regular { margin-top: 0.6rem; color: var(--ink-2); font-style: italic; }

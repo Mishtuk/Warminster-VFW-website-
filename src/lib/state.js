@@ -172,7 +172,7 @@ export function upcomingHtml(events, today, { limit = 5, days = 120, empty: none
   return list.length ? `<ul class="vfw-events">${list.map(eventItem).join('')}</ul>` : empty(none);
 }
 
-/** Full-year calendar, 12 month grids with event days marked, plus each month's list. Works with no JS.
+/** Full-year calendar, 12 month grids with event days marked, plus each month's list of one-off events and a pointer to the regular nights. Works with no JS.
  *  opts: nav (previous/next year links as ?year=N, for the live server), empty. */
 export function calendarHtml(events, year, today, { nav = false } = {}) {
   const all = expand(events, `${year}-01-01`, `${year}-12-31`);
@@ -180,6 +180,7 @@ export function calendarHtml(events, year, today, { nav = false } = {}) {
   const months = Array.from({ length: 12 }, (_, m) => {
     const prefix = `${year}-${String(m + 1).padStart(2, '0')}`;
     const evs = all.filter((o) => o.date.startsWith(prefix));
+    const oneOff = evs.filter((o) => !o.recurring || o.recurring === 'none'); // repeating nights are marked on the grid and listed once on the page, not under every month
     const lead = new Date(Date.UTC(year, m, 1)).getUTCDay();
     const cells = [...Array(lead).fill(null), ...Array.from({ length: daysIn(year, m) }, (_, i) => i + 1)];
     while (cells.length % 7) cells.push(null);
@@ -196,7 +197,9 @@ export function calendarHtml(events, year, today, { nav = false } = {}) {
     const label = new Date(Date.UTC(year, m, 1)).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
     return `<section class="vfw-month" id="month-${m + 1}"><h3 class="vfw-month-title">${label}</h3><table class="vfw-grid"><caption class="vfw-sr">${label}</caption>`
       + `<thead><tr>${head}</tr></thead><tbody>${rows.join('')}</tbody></table>`
-      + (evs.length ? `<ul class="vfw-month-list vfw-events">${evs.map((o) => eventItem(o, { today, brief: true })).join('')}</ul>` : '<p class="vfw-month-none">No events listed this month.</p>') + '</section>';
+      + (oneOff.length ? `<ul class="vfw-month-list vfw-events">${oneOff.map((o) => eventItem(o, { today, brief: true })).join('')}</ul>` : '')
+      + (evs.length === oneOff.length ? '' : '<p class="vfw-month-regular">Plus the regular nights: <a href="#regular">see Every week and every month</a>.</p>')
+      + (evs.length ? '' : '<p class="vfw-month-none">No events listed this month.</p>') + '</section>';
   });
   const links = nav ? `<nav class="vfw-cal-nav" aria-label="Choose a year"><a href="?year=${year - 1}">${year - 1}</a> <strong>${year}</strong> <a href="?year=${year + 1}">${year + 1}</a></nav>` : '';
   return `<div class="vfw-calendar" data-year="${year}">${links}${months.join('')}</div>`;
