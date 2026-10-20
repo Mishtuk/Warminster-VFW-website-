@@ -19,7 +19,6 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Commits** are authored as Mish (see the top of this file).
 
 ### Now working on
-- **Laptop:** home "What's going on at the post" refresh with event photos (the featuredHtml block in src/lib/state.js, the whats-on section and its is:global style block in src/pages/index.astro, new src/lib/event-photos.js; reuses existing public/media/photos, no new hero-* files).
 
 ## Status (handoff, 2026-10-20)
 **The site is feature-complete on the preview. The next steps are the owner's choices.**
@@ -29,7 +28,7 @@ Two machines work on this repo at the same time. Live coordination happens on th
   - The theme switch is a small moon/sun button at the bottom right (`ThemeFab.astro`). It follows the system setting and is remembered per visitor.
 - **Home:**
   - The hero has a background video and a polaroid stack showing a random 9 from a 150-photo bank (`HeroCarousel.astro`, `src/lib/hero-photos.ts`). On phones the stack is a strip below the hero.
-  - Then "What's going on at the post": the next special event within 30 days, else the next event, plus 4 compact cards (`featuredHtml` in `state.js`, marker `events-featured`).
+  - Then "What's going on at the post": the next special event within 30 days, else the next event, plus 4 compact cards (`featuredHtml` in `state.js`, marker `events-featured`). Each event gets a real post photo by title, else by category (`src/lib/event-photos.js`); add a title rule there when a new kind of event gets its own photo.
   - Then New here?, food snapshots with the specials menu card, the hall band (2 photos that open a 14-photo gallery, `src/lib/hall-photos.ts`), the namesakes plaque and post news.
 - **Info pages:**
   - All of them use one layout (`src/components/info/`: InfoSection, OnThisPage, KeyFacts), with multi-column layouts on desktop.
