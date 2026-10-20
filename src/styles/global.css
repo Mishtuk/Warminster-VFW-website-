@@ -415,7 +415,7 @@ a.card:hover h3 { text-decoration: underline 2px var(--gold); text-underline-off
 .vfw-special { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 0.1rem 1rem; padding-block: 0.9rem; border-top: 1px solid var(--line); }
 .vfw-specials > .vfw-special:first-child { border-top: 0; }
 .vfw-special-label { grid-column: 1; font-family: var(--font-display); font-weight: 700; font-size: var(--step-1); line-height: 1.2; }
-.vfw-special-price { grid-column: 2; grid-row: 1; font-weight: 700; color: var(--red-ink); text-align: right; max-width: 12ch; line-height: 1.25; }
+.vfw-special-price { grid-column: 2; grid-row: 1; font-weight: 700; color: var(--red-ink); text-align: right; max-width: 16ch; line-height: 1.25; }
 .vfw-special-period { grid-column: 1 / -1; font-weight: 650; color: var(--gold-ink); }
 .vfw-special-desc { grid-column: 1 / -1; color: var(--ink-2); }
 .menu-card .vfw-specials { grid-template-columns: 1fr; }
@@ -432,7 +432,7 @@ a.card:hover h3 { text-decoration: underline 2px var(--gold); text-underline-off
 .vfw-menu-name { font-weight: 650; }
 .vfw-menu-item::after { content: ''; order: 1; flex: 1 1 2rem; border-bottom: 2px dotted var(--ink-2); opacity: 0.5; transform: translateY(-0.3em); }
 .vfw-menu-item:not(:has(.vfw-menu-price))::after { display: none; }
-.vfw-menu-price { order: 2; font-weight: 700; white-space: nowrap; }
+.vfw-menu-price { order: 2; font-weight: 700; white-space: nowrap; margin-left: auto; }
 .vfw-menu-desc { order: 3; flex-basis: 100%; color: var(--ink-2); margin-top: 0.15rem; }
 
 /* Events: a roll of entries; the category label carries a ribbon */
@@ -562,3 +562,83 @@ a.card:hover h3 { text-decoration: underline 2px var(--gold); text-underline-off
 
 /* Calendar month list: pointer to the regular nights instead of repeating them every week. */
 .vfw-month-regular { margin-top: 0.6rem; color: var(--ink-2); font-style: italic; }
+
+/* ---------- Shared since round 3 (date box, badges, card grid, regular nights) ---------- */
+/* Date box: one big numeral, then month and weekday as small caps lines with room to breathe. */
+.vfw-datebox { flex: none; display: flex; flex-direction: column; align-items: center; gap: 0.3rem; min-width: 5rem; padding: 0.7rem 0.6rem 0.8rem; background: var(--night); color: var(--on-dark); border-bottom: 4px solid var(--brass); border-radius: var(--radius); line-height: 1; }
+.vfw-dn { font-family: var(--font-display); font-weight: 700; font-size: 2.1rem; font-variant-numeric: lining-nums; }
+.vfw-dm, .vfw-dw { font-size: var(--step--1); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+.vfw-dw { color: var(--brass); }
+.vfw-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; }
+.vfw-badge { display: inline-block; padding: 0.2rem 0.75rem; border-radius: var(--radius); background: var(--night); color: var(--brass); font-size: var(--step--1); font-weight: 700; line-height: 1.4; }
+.vfw-badge-now { background: #7d2528; color: #f4eee3; }
+
+.card-grid { display: grid; gap: clamp(1rem, 0.6rem + 1.5vw, 1.5rem); grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); align-items: start; }
+.card-grid > .panel { border-top: 6px double var(--gold); scroll-margin-top: calc(var(--header-h) + 0.5rem); }
+
+/* Regular nights: a row of cards, each with its day as a badge (markup from state.js regularHtml) */
+.vfw-regular { display: grid; gap: clamp(1rem, 0.6rem + 1.5vw, 1.5rem); grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr)); }
+.vfw-regular > .vfw-event {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 0.35rem;
+  padding: clamp(1.1rem, 1rem + 0.8vw, 1.5rem); border-top: 0; border-radius: 4px; background: var(--card); box-shadow: var(--shadow);
+}
+.vfw-regular .vfw-event-date {
+  order: -2; display: inline-block; padding: 0.3rem 0.75rem; border-radius: 3px; background: var(--night); color: var(--brass);
+  box-shadow: inset 0 -3px 0 var(--gold); font-weight: 700; line-height: 1.3;
+}
+.vfw-regular .vfw-event-title { order: -1; margin-top: 0.35rem; font-size: var(--step-1); }
+.vfw-regular .vfw-event-time { font-weight: 650; color: var(--ink); }
+.vfw-regular .vfw-event-cat { justify-self: auto; }
+.vfw-regular > .vfw-event > * { max-width: 100%; }
+.vfw-guide-link { display: inline-flex; align-items: center; min-height: 44px; font-weight: 650; }
+.vfw-regular .vfw-event-desc { margin-top: 0.25rem; overflow-wrap: anywhere; }
+
+/* ---------- Volunteer board and help request form (markup made by state.js, so these stay global) ---------- */
+.vfw-vol { max-width: none; }
+.vfw-vol fieldset, .vfw-helpform fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.vfw-vol legend { padding: 0; margin-bottom: 0.9rem; font-family: var(--font-display); font-size: var(--step-1); font-weight: 700; }
+.vfw-shifts { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); }
+.vfw-shifts > legend { grid-column: 1 / -1; margin-bottom: 0; }
+.vfw-shift {
+  position: relative; display: grid; grid-template-columns: 28px auto minmax(0, 1fr); gap: 1rem; align-items: start; min-height: 88px;
+  padding: 1rem; background: var(--card); color: var(--ink); border: 2px solid var(--line); border-radius: 4px; cursor: pointer;
+}
+.vfw-shift input { width: 28px; height: 28px; margin: 0.2rem 0 0; accent-color: var(--night); }
+.vfw-shift .vfw-datebox { min-width: 4.25rem; padding: 0.55rem 0.5rem 0.65rem; }
+.vfw-shift .vfw-dn { font-size: 1.7rem; }
+.vfw-shift-body { display: flex; flex-direction: column; align-items: flex-start; gap: 0.3rem; min-width: 0; }
+.vfw-shift-title { font-family: var(--font-display); font-size: var(--step-1); line-height: 1.25; overflow-wrap: anywhere; }
+.vfw-shift .vfw-event-time { color: var(--ink-2); font-weight: 650; }
+.vfw-shift-notes { color: var(--ink-2); overflow-wrap: anywhere; }
+.vfw-shift:has(input:checked) { outline: 3px solid var(--ink); outline-offset: -3px; border-color: var(--ink); }
+.vfw-shift:has(input:checked)::after {
+  content: 'Chosen'; position: absolute; right: 0.6rem; top: 0.6rem; padding: 0 0.7rem; border-radius: 999px;
+  background: var(--ink); color: var(--card); font-size: var(--step--1); font-weight: 700; line-height: 1.6;
+}
+.vfw-shift:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 2px; }
+.vfw-full { opacity: 0.6; cursor: not-allowed; }
+.vfw-details { display: grid; gap: 1.4rem; max-width: 40rem; }
+.vfw-details > legend { margin-bottom: 0; }
+
+.vfw-help { gap: clamp(1.5rem, 1rem + 3vw, 3rem); }
+.vfw-help-note, .vfw-help-off > p { color: var(--ink-2); }
+.vfw-help-note { margin-bottom: 1.25rem; font-size: var(--step-0); }
+.vfw-help-off > * + * { margin-top: 1rem; }
+.vfw-helpform legend { font-weight: 700; margin-bottom: 0.45rem; padding: 0; }
+.vfw-kinds { display: grid; gap: 0.6rem; }
+.vfw-kinds > legend { margin-bottom: 0.1rem; }
+.vfw-choice {
+  display: flex; align-items: center; gap: 0.9rem; min-height: 56px; padding: 0.5rem 1rem; background: var(--card);
+  border: 2px solid var(--field); border-radius: var(--radius); cursor: pointer; font-weight: 600;
+}
+.vfw-choice input { width: 28px; height: 28px; margin: 0; flex: none; accent-color: var(--night); }
+.vfw-choice:has(input:checked) { outline: 3px solid var(--ink); outline-offset: -3px; }
+.vfw-choice:has(input:focus-visible), .vfw-chip:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 2px; }
+.vfw-chips { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.vfw-chip {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0.4rem 1.1rem; background: var(--card);
+  border: 2px solid var(--field); border-radius: 999px; cursor: pointer; font-weight: 650;
+}
+.vfw-chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.vfw-chip:has(input:checked) { background: var(--night); color: var(--on-dark); border-color: var(--night); }
+@media (max-width: 479px) { .vfw-chip { flex: 1 1 calc(50% - 0.6rem); } }

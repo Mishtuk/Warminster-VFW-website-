@@ -1,0 +1,57 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Subnav from '../components/Subnav.astro';
+import InfoSection from '../components/info/InfoSection.astro';
+import OnThisPage from '../components/info/OnThisPage.astro';
+import KeyFacts from '../components/info/KeyFacts.astro';
+import { POST, href, PROGRAM_TABS } from '../lib/site';
+import { SUPPORT } from '../lib/resources.js';
+const sections = [{ id: 'give', label: 'Ways to give' }, { id: 'drives', label: 'Drives' }, { id: 'fundraisers', label: 'Fundraisers' }, { id: 'time', label: 'Give your time' }];
+---
+<Base title="Support the Post" description={`Give money, goods or time to the drives and fundraisers of ${POST.name}.`}>
+  <PageHead title="Support the Post" lede="Give money, goods or time to the post's drives and the Auxiliary's fundraisers." />
+  <Subnav items={PROGRAM_TABS} label="Programs and resources" />
+  <OnThisPage items={sections} />
+
+  <InfoSection id="give" title="Ways to give" summary="Drop off food, give through the VFW, or call the post.">
+    <div class="info-two">
+      <div class="panel info-body">
+        <Fragment set:html="<!--vfw:donate-link--><!--/vfw:donate-link-->" />
+        <p>Drop off food for the Warminster Food Bank in the boxes at the rear door.</p>
+        <p>To give another way, call the post: <a href={POST.tel}>{POST.phone}</a>.</p>
+        <h3>Through the VFW nationally</h3>
+        <ul class="link-list">
+          {SUPPORT.national.map((n) => <li><a href={n.url} rel="noopener"><span>{n.name}</span><small>{n.line}</small></a></li>)}
+        </ul>
+      </div>
+      <KeyFacts title="Ask the post" email />
+    </div>
+  </InfoSection>
+
+  <InfoSection id="drives" title="Drives through the year" summary="What the post has done in past years, from the post's Facebook group. Call to ask which drives are running now." band="stone">
+    <div class="panel info-body">
+      <ol class="tl">
+        {SUPPORT.drives.map(([when, what, line]) => (
+          <li><span class="when">{when}</span><span class="what"><strong>{what}</strong><br />{line}</span></li>
+        ))}
+      </ol>
+    </div>
+  </InfoSection>
+
+  <InfoSection id="fundraisers" title="Auxiliary fundraisers" summary="The Auxiliary raises money for the post's work.">
+    <div class="panel info-body">
+      <dl class="rows">
+        {SUPPORT.fundraisers.map(([n, l]) => <div><dt>{n}</dt><dd>{l}</dd></div>)}
+      </dl>
+      <p class="btn-row"><a class="btn btn-outline" href={href('/events#upcoming')}>See what's coming up</a></p>
+    </div>
+  </InfoSection>
+
+  <InfoSection id="time" title="Give your time" summary="Helping on a shift is a gift too." band="stone">
+    <div class="panel info-body">
+      <p>Flags, Memorial Day, drives and post nights all need hands.</p>
+      <p class="btn-row"><a class="btn" href={href('/volunteer')}>See volunteer shifts</a></p>
+    </div>
+  </InfoSection>
+</Base>

@@ -1,0 +1,63 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Subnav from '../components/Subnav.astro';
+import InfoSection from '../components/info/InfoSection.astro';
+import OnThisPage from '../components/info/OnThisPage.astro';
+import KeyFacts from '../components/info/KeyFacts.astro';
+import { POST, href, PROGRAM_TABS } from '../lib/site';
+import { VOLUNTEER_JOBS } from '../lib/resources.js';
+const sections = [{ id: 'signup', label: 'Open shifts' }, { id: 'jobs', label: 'What helpers do' }];
+// Static seed: no shifts and no form. The server replaces the marker with the live board.
+const seed = `<!--vfw:volunteer-board--><p class="vfw-empty">No volunteer shifts are posted right now. Want to help? Call the post at ${POST.phone}.</p><!--/vfw:volunteer-board-->`;
+---
+<Base title="Volunteer" description={`Sign up for a volunteer shift with ${POST.name}: flags, Memorial Day, drives and post nights.`}>
+  <PageHead title="Volunteer" lede="Help with flags, Memorial Day, drives and post nights. Pick a shift and leave a name and a phone or email." />
+  <Subnav items={PROGRAM_TABS} label="Programs and resources" />
+  <OnThisPage items={sections} />
+
+  <InfoSection id="signup" title="Open shifts" summary="Choose one shift, then tell us who you are." band="stone">
+    <div id="vol-status" class="form-status" role="status" data-phone={POST.phone} hidden></div>
+    <Fragment set:html={seed} />
+  </InfoSection>
+
+  <InfoSection id="jobs" title="What helpers do" summary="Shifts are posted here when the post needs hands. Not on the list? Call the post.">
+    <div class="info-two">
+      <div class="panel info-body">
+        <dl class="rows">
+          {VOLUNTEER_JOBS.map(([n, l]) => <div><dt>{n}</dt><dd>{l}</dd></div>)}
+        </dl>
+        <p class="btn-row"><a class="btn btn-outline" href={href('/support')}>Support the Post</a></p>
+      </div>
+      <KeyFacts title="Ask the post" />
+    </div>
+  </InfoSection>
+</Base>
+
+<script>
+  // Sign-up form (made by the server in the volunteer-board marker). With JS it posts JSON and shows the answer here; without JS the server redirects back with ?sent=1 or ?error=CODE.
+  const box = document.getElementById('vol-status')!;
+  const phone = box.dataset.phone;
+  const msgs: Record<string, string> = {
+    name: 'Please enter your name.', phone: 'That phone number does not look right.', email: 'That email address does not look right.',
+    contact: 'Please give a phone number or an email.', shift: 'Please pick a shift.', full: 'Sorry, that shift just filled up. Please pick another.',
+    closed: 'That shift has already happened.', rate: 'Too many sign-ups from this device. Please call the post.',
+  };
+  const show = (text: string, ok: boolean) => { box.hidden = false; box.className = 'form-status ' + (ok ? 'ok' : 'err'); box.textContent = text; box.scrollIntoView({ block: 'center' }); };
+  const nice = (d: string) => new Date(d + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
+  const q = new URLSearchParams(location.search);
+  if (q.get('sent') === '1') show("Thank you. You're signed up.", true);
+  else if (q.get('error')) show(msgs[q.get('error')!] || 'Something went wrong. Please call the post at ' + phone + '.', false);
+  const form = document.querySelector<HTMLFormElement>('form.vfw-vol');
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(form.action, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.fromEntries(new FormData(form) as any)) });
+      const out = await res.json();
+      if (out.ok) { form.reset(); show(out.shift ? `Thank you. You're down for ${out.shift.title} on ${nice(out.shift.date)}.` : "Thank you. You're signed up.", true); }
+      else show(msgs[out.error] || 'Something went wrong. Please call the post at ' + phone + '.', false);
+    } catch {
+      show('Please call the post at ' + phone, false);
+    }
+  });
+</script>

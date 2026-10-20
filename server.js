@@ -5,14 +5,14 @@ import { createReadStream, existsSync, mkdirSync, readFileSync, readdirSync, sta
 import { extname, join, normalize, sep } from 'node:path';
 import { createHash, randomBytes } from 'node:crypto';
 import { brotliCompressSync, constants as zc, gzipSync } from 'node:zlib';
-import { openDb, getState, setState, backup, purgeInquiries, retentionDays } from './src/db.js';
+import { openDb, getState, setState, backup, purgeInquiries, retentionDays, purgeHelp, purgeShifts, getSettings, setSettings, shiftsWithCounts } from './src/db.js';
 import { clean, createAudit } from './src/audit.js';
 import {
   allow, adminRow, checkLogin, clearFailures, clientIp, cookieHeader, dataDirProblem, defaultInUse, locked, readCookie, recordFailure, sameOrigin, seedAdmin, setPassword,
   signSession, startupProblem, verifySession, SESSION_DAYS,
 } from './src/auth.js';
-import { etDay, injectMarkers, validateEvent, validateMenu, validateNews, validateSpecial } from './src/lib/state.js';
-import { createInquiryHandler } from './src/email/index.js';
+import { etDay, HELP_KINDS, injectMarkers, specialOrder, validateEvent, validateHelp, validateMenu, validateNews, validateSettings, validateShift, validateSignup, validateSpecial } from './src/lib/state.js';
+import { createInquiryHandler, createMailer, HONEYPOT } from './src/email/index.js';
 import { createStats } from './src/stats/index.js';
 
 const ROOT = import.meta.dirname;
@@ -48,7 +48,12 @@ const audit = createAudit({ db, log });
 const stats = createStats({ db, log });
 const submitInquiry = createInquiryHandler({ db, env, dataDir: DATA, log, audit: audit.event });
 const RETENTION = retentionDays(env.INQUIRY_RETENTION_DAYS);
-const purge = () => { try { const n = purgeInquiries(db, RETENTION); if (n) audit.event('inquiries_purged', 'system', '', `${n} older than ${RETENTION} days`); } catch (e) { log('purge failed', e.message); } };
+const sendMail = createMailer({ env, dataDir: DATA, log });
+const purge = () => {
+  try { const n = purgeInquiries(db, RETENTION); if (n) audit.event('inquiries_purged', 'system', '', `${n} older than ${RETENTION} days`); } catch (e) { log('purge failed', e.message); }
+  try { const n = purgeShifts(db, etDay(new Date(Date.now() - 7 * 864e5))); if (n) audit.event('shifts_purged', 'system', '', `${n} shifts, a week after the date`); } catch (e) { log('shift purge failed', e.message); }
+  try { const n = purgeHelp(db); if (n) audit.event('help_purged', 'system', '', `${n} older than 90 days`); } catch (e) { log('help purge failed', e.message); }
+};
 purge();
 setInterval(purge, 24 * 3600e3).unref();
 
@@ -134,6 +139,16 @@ function notFound(nreq, nres, url) {
   nres.writeHead(404, { ...baseHeaders(url), 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
   nres.end(nreq.method === 'HEAD' || !existsSync(f) ? undefined : readFileSync(f));
 }
+/** Public shape of the open shifts and the public part of the settings, only when the page has a marker that needs them. Never sign-ups, never responderEmail. */
+function publicExtras(html) {
+  const out = {};
+  if (/<!--vfw:(volunteer-board|tv-slides)-->/.test(html)) {
+    const today = etDay();
+    out.shifts = shiftsWithCounts(db).filter((s) => s.enabled && s.date >= today).map(({ filled, enabled, ...s }) => ({ ...s, left: Math.max(0, s.slots - filled) }));
+  }
+  if (/<!--vfw:(help-form|donate-link)-->/.test(html)) { const { helpEnabled, responderName, responderRole, donateUrl, donateLabel } = getSettings(db); out.settings = { helpEnabled, responderName, responderRole, donateUrl, donateLabel }; }
+  return out;
+}
 async function serveStatic(nreq, nres, url) {
   const p = url.pathname;
   // Dotfiles and dot-folders (.env, .git, .data ...) are never served; only /.well-known/ is allowed.
@@ -156,13 +171,14 @@ async function serveStatic(nreq, nres, url) {
   if (type.startsWith('text/html')) {
     const isAdmin = p.startsWith('/admin');
     let html = readFileSync(file, 'utf8');
-    if (!isAdmin) { try { html = injectMarkers(html, getState(db), etDay(), url.searchParams.get('year'), { photos: photoFiles() }); } catch (e) { log('inject failed, serving the static page', e.message); } } // fail open: static HTML is a correct default
-    headers['Cache-Control'] = isAdmin ? 'no-store' : 'no-cache';
-    if (isAdmin) headers['X-Robots-Tag'] = 'noindex, nofollow';
+    const isTv = /^\/tv(\/|$)/.test(p);
+    if (!isAdmin) { try { html = injectMarkers(html, getState(db), etDay(), url.searchParams.get('year'), { photos: photoFiles(), ...publicExtras(html) }); } catch (e) { log('inject failed, serving the static page', e.message); } } // fail open: static HTML is a correct default
+    headers['Cache-Control'] = isAdmin || isTv ? 'no-store' : 'no-cache';
+    if (isAdmin || isTv) headers['X-Robots-Tag'] = 'noindex, nofollow';
     Object.assign(headers, baseHeaders(url, html)); // CSP hashes for this page's inline scripts
     const body = compress(nreq, Buffer.from(html), type, headers);
     nres.writeHead(200, headers);
-    if (!isAdmin) stats.record(nreq, nres);
+    if (!isAdmin && !isTv) stats.record(nreq, nres); // the bar TV refreshes all night: not a page view
     return nres.end(nreq.method === 'HEAD' ? undefined : body);
   }
   headers['Cache-Control'] = p.startsWith('/_astro/') || file.startsWith(PHOTOS + sep) ? 'public, max-age=31536000, immutable' : 'public, max-age=86400';
@@ -222,7 +238,7 @@ async function login(req, url) {
 
 // ---------- API ----------
 const FIELDS = { events: validateEvent, specials: validateSpecial, news: validateNews };
-const SORT = { events: (a, b) => a.date.localeCompare(b.date) || (a.start ?? '').localeCompare(b.start ?? ''), specials: (a, b) => a.label.localeCompare(b.label), news: (a, b) => b.date.localeCompare(a.date) };
+const SORT = { events: (a, b) => a.date.localeCompare(b.date) || (a.start ?? '').localeCompare(b.start ?? ''), specials: specialOrder, news: (a, b) => b.date.localeCompare(a.date) };
 
 const HALL_PAGES = { __proto__: null, '/hall': '/hall/', '/hall/': '/hall/' };
 /** Public hall form: JSON (fetch) gets JSON back; a plain browser form post gets a 303 back to the hall page (works without JS). */
@@ -237,8 +253,68 @@ async function hallInquiry(req, url) {
   return new Response(null, { status: 303, headers: { Location: r.status === 200 ? `${page}?sent=1` : `${page}?error=${r.body.error}#inquiry`, 'Cache-Control': 'no-store' } });
 }
 
+/** Shared by the volunteer and help forms: JSON (fetch) gets JSON back, a plain form post gets a 303 to the page (allow-list, never a visitor-supplied path). */
+async function publicForm(req, url, handle, pages, anchor) {
+  const origin = req.headers.get('origin');
+  if (origin && !origins(url).includes(origin)) return bad('origin', 403);
+  const isJson = (req.headers.get('content-type') ?? '').includes('application/json');
+  const fields = isJson ? await req.json().catch(() => null) : Object.fromEntries([...(await req.formData().catch(() => new FormData())).entries()].map(([k, v]) => [k, String(v)]));
+  const r = await handle(fields && typeof fields === 'object' ? fields : {}, clientIp(req));
+  if (isJson || (req.headers.get('accept') ?? '').includes('application/json')) return json(r.body, r.status);
+  const page = pages[fields?._page] ?? Object.values(pages)[0];
+  return new Response(null, { status: 303, headers: { Location: r.status === 200 ? `${page}?sent=1${anchor}` : `${page}?error=${r.body.error}${anchor}`, 'Cache-Control': 'no-store' } });
+}
+const VOL_PAGES = { __proto__: null, '/volunteer': '/volunteer/', '/volunteer/': '/volunteer/' };
+const HELP_PAGES = { __proto__: null, '/help': '/help/', '/help/': '/help/' };
+const digits = (s) => String(s).replace(/\D/g, '');
+
+async function volunteerSignup(f, ip) {
+  if (String(f[HONEYPOT] ?? '').trim()) { audit.event('volunteer_honeypot', 'visitor', ip, 'hidden field filled, nothing stored'); return { status: 200, body: { ok: true } }; }
+  const v = validateSignup(f);
+  if (v.error) return { status: 400, body: { error: v.error } };
+  if (!allow(`vol:ip:${ip}`, 10) || !allow('vol:all', 200)) { audit.event('volunteer_rate_limited', 'visitor', ip, 'too many sign-ups'); return { status: 429, body: { error: 'rate' } }; }
+  const q = v.value;
+  db.exec('BEGIN IMMEDIATE'); // count and insert together, so two people can't take the last spot
+  try {
+    const s = db.prepare('SELECT * FROM shifts WHERE id = ? AND enabled = 1').get(q.shift);
+    let err = null;
+    if (!s) err = 'shift';
+    else if (s.date < etDay()) err = 'closed';
+    else {
+      const have = db.prepare('SELECT phone, email FROM shift_signups WHERE shift_id = ?').all(s.id);
+      const dup = have.some((h) => (q.phone && digits(h.phone) === digits(q.phone)) || (q.email && h.email === q.email));
+      if (!dup && have.length >= s.slots) err = 'full';
+      else if (!dup) { db.prepare('INSERT INTO shift_signups (shift_id, at, name, phone, email) VALUES (?, ?, ?, ?, ?)').run(s.id, Date.now(), q.name, q.phone, q.email); audit.event('volunteer_signup', 'visitor', ip, s.title); }
+    }
+    db.exec('COMMIT');
+    return err ? { status: 400, body: { error: err } } : { status: 200, body: { ok: true, shift: { title: s.title, date: s.date } } };
+  } catch (e) { try { db.exec('ROLLBACK'); } catch {} throw e; }
+}
+
+async function helpRequest(f, ip) {
+  const set = getSettings(db);
+  if (!set.helpEnabled || !set.responderName) return { status: 403, body: { error: 'off' } };
+  if (String(f[HONEYPOT] ?? '').trim()) { audit.event('help_honeypot', 'visitor', ip, 'hidden field filled, nothing stored'); return { status: 200, body: { ok: true, responder: set.responderName } }; }
+  const v = validateHelp(f);
+  if (v.error) return { status: 400, body: { error: v.error } };
+  if (!allow(`help:ip:${ip}`, 3) || !allow('help:all', 30)) { audit.event('help_rate_limited', 'visitor', ip, 'too many requests'); return { status: 429, body: { error: 'rate' } }; }
+  const q = v.value, at = new Date();
+  const r = db.prepare('INSERT INTO help_requests (at, day, name, phone, email, kind, best_time, message) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(+at, etDay(at), q.name, q.phone, q.email, q.kind, q.bestTime, q.message);
+  audit.event('help_request', 'visitor', ip, '');
+  const to = set.responderEmail || env.POST_EMAIL || (env.SMTP_URL ? '' : 'post@localhost.invalid');
+  if (to) {
+    try { // the message text is never emailed
+      await sendMail({ to, subject: 'New help request on the post website', text: `New help request\n\nFrom: ${q.name.split(' ')[0]}\nHelp with: ${HELP_KINDS[q.kind]}\n${q.phone ? `Phone: ${q.phone}\n` : ''}${q.email ? `Email: ${q.email}\n` : ''}\nRead it in the website admin under Help requests.\n` });
+      db.prepare('UPDATE help_requests SET emailed = 1 WHERE id = ?').run(r.lastInsertRowid);
+    } catch (e) { log('help email failed:', e.message); }
+  }
+  return { status: 200, body: { ok: true, responder: set.responderName } };
+}
+
 async function route(req, url) {
   const p = url.pathname;
+  if (p === '/api/volunteer' && req.method === 'POST') return publicForm(req, url, volunteerSignup, VOL_PAGES, '#signup');
+  if (p === '/api/help-request' && req.method === 'POST') return publicForm(req, url, helpRequest, HELP_PAGES, '#request');
   if (p === '/api/hall-inquiry' && req.method === 'POST') return hallInquiry(req, url);
   if (p === '/api/login' && req.method === 'POST') return login(req, url);
   if (p === '/api/logout' && req.method === 'POST') {
@@ -305,7 +381,7 @@ async function adminApi(req, url, user) {
   const ip = clientIp(req);
   const note = (what, detail = '') => audit.event(what, user, ip, detail); // who = the signed-in admin
 
-  if (key === 'GET state') return json({ user, defaultPassword: defaultInUse(db), events: list('events'), specials: list('specials'), news: list('news'), menu: state.menu ?? emptyMenu, today: etDay(new Date()) });
+  if (key === 'GET state') return json({ user, defaultPassword: defaultInUse(db), newHelp: db.prepare('SELECT COUNT(*) n FROM help_requests WHERE handled = 0').get().n, events: list('events'), specials: list('specials'), news: list('news'), menu: state.menu ?? emptyMenu, today: etDay(new Date()) });
   if (key === 'GET stats') return json(stats.summary(url.searchParams.get('range') ?? '30d'));
   const photoList = () => { const all = photoFiles(); return pickablePhotos(all).map((name) => ({ name, thumb: all.has(name.replace('.', '-800.')) ? name.replace('.', '-800.') : name })); };
   if (key === 'GET photos') return json({ photos: photoList() });
@@ -345,6 +421,54 @@ async function adminApi(req, url, user) {
     const r = req.method === 'PUT' ? db.prepare('UPDATE inquiries SET handled = ? WHERE id = ?').run(body?.handled ? 1 : 0, +a1) : db.prepare('DELETE FROM inquiries WHERE id = ?').run(+a1);
     if (r.changes) note(req.method === 'PUT' ? 'inquiry_update' : 'inquiry_delete', who + (req.method === 'PUT' ? (body?.handled ? ' · handled' : ' · new') : ''));
     return r.changes ? json({ ok: true }) : bad('not_found', 404);
+  }
+
+  // volunteer shifts and who signed up
+  const shiftList = () => { const so = db.prepare('SELECT id, shift_id, name, phone, email, at FROM shift_signups ORDER BY id').all(); return shiftsWithCounts(db).map((s) => ({ ...s, signups: so.filter((x) => x.shift_id === s.id).map(({ shift_id, ...x }) => x) })); };
+  if (key === 'GET shifts') return json({ shifts: shiftList() });
+  if (key === 'PUT shifts' && (a1 === 'new' || /^[a-z0-9]{4,24}$/.test(a1 ?? ''))) {
+    const old = a1 === 'new' ? null : db.prepare('SELECT id FROM shifts WHERE id = ?').get(a1);
+    if (a1 !== 'new' && !old) return bad('not_found', 404);
+    const taken = old ? db.prepare('SELECT COUNT(*) n FROM shift_signups WHERE shift_id = ?').get(a1).n : 0;
+    const v = validateShift({ ...body, id: old ? a1 : undefined }, etDay(), taken);
+    if (v.error) return bad(v.error);
+    const x = v.value;
+    db.prepare('INSERT INTO shifts (id, title, date, start_time, end_time, slots, notes, enabled, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET title = excluded.title, date = excluded.date, start_time = excluded.start_time, end_time = excluded.end_time, slots = excluded.slots, notes = excluded.notes, enabled = excluded.enabled')
+      .run(x.id, x.title, x.date, x.start, x.end, x.slots, x.notes, x.enabled ? 1 : 0, Date.now());
+    note(old ? 'shifts_update' : 'shifts_create', x.title + (x.enabled ? '' : ' · hidden'));
+    return json({ item: x, shifts: shiftList() });
+  }
+  if (key === 'DELETE shifts' && /^[a-z0-9]{4,24}$/.test(a1 ?? '')) {
+    const s = db.prepare('SELECT title FROM shifts WHERE id = ?').get(a1);
+    if (!s) return bad('not_found', 404);
+    db.exec('BEGIN');
+    let n;
+    try { n = Number(db.prepare('DELETE FROM shift_signups WHERE shift_id = ?').run(a1).changes); db.prepare('DELETE FROM shifts WHERE id = ?').run(a1); db.exec('COMMIT'); } catch (e) { db.exec('ROLLBACK'); throw e; }
+    note('shifts_delete', `${s.title} · ${n} signed up removed`);
+    return json({ ok: true, shifts: shiftList() });
+  }
+  if (key === 'DELETE signups' && /^\d{1,12}$/.test(a1 ?? '')) {
+    const s = db.prepare('SELECT s.title FROM shift_signups g JOIN shifts s ON s.id = g.shift_id WHERE g.id = ?').get(+a1);
+    const r = db.prepare('DELETE FROM shift_signups WHERE id = ?').run(+a1);
+    if (r.changes) note('signup_remove', s?.title ?? '');
+    return r.changes ? json({ ok: true }) : bad('not_found', 404);
+  }
+
+  // veteran help requests (private; deleted after 90 days)
+  if (key === 'GET help') return json({ enabled: getSettings(db).helpEnabled, requests: db.prepare('SELECT * FROM help_requests ORDER BY id DESC LIMIT 500').all().map((r) => ({ id: r.id, at: r.at, day: r.day, name: r.name, phone: r.phone, email: r.email, kind: r.kind, kindLabel: HELP_KINDS[r.kind] ?? r.kind, bestTime: r.best_time, message: r.message, handled: Boolean(r.handled), emailed: Boolean(r.emailed) })) });
+  if ((key === 'PUT help' || key === 'DELETE help') && /^\d{1,12}$/.test(a1 ?? '')) {
+    const r = req.method === 'PUT' ? db.prepare('UPDATE help_requests SET handled = ? WHERE id = ?').run(body?.handled ? 1 : 0, +a1) : db.prepare('DELETE FROM help_requests WHERE id = ?').run(+a1);
+    if (r.changes) note(req.method === 'PUT' ? 'help_update' : 'help_delete', req.method === 'PUT' ? (body?.handled ? 'handled' : 'new') : '');
+    return r.changes ? json({ ok: true }) : bad('not_found', 404);
+  }
+
+  if (key === 'GET settings') return json({ settings: getSettings(db) });
+  if (key === 'PUT settings') {
+    const v = validateSettings(body);
+    if (v.error) return bad(v.error);
+    setSettings(db, v.value);
+    note('settings_update', [v.value.helpEnabled ? 'help form on' : 'help form off', v.value.donateUrl ? 'donation link set' : 'no donation link'].join(', '));
+    return json({ settings: v.value });
   }
 
   if (key === 'POST password') { // change password: prove it's you first

@@ -56,7 +56,7 @@
       .fld > label { display: block; font-weight: 600; }
       .opt { font-size: .85rem; font-weight: 500; color: var(--ink-2); margin-left: .5rem; }
       .hint { display: block; }
-      input[type=text], input[type=password], input[type=date], input[type=time], input[type=number], select, textarea {
+      input[type=text], input[type=password], input[type=date], input[type=time], input[type=number], input[type=email], input[type=url], select, textarea {
         display: block; width: 100%; min-height: 52px; margin-top: .3rem; padding: .55rem .7rem; font: inherit; color: inherit; background: var(--card); border: 2px solid var(--field); border-radius: 6px; }
       textarea { min-height: 8rem; }
       .fld.bad input, .fld.bad select, .fld.bad textarea { border-color: var(--red-ink); }
@@ -148,7 +148,15 @@
       dialog.ask { border: 0; border-radius: 6px; padding: 1.5rem; max-width: 28rem; width: calc(100vw - 2rem); background: var(--card); color: var(--ink); }
       dialog.ask::backdrop { background: rgb(23 18 14 / .6); }
 
-      .btn.mv { white-space: nowrap; flex: 1 1 8rem; }
+      .btn.mv { white-space: nowrap; flex: 0 0 9.5rem; }
+      .mv-gap { flex: 0 0 9.5rem; }
+      .mtools .btn.danger { margin-left: auto; }
+      .who { flex: 1 1 100%; background: var(--stone); border-radius: 6px; padding: .5rem .9rem; }
+      .who .p { display: flex; flex-wrap: wrap; gap: .25rem 1rem; align-items: center; padding: .6rem 0; border-top: 1px solid var(--line); }
+      .who .p:first-child { border-top: 0; }
+      .who .p > div { flex: 1 1 14rem; min-width: 0; overflow-wrap: anywhere; }
+      .who a.tap { display: inline-flex; align-items: center; min-height: 48px; margin-right: 1rem; font-weight: 600; }
+      .priv { white-space: pre-wrap; background: var(--stone); border-radius: 6px; padding: .75rem 1rem; }
       @media (max-width: 800px) {
         .wrap { grid-template-columns: minmax(0, 1fr); }
         .side { display: none; }
@@ -170,7 +178,7 @@
         .toast { bottom: 1rem; }
         .seg { display: grid; grid-template-columns: 1fr 1fr; }
         .mitem { padding: .7rem; gap: .5rem; } .mitem .mline { gap: .5rem; }
-        .mtools label.check { flex-basis: 100%; } .mtools .btn { flex: 1 1 6rem; }
+        .mtools label.check { flex-basis: 100%; } .mtools .btn { flex: 1 1 6rem; } .mv-gap { display: none; } .acts .whobtn { flex: 1 1 100%; }
       }
       @media (max-width: 480px) { .ff .fld.dt { grid-column: 1 / -1; } }
       @media (prefers-reduced-motion: reduce) { .hl { animation: none; } }
@@ -210,8 +218,11 @@
         <section data-section="specials" hidden></section>
         <section data-section="menu" hidden></section>
         <section data-section="news" hidden></section>
+        <section data-section="volunteers" hidden></section>
         <section data-section="inquiries" hidden></section>
+        <section data-section="help" hidden></section>
         <section data-section="security" hidden></section>
+        <section data-section="settings" hidden></section>
         <section data-section="account" hidden></section>
       </main>
     </div>
@@ -239,7 +250,9 @@
         back: '<path d="M19 12H5M12 5l-7 7 7 7"/>', upload: '<path d="M12 16V4M6 10l6-6 6 6M4 20h16"/>', check: '<path d="M5 12l5 5 9-10"/>',
         warn: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.01"/>', bshield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9.5 9.5l5 5M14.5 9.5l-5 5"/>',
         pencil: '<path d="M4 20l1-5L16 4l4 4L9 19z"/>', bin: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>', door: '<path d="M5 21V3h10v18M3 21h18M12 12v.01"/>',
-        clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>' };
+        clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+        hand: '<path d="M8 13V5.5a1.5 1.5 0 013 0V11M11 10V4.5a1.5 1.5 0 013 0V11M14 10V6a1.5 1.5 0 013 0v8c0 4-2.5 7-6 7-3 0-4.5-2-6-5l-1.5-3a1.5 1.5 0 012.5-1.5L8 13"/>', lifebuoy: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="M5.6 5.6l3.9 3.9M14.5 14.5l3.9 3.9M18.4 5.6l-3.9 3.9M9.5 14.5l-3.9 3.9"/>',
+        gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/>' };
       const ico = (n, s = 20) => { const e = h('span', { class: 'ic', 'aria-hidden': 'true' }); e.innerHTML = `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">${IC[n]}</svg>`; return e; };
       const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
       const ERR = { title: 'Please enter a title.', date: 'Pick a valid date.', start: 'Check the start time.', end: 'Check the end time.', category: 'Pick a category.', recurring: 'Pick how it repeats.',
@@ -249,7 +262,9 @@
         too_long: 'That password is too long.', rate: 'Too many tries. Wait a little and try again.', photo: 'That picture is not available any more. Please pick another one.',
         sections: 'The menu could not be read. Reload the page and try again.', not_found: 'That was already deleted. Reload the page to see the latest.',
         file_type: 'That file is not a picture we can use. Please choose a JPEG, PNG or WebP photo.', file_size: 'That picture is too big. Please choose one under 15 MB.',
-        upload: 'The picture could not be saved. Try again.', in_use: 'A news item still uses that picture.' };
+        upload: 'The picture could not be saved. Try again.', in_use: 'A news item still uses that picture.',
+        past: 'Pick today or a later date.', slots: 'Enter a number from 1 to 100.', responder: 'Add who answers before turning the form on.', responderEmail: 'That email address does not look right.',
+        donateUrl: 'That link must start with https:// and be a full web address.', donateLabel: 'Keep the button words under 40 characters.' };
       const ERRF = { title: 'title', date: 'date', start: 'start', end: 'end', label: 'label', body: 'body', range: 'end' }; // error key -> the field it belongs to
       const money = (n) => Number(n).toLocaleString('en-US');
       const plural = (n, one, many) => `${money(n)} ${n === 1 ? one : many}`;
@@ -311,10 +326,10 @@
         start();
       });
       const NAV = [['dashboard', 'Dashboard', 'home'], ['events', 'Events', 'calendar'], ['specials', 'Drink specials', 'glass'], ['menu', 'Food menu', 'plate'], ['news', 'News', 'news'],
-        ['inquiries', 'Hall inquiries', 'mail'], ['security', 'Security log', 'shield'], ['account', 'Account', 'person']];
-      const navLinks = () => NAV.map(([id, t, i]) => h('a', { href: '#' + id, 'data-view': id }, ico(i), h('span', {}, t), id === 'inquiries' && h('span', { class: 'count', 'data-count': '', hidden: true })));
+        ['volunteers', 'Volunteers', 'hand'], ['inquiries', 'Hall inquiries', 'mail'], ['help', 'Help requests', 'lifebuoy'], ['security', 'Security log', 'shield'], ['settings', 'Site settings', 'gear'], ['account', 'Account', 'person']];
+      const navLinks = () => NAV.map(([id, t, i]) => h('a', { href: '#' + id, 'data-view': id }, ico(i), h('span', {}, t), (id === 'inquiries' || id === 'help') && h('span', { class: 'count', 'data-count': id === 'help' ? 'help' : '', hidden: true })));
       const navTail = () => [h('a', { href: '/', target: '_blank', rel: 'noopener' }, ico('ext'), 'View the website'), h('button', { class: 'linkbtn', type: 'button', onclick: signOut }, 'Sign out')];
-      const setCount = (n) => document.querySelectorAll('[data-count]').forEach((c) => { c.textContent = n; c.hidden = !n; });
+      const setCount = (n, k = '') => document.querySelectorAll(`[data-count="${k}"]`).forEach((c) => { c.textContent = n; c.hidden = !n; });
       async function signOut() { if (!(await leave())) return; guard = null; await api('POST', 'logout'); location.reload(); }
 
       // ---------- generic list + form for events, specials and news ----------
@@ -477,7 +492,7 @@
         const bind = (obj, key, after) => (e) => { obj[key] = e.target.type === 'checkbox' ? e.target.checked : e.target.value; after?.(e); refresh(); };
         const swap = (arr, i, d, key) => { [arr[i], arr[i + d]] = [arr[i + d], arr[i]]; draw(`${key(i + d)}${d < 0 ? 'up' : 'down'}`, `${key(i + d)}${d < 0 ? 'down' : 'up'}`); };
         const gone = (msg, undo) => { draw(); toast(msg, { label: 'Undo', fn: () => { undo(); draw(); } }); };
-        const mv = (key, label, icon, f, on) => on && h('button', { class: 'btn alt mv', type: 'button', 'data-f': key, onclick: f }, ico(icon), label);
+        const mv = (key, label, icon, f, on) => (on ? h('button', { class: 'btn alt mv', type: 'button', 'data-f': key, onclick: f }, ico(icon), label) : h('span', { class: 'mv-gap', 'aria-hidden': 'true' }));
         function draw(...focus) {
           put(sec, h('h1', {}, 'Food menu'),
             h('p', {}, 'Add sections, like Sandwiches, then add items to each one. Untick Available to take an item off the menu for now without deleting it. Nothing changes on the website until you choose Save the menu.'),
@@ -499,7 +514,7 @@
                     return put(row, h('div', { class: 'mline' },
                       fld(id + 'n', 'Item name', h('input', { type: 'text', value: it.name, 'data-f': `iname${si}.${ii}`, oninput: bind(it, 'name') })),
                       fld(id + 'p', 'Price', h('input', { type: 'text', value: it.price, oninput: bind(it, 'price') }))),
-                    fld(id + 'd', 'Description', h('input', { type: 'text', value: it.description, oninput: bind(it, 'description') }), { optional: true }),
+                    fld(id + 'd', 'Description', h('textarea', { rows: 2, maxlength: 200, style: 'min-height:4.5rem', value: it.description, oninput: bind(it, 'description') }), { optional: true }),
                     h('div', { class: 'mtools' },
                       h('label', { class: 'check', style: 'margin:0' }, h('input', { type: 'checkbox', checked: it.available, onchange: bind(it, 'available', (e) => { row.classList.toggle('off', !e.target.checked); off.hidden = e.target.checked; }) }), 'On the menu today'), off,
                       mv(ik(ii) + 'up', 'Move up', 'up', () => swap(s.items, ii, -1, ik), ii > 0), mv(ik(ii) + 'down', 'Move down', 'down', () => swap(s.items, ii, 1, ik), ii < s.items.length - 1),
@@ -546,10 +561,145 @@
               h('button', { class: 'btn danger', type: 'button', onclick: async () => { if (await ask(`Delete the message from ${q.name}?`, 'It will be gone for good.', 'Delete it')) { await api('DELETE', 'admin/inquiries/' + q.id); renderInquiries(); } } }, 'Delete')))) : h('div', { class: 'card' }, h('p', { class: 'big' }, 'No inquiries yet.'), h('p', {}, 'Messages from the hall rental form will show up here.')));
       }
 
+      // ---------- volunteer shifts ----------
+      async function renderVolunteers(hl, openId) {
+        guard = null;
+        const sec = $('[data-section=volunteers]');
+        const r = await api('GET', 'admin/shifts');
+        if (!r.ok) return put(sec, h('h1', {}, 'Volunteer shifts'), h('div', { class: 'card' }, h('p', { class: 'big' }, say(r))));
+        const list = r.data.shifts, filled = (s) => s.filled ?? s.signups.length;
+        const fill = (s) => (filled(s) >= s.slots ? h('span', { class: 'chip ok' }, `Full · ${s.slots} of ${s.slots}`) : filled(s) ? h('span', { class: 'chip warn' }, `${filled(s)} of ${s.slots} filled`) : h('span', { class: 'chip muted' }, 'No one yet'));
+        const row = (s) => {
+          const who = h('div', { class: 'who', hidden: openId !== s.id },
+            s.signups.length ? s.signups.map((g) => h('div', { class: 'p' }, h('div', {}, h('strong', {}, g.name), h('br'), h('span', { class: 'meta' }, 'Signed up ' + when(g.at))),
+              h('div', {}, g.phone && h('a', { class: 'tap', href: 'tel:' + g.phone.replace(/[^\d+]/g, '') }, g.phone), g.email && h('a', { class: 'tap', href: 'mailto:' + g.email }, g.email)),
+              h('button', { class: 'btn danger', type: 'button', onclick: async () => {
+                if (!(await ask(`Remove ${g.name} from this shift?`, 'They are not told automatically. Call them if you need to.', 'Remove', 'Keep them'))) return;
+                const d = await api('DELETE', 'admin/signups/' + g.id);
+                if (d.ok) { renderVolunteers(s.id, s.id); toast('Removed.'); } else toast(say(d));
+              } }, 'Remove'))) : h('p', { class: 'meta' }, 'No one has signed up yet.'));
+          return h('div', { class: 'item', 'data-id': s.id },
+            h('div', { class: 'what' }, h('div', { class: 't' }, h('strong', {}, s.title), s.enabled ? h('span', { class: 'chip ok' }, 'On the website') : h('span', { class: 'chip muted' }, 'Not on the website'), fill(s)),
+              h('div', { class: 'meta' }, [wd(s.date), tr(s.start, s.end)].filter(Boolean).join(' · '))),
+            h('div', { class: 'acts' },
+              h('button', { type: 'button', class: 'btn alt whobtn', 'aria-expanded': String(openId === s.id), onclick: (e) => { who.hidden = !who.hidden; e.currentTarget.setAttribute('aria-expanded', String(!who.hidden)); } }, 'Who signed up'),
+              h('button', { class: 'btn alt', type: 'button', onclick: () => edit(s) }, 'Edit'),
+              h('button', { class: 'btn alt', type: 'button', onclick: () => setOn(s) }, s.enabled ? 'Hide' : 'Show'),
+              h('button', { class: 'btn danger', type: 'button', onclick: () => remove(s) }, 'Delete')), who);
+        };
+        const up = list.filter((s) => s.date >= S.today), past = list.filter((s) => s.date < S.today);
+        put(sec, h('div', { class: 'head' }, h('h1', {}, 'Volunteer shifts'), h('button', { class: 'btn add', type: 'button', onclick: () => edit(null) }, '+ Add a shift')),
+          h('p', {}, 'Post a shift and visitors can sign up on the website. Shifts and the names on them are deleted automatically a week after the shift.'),
+          !list.length ? h('div', { class: 'card' }, h('p', { class: 'big' }, 'No shifts yet.'), h('p', {}, 'Choose Add a shift to make the first one.'))
+            : [h('h2', {}, 'Coming up'), h('div', { class: 'card' }, up.length ? up.map(row) : h('p', { class: 'meta' }, 'Nothing is coming up.')),
+              past.length > 0 && h('details', { class: 'card past' }, h('summary', {}, 'Already happened', h('span', { class: 'chip muted' }, past.length)), past.map(row))]);
+        const hit = hl && $(`[data-id="${hl}"]`, sec);
+        if (hit) { hit.classList.add('hl'); hit.scrollIntoView({ block: 'center' }); }
+        async function setOn(s) {
+          const x = await api('PUT', 'admin/shifts/' + s.id, { title: s.title, date: s.date, start: s.start, end: s.end, slots: s.slots, notes: s.notes, enabled: !s.enabled });
+          if (!x.ok) return toast(say(x));
+          renderVolunteers(s.id); toast(s.enabled ? 'Hidden from the website.' : 'Showing on the website.');
+        }
+        async function remove(s) {
+          const n = s.signups.length;
+          if (!(await ask(`Delete ${s.title}?`, `This also removes the ${plural(n, 'person', 'people')} signed up. It can't be undone.`, 'Delete it'))) return;
+          const x = await api('DELETE', 'admin/shifts/' + s.id);
+          if (x.ok) { renderVolunteers(); toast('Deleted.'); } else toast(say(x));
+        }
+        function edit(s) {
+          const v = s || { title: '', date: '', start: '', end: '', slots: '', notes: '', enabled: true }, form = h('form', { novalidate: true }), err = h('p', { class: 'err', role: 'alert', hidden: true });
+          put(form, h('div', { class: 'ff' },
+            fld('v-title', 'Shift name', h('input', { type: 'text', name: 'title', value: v.title }), { hint: 'Like Flags at Sunset Memorial Park.' }),
+            fld('v-date', 'Date', h('input', { type: 'date', name: 'date', value: v.date, min: s ? false : S.today }), { cls: 'dt' }),
+            fld('v-start', 'Start time', h('input', { type: 'time', name: 'start', value: v.start }), { optional: true, half: true }), fld('v-end', 'End time', h('input', { type: 'time', name: 'end', value: v.end }), { optional: true, half: true }),
+            fld('v-slots', 'Spots', h('input', { type: 'number', name: 'slots', value: v.slots, min: 1, max: 100, inputmode: 'numeric' }), { hint: 'How many helpers you need.' }),
+            fld('v-notes', 'Notes', h('textarea', { name: 'notes', rows: 3, value: v.notes }), { optional: true, hint: 'Where to meet and what to bring. Shown on the website.' }),
+            h('label', { class: 'check wide' }, h('input', { type: 'checkbox', name: 'enabled', checked: !!v.enabled }), 'Show on the website')),
+            err, h('div', { class: 'formbar' }, h('button', { class: 'btn', type: 'submit' }, 'Save'), h('button', { class: 'btn quiet', type: 'button', onclick: back }, 'Cancel')));
+          const vals = () => ({ title: form.title.value, date: form.date.value, start: form.start.value, end: form.end.value, slots: form.slots.value === '' ? '' : Number(form.slots.value), notes: form.notes.value, enabled: form.enabled.checked });
+          async function back() { if (await leave()) renderVolunteers(); }
+          form.addEventListener('submit', async (e) => {
+            e.preventDefault(); err.hidden = true;
+            form.querySelectorAll('.fld.bad').forEach(clearErr);
+            const x = await api('PUT', 'admin/shifts/' + (s ? s.id : 'new'), vals());
+            if (!x.ok) {
+              const k = x.data.error, ctl = form.elements[{ past: 'date', slots_taken: 'slots' }[k] || k];
+              const msg = k === 'slots_taken' ? `${plural(s.signups.length, 'person', 'people')} already signed up. Remove someone first, or keep at least ${s.signups.length} spots.` : say(x);
+              if (ctl?.closest?.('.fld')) { markErr(ctl, msg); ctl.focus(); } else { err.textContent = msg; err.hidden = false; }
+              return;
+            }
+            renderVolunteers(x.data.item.id); toast('Saved.');
+          });
+          put(sec, h('button', { class: 'btn quiet', type: 'button', onclick: back }, ico('back'), 'Back to the list'), h('div', { class: 'card' }, h('h2', {}, s ? 'Edit this shift' : 'Add a shift'), form));
+          const init = JSON.stringify(vals());
+          guard = () => JSON.stringify(vals()) !== init && 'What you typed has not been saved.';
+          scrollTo(0, 0); form.title.focus();
+        }
+      }
+
+      // ---------- help requests ----------
+      const BEST = { morning: 'Morning', afternoon: 'Afternoon', evening: 'Evening', any: 'Any time' };
+      const KINDS = { ride: 'A ride to a VA appointment', visit: 'A visit or a phone call', benefits: 'Help with VA benefits or a claim', other: 'Something else' };
+      async function renderHelp() {
+        guard = null;
+        const sec = $('[data-section=help]');
+        const r = await api('GET', 'admin/help');
+        if (!r.ok) return put(sec, h('h1', {}, 'Help requests'), h('div', { class: 'card' }, h('p', { class: 'big' }, say(r))));
+        const list = r.data.requests;
+        S.newHelp = list.filter((q) => !q.handled).length; setCount(S.newHelp, 'help');
+        put(sec, h('h1', {}, 'Help requests'), h('p', {}, "Requests from the Ask for help form. Treat them as private: don't forward or share them. They are deleted automatically after 90 days."),
+          !r.data.enabled && h('div', { class: 'card' }, h('p', { class: 'big' }, h('span', { class: 'chip warn' }, 'Off'), ' The help form is off. Visitors see the phone number instead.'), h('a', { class: 'btn alt', href: '#settings' }, 'Open Site settings')),
+          list.length ? list.map((q) => h('div', { class: 'card' },
+            h('h2', {}, q.name, ' ', h('span', { class: q.handled ? 'chip muted' : 'chip warn' }, q.handled ? 'Handled' : 'New')),
+            h('p', { class: 'meta' }, 'Received ' + when(q.at)),
+            h('p', { class: 'big' }, KINDS[q.kind] || q.kind),
+            q.best_time && h('p', {}, 'Best time: ' + (BEST[q.best_time] || q.best_time)),
+            h('p', {}, q.phone && h('span', {}, 'Phone: ', h('a', { href: 'tel:' + q.phone.replace(/[^\d+]/g, '') }, q.phone), h('br')), q.email && h('span', {}, 'Email: ', h('a', { href: 'mailto:' + q.email }, q.email))),
+            q.message && h('div', { class: 'priv' }, q.message),
+            h('div', { class: 'row', style: 'margin-top:1rem' },
+              h('button', { class: 'btn alt', type: 'button', onclick: async () => { await api('PUT', 'admin/help/' + q.id, { handled: !q.handled }); renderHelp(); } }, q.handled ? 'Mark as new' : 'Mark as handled'),
+              h('button', { class: 'btn danger', type: 'button', onclick: async () => { if (await ask(`Delete the request from ${q.name}?`, 'It will be gone for good.', 'Delete it')) { await api('DELETE', 'admin/help/' + q.id); renderHelp(); } } }, 'Delete')))) : h('div', { class: 'card' }, h('p', { class: 'big' }, 'No help requests yet.'), h('p', {}, 'Requests from the Ask for help form will show up here.')));
+      }
+
+      // ---------- site settings ----------
+      async function renderSettings() {
+        guard = null;
+        const sec = $('[data-section=settings]');
+        const r = await api('GET', 'admin/settings');
+        if (!r.ok) return put(sec, h('h1', {}, 'Site settings'), h('div', { class: 'card' }, h('p', { class: 'big' }, say(r))));
+        const v = r.data.settings || {}, form = h('form', { novalidate: true }), err = h('p', { class: 'err', role: 'alert', hidden: true });
+        const txt = (id, name, label, x, type = 'text') => fld(id, label, h('input', { type, name, value: v[name] || '' }), x);
+        put(form,
+          h('div', { class: 'card' }, h('h2', {}, 'Veteran help form'),
+            h('label', { class: 'check' }, h('input', { type: 'checkbox', name: 'helpEnabled', checked: !!v.helpEnabled }), 'Show the help request form on the website'),
+            txt('s-rn', 'responderName', 'Who answers', { hint: 'Shown on the form, like Bill Zuk. Needed to turn the form on.' }),
+            txt('s-rr', 'responderRole', 'Their role', { optional: true, hint: 'Like Post Service Officer.' }),
+            txt('s-re', 'responderEmail', 'Send new requests to this email', { optional: true, hint: "Not shown on the website. Leave empty to use the post's email." }, 'email')),
+          h('div', { class: 'card' }, h('h2', {}, 'Support the Post'),
+            txt('s-du', 'donateUrl', 'Donation link', { optional: true, hint: 'The web address your payment service gives you, starting with https. Leave empty to hide the Donate button.' }, 'url'),
+            txt('s-dl', 'donateLabel', 'Button words', { optional: true, hint: 'Up to 40 characters. Empty means Donate online.' })),
+          err, h('div', { class: 'formbar' }, h('button', { class: 'btn', type: 'submit' }, 'Save settings')));
+        const vals = () => ({ helpEnabled: form.helpEnabled.checked, responderName: form.responderName.value, responderRole: form.responderRole.value, responderEmail: form.responderEmail.value, donateUrl: form.donateUrl.value, donateLabel: form.donateLabel.value });
+        let init = JSON.stringify(vals());
+        guard = () => JSON.stringify(vals()) !== init && 'Your settings changes have not been saved.';
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault(); err.hidden = true;
+          form.querySelectorAll('.fld.bad').forEach(clearErr);
+          const x = await api('PUT', 'admin/settings', vals());
+          if (!x.ok) {
+            const ctl = form.elements[{ responder: 'responderName' }[x.data.error] || x.data.error];
+            if (ctl?.closest?.('.fld')) { markErr(ctl, say(x)); ctl.focus(); } else { err.textContent = say(x); err.hidden = false; }
+            return;
+          }
+          init = JSON.stringify(vals()); toast('Saved. The website is updated.');
+        });
+        put(sec, h('h1', {}, 'Site settings'), h('p', {}, 'Turn parts of the website on or off. Nothing changes until you choose Save settings.'), form);
+      }
+
       // ---------- dashboard ----------
       let range = '30d';
       const RANGES = [['7d', '7 days', 'the 7 days before'], ['30d', '30 days', 'the 30 days before'], ['90d', '90 days', 'the 90 days before'], ['365d', 'Year', 'the year before']];
-      const PAGES = { '/': 'Home', '/bar': 'The bar and food menu', '/events': 'Events calendar', '/hall': 'Hall rental', '/news': 'News', '/about': 'About the post', '/history': 'Our history', '/programs': 'Programs', '/resources': 'Help for veterans', '/contact': 'Contact' };
+      const PAGES = { '/': 'Home', '/bar': 'The bar and food menu', '/events': 'Events calendar', '/hall': 'Hall rental', '/news': 'News', '/about': 'About the post', '/history': 'Our history', '/programs': 'Programs', '/resources': 'Help for veterans', '/contact': 'Contact', '/events/first-visit': 'Your first visit', '/youth': 'Youth contests', '/support': 'Support the Post', '/volunteer': 'Volunteer', '/help': 'Ask for help' };
       const pageName = (p) => PAGES[p] || ((s) => s.charAt(0).toUpperCase() + s.slice(1))(p.split('/').filter(Boolean).pop()?.replace(/-/g, ' ') || 'Home');
       const SITES = [[/^maps\.google\./, 'Google Maps'], [/(^|\.)(facebook|fb)\.com$/, 'Facebook'], [/(^|\.)google\.[a-z.]+$/, 'Google'], [/(^|\.)bing\.com$/, 'Bing'], [/(^|\.)duckduckgo\.com$/, 'DuckDuckGo'],
         [/(^|\.)yahoo\.com$/, 'Yahoo'], [/(^|\.)instagram\.com$/, 'Instagram'], [/(^|\.)nextdoor\.com$/, 'Nextdoor']];
@@ -583,6 +733,8 @@
         const sec = $('[data-section=dashboard]');
         const r = await api('GET', 'admin/stats?range=' + range);
         if (!r.ok) return;
+        const stR = await api('GET', 'admin/state');
+        if (stR.ok) S.newHelp = stR.data.newHelp || 0;
         const d = r.data, before = RANGES.find((x) => x[0] === d.range)[2], period = d.range === '365d' ? 'Last year' : 'Last ' + d.range.replace('d', ' days');
         setCount(d.inquiries.new);
         const best = d.series.reduce((a, p) => (p.n > a.n ? p : a), { n: 0 });
@@ -594,7 +746,7 @@
         put(sec, h('div', { class: 'head' }, h('h1', {}, 'Dashboard'),
             h('div', { class: 'seg', role: 'group', 'aria-label': 'Time range' }, RANGES.map(([k, t]) => h('button', { class: 'btn alt', type: 'button', 'aria-pressed': String(k === d.range), onclick: () => { range = k; renderDashboard(); } }, t)))),
           h('div', { class: 'tiles' }, tile('Visitors', d.visitors, d.prev.visitors), tile('Page views', d.views, d.prev.views), tile('Hall inquiries', d.inquiries.inRange, d.prev.inquiries),
-            h('a', { class: 'tile card', href: '#inquiries' }, h('div', { class: 'tl' }, 'Waiting for a reply'), h('div', { class: 'meta' }, 'All time'), h('div', { class: 'num' }, money(d.inquiries.new)), d.inquiries.new > 0 && h('span', { class: 'chip warn' }, 'Needs a look'))),
+            h('a', { class: 'tile card', href: '#inquiries' }, h('div', { class: 'tl' }, 'Waiting for a reply'), h('div', { class: 'meta' }, S.newHelp > 0 ? `Hall: ${d.inquiries.new} · Help: ${S.newHelp}` : 'All time'), h('div', { class: 'num' }, money(d.inquiries.new)), d.inquiries.new > 0 && h('span', { class: 'chip warn' }, 'Needs a look'))),
           h('div', { class: 'card' }, h('h2', {}, head), holder, h('p', { class: 'meta' }, sentence), h('p', { class: 'meta' }, 'Counted without cookies. Your own visits while signed in are not counted.')),
           h('div', { class: 'two' }, h('div', { class: 'card' }, h('h2', {}, 'Most viewed pages'), rank(merge(d.pages, (p) => pageName(p.path)), 'No page visits counted yet.')),
             h('div', { class: 'card' }, h('h2', {}, 'Where visitors came from'), rank(merge(d.referrers, (p) => siteName(p.host)), 'No other websites have sent visitors yet.'))), secCard);
@@ -612,7 +764,12 @@
         login_blocked: ['Sign-in refused while locked out', 'bad'], password_change: ['Password changed', 'ok'], password_change_fail: ['Password change refused: current password was wrong', 'warn'],
         password_change_blocked: ['Password changes paused: too many tries', 'bad'], menu_update: ['Saved the food menu', 'edit'], photo_upload: ['Uploaded a picture', 'edit'], photo_delete: ['Deleted a picture', 'edit', 'bin'],
         photo_upload_blocked: ['Stopped a picture upload that was not allowed', 'warn'], inquiry_delete: ['Deleted a hall inquiry', 'edit', 'bin'], inquiries_purged: ['Old hall inquiries cleared automatically', 'muted', 'clock'],
-        inquiry_honeypot: ['Stopped a spam message on the hall form', 'warn'], inquiry_rate_limited: ['Too many hall messages from one visitor', 'warn'] };
+        inquiry_honeypot: ['Stopped a spam message on the hall form', 'warn'], inquiry_rate_limited: ['Too many hall messages from one visitor', 'warn'],
+        volunteer_signup: ['Someone signed up for a shift', 'edit', 'hand'], signup_remove: ['Removed a volunteer from a shift', 'edit', 'bin'], shifts_purged: ['Old volunteer shifts cleared automatically', 'muted', 'clock'],
+        help_request: ['A help request arrived', 'edit', 'lifebuoy'], help_update: ['Marked a help request', 'edit'], help_delete: ['Deleted a help request', 'edit', 'bin'], help_purged: ['Old help requests cleared automatically', 'muted', 'clock'],
+        help_honeypot: ['Stopped a spam message on the help form', 'warn'], volunteer_honeypot: ['Stopped a spam message on the volunteer form', 'warn'],
+        help_rate_limited: ['Too many messages from one visitor', 'warn'], volunteer_rate_limited: ['Too many messages from one visitor', 'warn'], settings_update: ['Changed the site settings', 'edit', 'gear'] };
+      for (const [a, w] of [['create', 'Added'], ['update', 'Changed'], ['delete', 'Deleted']]) EVT[`shifts_${a}`] = [`${w} a volunteer shift`, 'edit', a === 'delete' ? 'bin' : 'hand'];
       for (const [k, t] of [['events', 'an event'], ['specials', 'a drink special'], ['news', 'a news item']]) for (const [a, w] of [['create', 'Added'], ['update', 'Changed'], ['delete', 'Deleted']]) EVT[`${k}_${a}`] = [`${w} ${t}`, 'edit', a === 'delete' ? 'bin' : 'pencil'];
       const KIND_ICON = { ok: 'check', warn: 'warn', bad: 'bshield', edit: 'pencil', muted: 'clock' };
       function evInfo(e) {
@@ -666,7 +823,7 @@
       }
 
       // ---------- navigation ----------
-      const VIEWS = { dashboard: renderDashboard, events: () => renderCrud('events'), specials: () => renderCrud('specials'), menu: renderMenu, news: () => renderCrud('news'), inquiries: renderInquiries, security: renderSecurity, account: renderAccount };
+      const VIEWS = { dashboard: renderDashboard, events: () => renderCrud('events'), specials: () => renderCrud('specials'), menu: renderMenu, news: () => renderCrud('news'), volunteers: renderVolunteers, inquiries: renderInquiries, help: renderHelp, security: renderSecurity, settings: renderSettings, account: renderAccount };
       let cur = '', restoring = false;
       function show() {
         const v = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'dashboard';
@@ -682,6 +839,7 @@
         const [ph, st] = await Promise.all([api('GET', 'admin/photos'), api('GET', 'admin/stats?range=7d')]);
         S.photos = ph.ok ? ph.data.photos : [];
         if (st.ok) setCount(st.data.inquiries.new);
+        setCount(S.newHelp || 0, 'help');
         put($('#links'), navLinks()); put($('#tail'), navTail()); put($('#mlinks'), navLinks(), navTail());
         $('#gate').hidden = true; $('#app').hidden = false;
         $('#default-warning').hidden = !S.defaultPassword;

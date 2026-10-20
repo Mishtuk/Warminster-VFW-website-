@@ -3,7 +3,8 @@ import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
 import InfoSection from '../components/info/InfoSection.astro';
 import OnThisPage from '../components/info/OnThisPage.astro';
-import { POST, photo, href } from '../lib/site';
+import Subnav from '../components/Subnav.astro';
+import { POST, photo, href, EVENT_TABS } from '../lib/site';
 import { seed, year } from '../lib/seed';
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((label, i) => ({ label, id: `month-${i + 1}` }));
 const sections = [
@@ -15,6 +16,7 @@ const sections = [
 ---
 <Base title="Events and calendar" description={`Upcoming events and the ${year} calendar at ${POST.name}.`}>
   <PageHead title="Events and calendar" lede={`What's coming up, the nights that repeat every week, and the full ${year} calendar.`} />
+  <Subnav items={EVENT_TABS} label="Events" />
   <OnThisPage items={sections} />
 
   <InfoSection id="upcoming" title="Coming up" summary="The next events at the post.">
@@ -51,21 +53,6 @@ const sections = [
   :global(#calendar .otp .container) { width: 100%; }
   :global(#calendar .otp li) { flex: 0 0 auto; }
   :global(#calendar .otp a) { width: auto; min-width: 4.75rem; justify-content: center; }
-  /* Regular nights: a row of cards, each with its day as a badge (markup from state.js regularHtml) */
-  :global(#regular .vfw-regular) { display: grid; gap: clamp(1rem, 0.6rem + 1.5vw, 1.5rem); grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr)); }
-  :global(#regular .vfw-regular > .vfw-event) {
-    display: flex; flex-direction: column; align-items: flex-start; gap: 0.35rem;
-    padding: clamp(1.1rem, 1rem + 0.8vw, 1.5rem); border-top: 0; border-radius: 4px; background: var(--card); box-shadow: var(--shadow);
-  }
-  :global(#regular .vfw-regular .vfw-event-date) {
-    order: -2; display: inline-block; padding: 0.3rem 0.75rem; border-radius: 3px; background: var(--night); color: var(--brass);
-    box-shadow: inset 0 -3px 0 var(--gold); font-weight: 700; line-height: 1.3;
-  }
-  :global(#regular .vfw-regular .vfw-event-title) { order: -1; margin-top: 0.35rem; font-size: var(--step-1); }
-  :global(#regular .vfw-regular .vfw-event-time) { font-weight: 650; color: var(--ink); }
-  :global(#regular .vfw-regular .vfw-event-cat) { justify-self: auto; }
-  :global(#regular .vfw-regular > .vfw-event > *) { max-width: 100%; }
-  :global(#regular .vfw-regular .vfw-event-desc) { margin-top: 0.25rem; overflow-wrap: anywhere; }
   :global(.vfw-month) { scroll-margin-top: calc(var(--header-h) + 0.5rem); }
   @media print { :global(.otp) { display: none; } }
 </style>

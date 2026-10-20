@@ -55,17 +55,24 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
 - SMTP for inquiry email.
 - A short HD video of the post if possible: the best fix for the hero.
 
-### Ideas offered to the owner (not started; the owner decides)
-1. **Online hall booking calendar:** the owner marks booked dates in the admin, and renters see open dates before they inquire.
-2. **Event sign-ups / RSVPs** (bingo nights, the Cash Bash), with counts in the admin.
-3. **A merch store** with the official logo (the vector files are ready). Check VFW National licensing first.
-4. **An email or text list** for event reminders and closures, managed from the admin.
-5. **Photo uploads in the admin,** so staff can add event photos and news pictures without a developer.
-6. **A "Wall of Honor"** of member veterans (branch, era, photo), added with family consent.
-7. **Online membership renewal / dues** (link to the VFW national portal, plus post-side Home Association info).
-8. **A live "Bar open now" / "Kitchen open now" badge** driven by the hours.
-9. **A printable monthly flyer** generated from the events, for the bar's bulletin board.
-10. **A Spanish or large-print toggle,** plus a read-aloud option for accessibility.
+### Built in round 3 (2026-10-20)
+- **Food menu:** the full Loaded Belly menu from the caterer's July 2026 flyer, with the flyer's own descriptions (it replaced a one-day brunch flyer).
+- **Bar TV `/tv`:** rotating full-screen slides (tonight, specials, kitchen, coming up, volunteers) read from the admin data and refreshed every 5 minutes.
+- **First-timer guide `/events/first-visit`:** bingo, line dancing and watch parties; the matching event cards link to it.
+- **Support the Post `/support`:** drives and Auxiliary fundraisers from the Facebook group, VFW national giving links, and a Donate button only when the admin sets an https donation link. No payment data touches the server.
+- **Volunteer board `/volunteer`:** the admin posts shifts with slots; people sign up with a name plus phone or email. Sign-ups never appear publicly and are deleted a week after the shift.
+- **Veteran help request `/help`:** off until the admin turns it on and names who answers (Site settings). The crisis line comes first; requests are kept 90 days, and the email to the post leaves out the message.
+- **Youth contests `/youth`:** Voice of Democracy and Patriot's Pen 2026-27 (theme, deadline countdown, prizes) and VFW scholarships, linked to vfw.org.
+- **Admin:** Volunteers, Help requests and Site settings views. Public forms have rate limits, origin checks, a honeypot and size caps.
+
+### Owner questions from round 3
+- Tax status/EIN and a donation link (who receives gifts).
+- Who answers help requests, and their email (set it in Site settings before turning the form on). Production also needs `POST_EMAIL`.
+- Is the post taking Voice of Democracy / Patriot's Pen entries this year, and who is the contact?
+- The guest rule for non-members, parking, age rules, and who coordinates volunteers.
+
+### Ideas still open (the owner decides)
+1. Online hall booking calendar. 2. Event RSVPs. 3. Merch store (check VFW licensing). 4. Email or text reminder list. 5. Photo uploads beyond news. 6. Wall of Honor (family consent). 7. Membership renewal links. 8. Live "Bar open now" badge on more pages. 9. Printable monthly flyer. 10. Spanish or large-print toggle.
 
 ### Rules for editing code
 - Keep every asset self-hosted (the CSP blocks other origins).
@@ -201,13 +208,13 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
 |---|---|
 | Home | `/` |
 | The Bar | `/bar` |
-| Events | `/events` (full-year calendar and list) |
+| Events | `/events` (full-year calendar and list), `/events/first-visit` (first-timer guide) |
 | Hall Rental | `/hall` |
-| Programs & Resources | `/programs`, `/resources` |
+| Programs & Resources | `/programs`, `/resources`, `/youth` (contests and scholarships), `/support`, `/volunteer`, `/help` (veteran help request) |
 | News | `/news` |
 | About | `/about`, `/history`, `/contact` |
 
-Staff only: `/admin` (noindex, blocked in robots.txt).
+Staff only: `/admin` (noindex, blocked in robots.txt). Bar TV: `/tv` (linked nowhere, noindex, not in the sitemap, not counted in stats; open it full screen on the bar's TV).
 
 ## Open questions for the post
 - The charter year, and who Harry C. Wilson II and Douglas A. Post were.

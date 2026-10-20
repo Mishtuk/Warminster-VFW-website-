@@ -76,7 +76,7 @@ test('calendar: 12 months, event days marked, disabled hidden, text escaped', ()
 
 test('renderers: empty states, specials range, menu availability, news order', () => {
   assert.match(upcomingHtml([], '2026-10-19'), /vfw-empty/);
-  assert.match(upcomingHtml([ev({ date: '2026-10-20', start: '19:00', end: '21:30' })], '2026-10-19'), /7:00 PM to 9:30 PM/);
+  assert.match(upcomingHtml([ev({ date: '2026-10-20', start: '19:00', end: '21:30' })], '2026-10-19'), /7 PM to 9:30 PM/);
   const sp = [{ label: 'Live', period: 'weekly', weekday: 5, enabled: true, start: '', end: '' }, { label: 'Old', period: 'daily', enabled: true, start: '', end: '2026-01-01' }, { label: 'Off', period: 'daily', enabled: false }];
   const h = specialsHtml(sp, '2026-10-19');
   assert.ok(h.includes('Live') && h.includes('Every Friday') && !h.includes('Old') && !h.includes('Off'));

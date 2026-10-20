@@ -12,6 +12,8 @@ interface Props {
   image?: string; // path under public/, e.g. "brand/og.jpg"
   /** Transparent header over the home hero. */
   overlay?: boolean;
+  /** Kiosk screens (the bar TV): no header, footer or theme button, always dark, hidden from search. */
+  bare?: boolean;
 }
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -20,6 +22,7 @@ const {
   description = `${POST.name} in ${POST.city}, PA. ${POST.motto}. The bar, events, hall rental, programs and veteran resources.`,
   image = 'brand/og.jpg',
   overlay = false,
+  bare = false,
 } = Astro.props;
 
 const full = title.startsWith('VFW') ? title : `${title} | ${POST.short}`;
@@ -41,14 +44,15 @@ const fontCss = [
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme={bare ? 'dark' : undefined}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <!-- Theme before first paint: a saved choice wins; otherwise CSS follows the system setting. -->
-    <script is:inline>try{var t=localStorage.getItem('theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t}catch(e){}</script>
+    <script is:inline>try{if(!document.documentElement.dataset.theme){var t=localStorage.getItem('theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t}}catch(e){}</script>
     <meta name="color-scheme" content="light dark" />
     <title>{full}</title>
+    {bare && <meta name="robots" content="noindex, nofollow" />}
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     <link rel="icon" href={`${base}/brand/favicon.svg`} type="image/svg+xml" />
@@ -72,11 +76,11 @@ const fontCss = [
     <slot name="head" />
   </head>
   <body>
-    <a class="skip-link" href="#main">Skip to content</a>
-    <Header overlay={overlay} />
+    {!bare && <a class="skip-link" href="#main">Skip to content</a>}
+    {!bare && <Header overlay={overlay} />}
     <main id="main"><slot /></main>
-    <Footer />
-    <Lightbox />
-    <ThemeFab />
+    {!bare && <Footer />}
+    {!bare && <Lightbox />}
+    {!bare && <ThemeFab />}
   </body>
 </html>

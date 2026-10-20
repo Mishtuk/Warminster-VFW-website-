@@ -25,7 +25,7 @@ export const para = (v, max) => (typeof v === 'string' ? v.replace(/\r\n?/g, '\n
 
 const parseDay = (s) => new Date(`${s}T00:00:00Z`);
 const fmtDay = (d) => d.toISOString().slice(0, 10);
-export const isDate = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && fmtDay(parseDay(s)) === s;
+export const isDate = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(+parseDay(s)) && fmtDay(parseDay(s)) === s;
 export const isTime = (s) => typeof s === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(s);
 const id = (v) => (typeof v === 'string' && /^[a-z0-9]{4,24}$/.test(v) ? v : globalThis.crypto.randomUUID().replace(/-/g, '').slice(0, 10));
 const flag = (v, dflt = true) => (v === undefined ? dflt : v === true || v === 'true' || v === 1 || v === 'on');
@@ -106,22 +106,86 @@ export function validateMenu(b) {
   return { value: { hours: text(b.hours, 200), sections } };
 }
 
+/** Phone and email from a public form: { phone, email } (at least one), or { error: 'phone' | 'email' | 'contact' }. */
+export function contact(b) {
+  const phone = text(b.phone, 30);
+  if (phone && (phone.replace(/\D/g, '').length < 7 || !/^[\d\s()+.-]+(x\d+)?$/i.test(phone))) return { error: 'phone' };
+  const email = text(b.email, 200).toLowerCase();
+  if (email && !EMAIL.test(email)) return { error: 'email' };
+  return !phone && !email ? { error: 'contact' } : { phone, email };
+}
+
 /** Hall inquiry from the public form. Needs a name and a way to reach them (phone or email). Honeypot is checked by the caller. */
 export function validateInquiry(b) {
   b = b ?? {};
   const name = text(b.name, 100);
   if (!name) return { error: 'name' };
-  const phone = text(b.phone, 30);
-  if (phone && (phone.replace(/\D/g, '').length < 7 || !/^[\d\s()+.-]+(x\d+)?$/i.test(phone))) return { error: 'phone' };
-  const email = text(b.email, 200).toLowerCase();
-  if (email && !EMAIL.test(email)) return { error: 'email' };
-  if (!phone && !email) return { error: 'contact' };
+  const c = contact(b);
+  if (c.error) return c;
+  const { phone, email } = c;
   const eventDate = optDate(b.eventDate ?? b.event_date);
   if (eventDate === null) return { error: 'eventDate' };
   const raw = b.guests === undefined || b.guests === null ? '' : String(b.guests).trim();
   const guests = raw === '' ? null : Number(raw);
   if (guests !== null && (!Number.isInteger(guests) || guests < 1 || guests > 2000)) return { error: 'guests' };
   return { value: { name, phone, email, eventDate, eventType: text(b.eventType ?? b.event_type, 80), guests, message: para(b.message, 2000) } };
+}
+
+/** Volunteer shift (admin). today = ET day; taken = people already signed up (slots can't drop below it). A body with an id is an edit: past dates stay allowed. */
+export function validateShift(b, today, taken = 0) {
+  b = b ?? {};
+  const title = text(b.title, 80);
+  if (!title) return { error: 'title' };
+  if (!isDate(b.date)) return { error: 'date' };
+  if (!b.id && b.date < today) return { error: 'past' };
+  const start = optTime(b.start), end = optTime(b.end);
+  if (start === null) return { error: 'start' };
+  if (end === null) return { error: 'end' };
+  const slots = typeof b.slots === 'string' && b.slots.trim() ? Number(b.slots) : b.slots;
+  if (!Number.isInteger(slots) || slots < 1 || slots > 100) return { error: 'slots' };
+  if (slots < taken) return { error: 'slots_taken' };
+  return { value: { id: id(b.id), title, date: b.date, start, end, slots, notes: para(b.notes, 300), enabled: flag(b.enabled) } };
+}
+
+/** Public volunteer sign-up: shift id, name, and a phone or an email. */
+export function validateSignup(b) {
+  b = b ?? {};
+  if (typeof b.shift !== 'string' || !/^[a-z0-9]{4,24}$/.test(b.shift)) return { error: 'shift' };
+  const name = text(b.name, 80);
+  if (!name) return { error: 'name' };
+  const c = contact(b);
+  return c.error ? c : { value: { shift: b.shift, name, ...c } };
+}
+
+export const HELP_KINDS = { ride: 'A ride to a VA appointment', visit: 'A visit or a phone call', benefits: 'Help with VA benefits or a claim', other: 'Something else' };
+export const BEST_TIMES = { morning: 'Morning', afternoon: 'Afternoon', evening: 'Evening', any: 'Any time' };
+/** Veteran help request from the public form. */
+export function validateHelp(b) {
+  b = b ?? {};
+  const name = text(b.name, 80);
+  if (!name) return { error: 'name' };
+  const c = contact(b);
+  if (c.error) return c;
+  if (!Object.hasOwn(HELP_KINDS, b.kind)) return { error: 'kind' };
+  const bestTime = b.bestTime ?? '';
+  if (bestTime !== '' && !Object.hasOwn(BEST_TIMES, bestTime)) return { error: 'bestTime' };
+  return { value: { name, ...c, kind: b.kind, bestTime, message: para(b.message, 1000) } };
+}
+
+export const DEFAULT_SETTINGS = { helpEnabled: false, responderName: '', responderRole: '', responderEmail: '', donateUrl: '', donateLabel: '' };
+/** Site settings (admin). The help form can only be on when someone is named to answer. The donation link must be a plain https address. */
+export function validateSettings(b) {
+  b = b ?? {};
+  const helpEnabled = flag(b.helpEnabled, false), responderName = text(b.responderName, 80);
+  if (helpEnabled && !responderName) return { error: 'responder' };
+  const responderEmail = text(b.responderEmail, 200).toLowerCase();
+  if (responderEmail && !EMAIL.test(responderEmail)) return { error: 'responderEmail' };
+  const raw = typeof b.donateUrl === 'string' ? b.donateUrl.trim() : '';
+  let donateUrl = '';
+  if (raw) {
+    try { const u = new URL(raw); if (u.protocol !== 'https:' || u.username || u.password || raw.length > 300 || /[\s<>"']/.test(raw)) throw 0; donateUrl = u.href; } catch { return { error: 'donateUrl' }; }
+  }
+  return { value: { helpEnabled, responderName, responderRole: text(b.responderRole, 60), responderEmail, donateUrl, donateLabel: text(b.donateLabel, 40) } };
 }
 
 // ---------- recurring events ----------
@@ -170,7 +234,7 @@ export function expand(events = [], from, to) {
 // ---------- rendering (class names are listed in docs/markers.md) ----------
 const longDay = (ymd) => parseDay(ymd).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 const shortDay = (ymd) => parseDay(ymd).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
-const clock = (t) => { const [h, m] = t.split(':').map(Number); return `${h % 12 || 12}${m ? `:${String(m).padStart(2, '0')}` : ':00'} ${h < 12 ? 'AM' : 'PM'}`; };
+const clock = (t) => { const [h, m] = t.split(':').map(Number); return `${h % 12 || 12}${m ? `:${String(m).padStart(2, '0')}` : ''} ${h < 12 ? 'AM' : 'PM'}`; };
 export const timeLabel = (start, end) => (start ? clock(start) + (end ? ` to ${clock(end)}` : '') : '');
 const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-');
 const empty = (msg) => `<p class="vfw-empty">${esc(msg)}</p>`;
@@ -226,26 +290,36 @@ const scheduleLabel = (e) => {
   if (e.recurring === 'monthly_weekday') return `${ORD[nth]} ${day} of the month`;
   return `Monthly on the ${d.getUTCDate()}${['th', 'st', 'nd', 'rd'][(d.getUTCDate() % 100 > 10 && d.getUTCDate() % 100 < 14) || d.getUTCDate() % 10 > 3 ? 0 : d.getUTCDate() % 10]}`;
 };
+const list = (a) => (a.length < 3 ? a.join(' and ') : `${a.slice(0, -1).join(', ')} and ${a.at(-1)}`);
 /** Regular nights (anything that repeats), each described once: <ul class="vfw-events vfw-regular">. Same title, time and text merge into one row. */
-export function regularHtml(events = [], { empty: none = 'No regular nights are listed right now.' } = {}) {
+export function regularHtml(events = [], { empty: none = 'No regular nights are listed right now.', guide = '/events/first-visit' } = {}) {
+  const guideLink = (t) => { const g = /bingo/i.test(t) ? 'bingo' : /line danc/i.test(t) ? 'line-dancing' : ''; return g ? `<a class="vfw-guide-link" href="${esc(guide)}#${g}">First time? What to expect</a>` : ''; };
   const rows = new Map();
   for (const e of events.filter((x) => x.enabled !== false && x.recurring !== 'none')) {
     const key = [e.title, e.start, e.end, e.description].join('|');
-    const row = rows.get(key) ?? { e, labels: [] };
-    row.labels.push(scheduleLabel(e));
+    const row = rows.get(key) ?? { e, labels: [], ords: new Map() };
+    if (e.recurring === 'monthly_weekday') { // same weekday, several weeks: "1st, 3rd and 4th Monday of the month"
+      const d = parseDay(e.date), day = DAYS[d.getUTCDay()];
+      if (!row.ords.has(day)) { row.ords.set(day, []); row.labels.push({ day }); }
+      row.ords.get(day).push(ORD[Math.ceil(d.getUTCDate() / 7)]);
+    } else row.labels.push(scheduleLabel(e));
     rows.set(key, row);
   }
   if (!rows.size) return empty(none);
+  for (const r of rows.values()) r.labels = r.labels.map((l) => (l.day ? `${list(r.ords.get(l.day).sort())} ${l.day} of the month` : l));
   return `<ul class="vfw-events vfw-regular">${[...rows.values()].map(({ e, labels }) => `<li class="vfw-event vfw-cat-${slug(e.category)}"><strong class="vfw-event-date">${esc(labels.join(', '))}</strong>`
     + `${e.start ? ` <span class="vfw-event-time">${esc(timeLabel(e.start, e.end))}</span>` : ''} <strong class="vfw-event-title">${esc(e.title)}</strong>`
-    + ` <span class="vfw-event-cat">${esc(e.category)}</span>${e.description ? `<p class="vfw-event-desc">${esc(e.description)}</p>` : ''}</li>`).join('')}</ul>`;
+    + ` <span class="vfw-event-cat">${esc(e.category)}</span>${e.description ? `<p class="vfw-event-desc">${esc(e.description)}</p>` : ''}${guideLink(e.title)}</li>`).join('')}</ul>`;
 }
 
+/** Daily first, then weekly Monday to Sunday, then monthly, then seasonal; ties by name. */
+const rank = (s) => ({ daily: 0, weekly: 1, monthly: 8, seasonal: 9 })[s.period] + (s.period === 'weekly' ? ((s.weekday + 6) % 7) / 10 : 0);
+export const specialOrder = (a, b) => rank(a) - rank(b) || a.label.localeCompare(b.label);
 const PERIOD_LABEL = (s) => (s.period === 'weekly' ? `Every ${DAYS[s.weekday]}` : { daily: 'Daily', monthly: 'This month', seasonal: 'Seasonal' }[s.period]);
 /** Specials that are enabled and in their date range today: <ul class="vfw-specials">. */
 export function specialsHtml(specials = [], today, { empty: none = `No specials are posted right now. ${CALL}` } = {}) {
   const live = specials.filter((s) => s.enabled !== false && (!s.start || s.start <= today) && (!s.end || today <= s.end));
-  return live.length ? `<ul class="vfw-specials">${live.map((s) => `<li class="vfw-special"><strong class="vfw-special-label">${esc(s.label)}</strong>`
+  return live.length ? `<ul class="vfw-specials">${live.sort(specialOrder).map((s) => `<li class="vfw-special"><strong class="vfw-special-label">${esc(s.label)}</strong>`
     + `${s.price ? ` <span class="vfw-special-price">${esc(s.price)}</span>` : ''} <span class="vfw-special-period">${esc(PERIOD_LABEL(s))}</span>`
     + `${s.description ? `<p class="vfw-special-desc">${esc(s.description)}</p>` : ''}</li>`).join('')}</ul>` : empty(none);
 }
@@ -296,7 +370,7 @@ export const dataScript = (s, today) => `<script type="application/json" id="vfw
 // <!--vfw:name-->seed<!--/vfw:name--> and the whole region is replaced. The names are listed in docs/markers.md.
 const MARKER = /<!--vfw:([a-z-]+)-->(?:[\s\S]*?<!--\/vfw:\1-->)?/g;
 /** Fill every marker in a page. today = etDay(); year = ?year=N from the URL (calendar), default this year. */
-export function injectMarkers(html, state, today, year, { photos, photoBase } = {}) {
+export function injectMarkers(html, state, today, year, { photos, photoBase, shifts = [], settings = {} } = {}) {
   const y = Number.isInteger(+year) && year >= 2000 && year <= 2100 ? +year : +today.slice(0, 4);
   const parts = {
     'events-upcoming': () => upcomingHtml(state.events, today),
@@ -307,16 +381,20 @@ export function injectMarkers(html, state, today, year, { photos, photoBase } = 
     menu: () => menuHtml(state.menu),
     news: () => newsHtml(state.news, { photos, photoBase }),
     'news-latest': () => newsHtml(state.news, { limit: 3, teaser: true }),
+    'tv-slides': () => tvHtml(state, today, { shifts }),
+    'volunteer-board': () => volunteerHtml(shifts),
+    'help-form': () => helpFormHtml(settings),
+    'donate-link': () => donateHtml(settings),
     data: () => dataScript(state, today),
   };
   return html.replace(MARKER, (m, name) => parts[name]?.() ?? m);
 }
 
 // ---------- home "What's going on" (marker: events-featured) ----------
-const dateBox = (ymd) => {
+const dateBox = (ymd, cls = '') => {
   const d = parseDay(ymd);
   const f = (o) => d.toLocaleDateString('en-US', { ...o, timeZone: 'UTC' });
-  return `<time class="vfw-datebox" datetime="${ymd}"><span class="vfw-dn">${d.getUTCDate()}</span><span class="vfw-dm">${esc(f({ month: 'short' }))}</span><span class="vfw-dw">${esc(f({ weekday: 'short' }))}</span></time>`;
+  return `<time class="vfw-datebox${cls ? ` ${cls}` : ''}" datetime="${ymd}"><span class="vfw-dn">${d.getUTCDate()}</span><span class="vfw-dm">${esc(f({ month: 'short' }))}</span><span class="vfw-dw">${esc(f({ weekday: 'short' }))}</span></time>`;
 };
 const whenBadge = (ymd, today) => (ymd === today ? '<span class="vfw-badge vfw-badge-now">Tonight</span>' : ymd <= addDays(today, 6) ? '<span class="vfw-badge">This week</span>' : '');
 /** The next event featured big, then the next few as compact date cards. opts: compact (4), days (120), empty. */
@@ -334,4 +412,87 @@ export function featuredHtml(events, today, { compact = 4, days = 120, empty: no
     + `${top.description ? `<p class="vfw-feature-desc">${esc(top.description.split(/(?<=[.!?])\s/)[0])}</p>` : ''}</div></article>`;
   const small = rest.slice(0, compact).map((o) => `<li class="vfw-card vfw-cat-${slug(o.category)}">${dateBox(o.date)}<div>${whenBadge(o.date, today)}<strong class="vfw-card-title">${esc(o.title)}</strong>${time(o)}</div></li>`).join('');
   return `<div class="vfw-featured">${big}${small ? `<ul class="vfw-cards">${small}</ul>` : ''}</div>`;
+}
+
+// ---------- volunteer board, help form, donate link, bar TV (markers: volunteer-board, help-form, donate-link, tv-slides) ----------
+// Private data (sign-ups, help requests, the responder's email) never reaches these: the server passes only the public shapes (see docs/markers.md).
+const hp = '<div class="hp" aria-hidden="true"><label>Leave this empty <input name="website" type="text" tabindex="-1" autocomplete="off"></label></div>';
+const phoneEmail = (p, who) => `<div class="field"><label for="${p}-phone">Phone <span class="opt">(optional)</span></label><input id="${p}-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="30" aria-describedby="${p}-contact"></div>`
+  + `<div class="field"><label for="${p}-email">Email <span class="opt">(optional)</span></label><input id="${p}-email" name="email" type="email" autocomplete="email" maxlength="200" aria-describedby="${p}-contact"></div>`
+  + `<p class="hint" id="${p}-contact">A phone or an email, so ${who} can reach you.</p>`;
+const spotsLeft = (s) => (s.left <= 0 ? 'Full, thank you' : s.left === 1 ? '1 spot left' : `${s.left} of ${s.slots} spots left`);
+
+/** The sign-up form: shifts are radio cards (work with no JS). shifts = public shape [{id,title,date,start,end,notes,slots,left}], already sorted. */
+export function volunteerHtml(shifts = [], { empty: none = `No volunteer shifts are posted right now. Want to help? ${CALL}` } = {}) {
+  if (!shifts.length) return empty(none);
+  const cards = shifts.map((s) => `<label class="vfw-shift${s.left <= 0 ? ' vfw-full' : ''}"><input type="radio" name="shift" value="${esc(s.id)}" required${s.left <= 0 ? ' disabled' : ''}>`
+    + `${dateBox(s.date)}<span class="vfw-shift-body"><strong class="vfw-shift-title">${esc(s.title)}</strong>${s.start ? ` <span class="vfw-event-time">${esc(timeLabel(s.start, s.end))}</span>` : ''}`
+    + `${s.notes ? `<span class="vfw-shift-notes">${esc(s.notes)}</span>` : ''}<span class="vfw-badge">${esc(spotsLeft(s))}</span></span></label>`).join('');
+  return '<form class="form vfw-vol" id="vol-form" method="post" action="/api/volunteer" novalidate><input type="hidden" name="_page" value="/volunteer">'
+    + `<fieldset class="vfw-shifts"><legend>1. Pick a shift</legend>${cards}</fieldset>`
+    + `<fieldset class="vfw-details"><legend>2. Your details</legend><div class="field"><label for="vol-name">Your name</label><input id="vol-name" name="name" type="text" autocomplete="name" required maxlength="80"></div>${phoneEmail('vol', 'the organizer')}${hp}</fieldset>`
+    + '<p class="hint">We keep your name and phone or email only to organize this shift, and delete them a week after it. Call the post to be taken off sooner.</p>'
+    + '<p><button class="btn" type="submit">Sign me up</button></p></form>';
+}
+
+const tel = POST.phone.replace(/\D/g, '');
+/** The help request form plus its "what happens next" column, or the call-the-post panel when the form is off. */
+export function helpFormHtml(settings = {}) {
+  if (!settings.helpEnabled || !settings.responderName) {
+    return `<div class="panel vfw-help-off"><h3>Call the post to ask for help</h3><p>The online request form isn't open yet. Call ${POST.phone} and ask for help for a veteran. For benefits and claims help now, see the Resources page.</p>`
+      + `<p class="btn-row"><a class="btn" href="tel:${tel}">Call ${POST.phone}</a><a class="btn btn-outline" href="/resources">Go to Resources</a></p></div>`;
+  }
+  const who = settings.responderName + (settings.responderRole ? `, ${settings.responderRole}` : '');
+  const kinds = Object.entries(HELP_KINDS).map(([k, v], i) => `<label class="vfw-choice"><input type="radio" name="kind" value="${k}"${i ? '' : ' required'}><span>${esc(v)}</span></label>`).join('');
+  const times = Object.entries(BEST_TIMES).map(([k, v]) => `<label class="vfw-chip"><input type="radio" name="bestTime" value="${k}"><span>${esc(v)}</span></label>`).join('');
+  return `<div class="info-two vfw-help" data-responder="${esc(settings.responderName)}"><div><p class="hint vfw-help-note">This form is not watched around the clock. If it can't wait, call 988 and press 1, or 911.</p>`
+    + '<form class="form vfw-helpform" id="help-form" method="post" action="/api/help-request" novalidate><input type="hidden" name="_page" value="/help">'
+    + '<div class="field"><label for="help-name">Your name</label><input id="help-name" name="name" type="text" autocomplete="name" required maxlength="80"></div>'
+    + phoneEmail('help', 'the post')
+    + `<fieldset class="field vfw-times"><legend>Best time to reach you <span class="opt">(optional)</span></legend><div class="vfw-chips">${times}</div></fieldset>`
+    + `<fieldset class="field vfw-kinds"><legend>What can we help with?</legend>${kinds}</fieldset>`
+    + '<div class="field"><label for="help-msg">Tell us a little more <span class="opt">(optional)</span></label><textarea id="help-msg" name="message" rows="4" maxlength="1000" aria-describedby="help-msg-hint"></textarea><p class="hint" id="help-msg-hint">Who it\'s for and what\'s going on, in a few words.</p></div>'
+    + `${hp}<p><button class="btn" type="submit">Send my request</button></p>`
+    + '<p class="hint">Only the post\'s help volunteer and the website admin can read this. Please don\'t include medical details or Social Security or VA claim numbers. Requests are deleted after 90 days; call the post to have yours removed sooner.</p></form></div>'
+    + '<div class="panel"><h3>What happens next</h3><ol class="tl">'
+    + `<li><span class="when">Step 1</span><div class="what"><p>Your request goes to ${esc(who)}.</p></div></li>`
+    + '<li><span class="when">Step 2</span><div class="what"><p>They will call or email you back to talk it through.</p></div></li>'
+    + '<li><span class="when">Step 3</span><div class="what"><p>The post can\'t give medical or legal advice, but can point you to free help like VFW Service Officers. <a href="/resources">See the Resources page</a>.</p></div></li></ol>'
+    + `<p class="btn-row"><a class="btn btn-outline" href="tel:${tel}">Rather talk now? Call ${POST.phone}</a></p></div></div>`;
+}
+
+/** The Donate button, only when the admin has set an https link. */
+export const donateHtml = (settings = {}) => (settings.donateUrl
+  ? `<p class="btn-row"><a class="btn" href="${esc(settings.donateUrl)}" rel="noopener">${esc(settings.donateLabel || 'Donate online')}</a></p><p class="hint">Opens our payment service's secure page. The post never sees your card.</p>` : '');
+
+// Bar TV: slides the screen rotates through. Each is a div.tv-slide[data-secs]; a slide with nothing to show is left out; long lists are split in fives.
+const firstSentence = (t = '') => t.split(/(?<=[.!?])\s/)[0];
+const tvRow = ({ when, name, price, note }) => `<li class="tv-row">${when ? `<span class="tv-when">${esc(when)}</span>` : ''}<strong class="tv-name">${esc(name)}</strong>${price ? `<span class="tv-price">${esc(price)}</span>` : ''}${note ? `<p class="tv-note">${esc(note)}</p>` : ''}</li>`;
+const tvSlide = (label, title, inner, secs = 12) => `<div class="tv-slide" data-secs="${secs}"><p class="tv-label">${esc(label)}</p><h2 class="tv-title">${esc(title)}</h2>${inner}</div>`;
+const tvList = (label, title, rows, tail = '') => {
+  const parts = [];
+  for (let i = 0; i < rows.length; i += 5) parts.push(rows.slice(i, i + 5));
+  return parts.map((p, i) => tvSlide(label, title + (parts.length > 1 ? ` (${i + 1} of ${parts.length})` : ''), `<ul class="tv-rows">${p.map(tvRow).join('')}</ul>${i === parts.length - 1 ? tail : ''}`)).join('');
+};
+/** shifts = the public shape (see volunteerHtml). Reads only enabled, public content. */
+export function tvHtml(state = {}, today, { shifts = [] } = {}) {
+  const out = [];
+  const L = parseDay(today).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' });
+  out.push(tvList(L, 'Tonight at the post', expand(state.events, today, today).map((o) => ({ when: timeLabel(o.start, o.end), name: o.title, note: firstSentence(o.description) }))));
+  const dow = parseDay(today).getUTCDay();
+  out.push(tvList(L, "Today's drink specials", (state.specials ?? [])
+    .filter((s) => s.enabled !== false && (!s.start || s.start <= today) && (!s.end || today <= s.end) && (s.period !== 'weekly' || s.weekday === dow))
+    .sort(specialOrder).map((s) => ({ name: s.label, price: s.price, note: s.description }))));
+  const items = (state.menu?.sections ?? []).flatMap((s) => s.items.filter((i) => i.available !== false)).slice(0, 6);
+  if (items.length) out.push(tvSlide(L, 'From the kitchen', `${state.menu.hours ? `<p class="tv-hours">${esc(state.menu.hours)}</p>` : ''}<ul class="tv-rows tv-cols">${items.map((i) => tvRow({ name: i.name, price: i.price })).join('')}</ul>`, 20));
+  const soon = expand(state.events, addDays(today, 1), addDays(today, 60));
+  const top = soon.find((o) => !o.recurring || o.recurring === 'none');
+  const more = soon.filter((o) => o !== top).slice(0, 2).map((o) => ({ when: shortDay(o.date), name: o.title, note: timeLabel(o.start, o.end) }));
+  if (top || more.length) {
+    const big = top ? `<div class="tv-next">${dateBox(top.date, 'tv-big')}<div><strong class="tv-name">${esc(top.title)}</strong>${top.start ? `<span class="tv-when">${esc(timeLabel(top.start, top.end))}</span>` : ''}</div></div>` : '';
+    out.push(tvSlide(L, 'Coming up', big + (more.length ? `<ul class="tv-rows">${more.map(tvRow).join('')}</ul>` : '')));
+  }
+  out.push(tvList('Help wanted', 'The post needs volunteers', shifts.filter((s) => s.left > 0 && s.date >= today && s.date <= addDays(today, 14)).slice(0, 3)
+    .map((s) => ({ when: shortDay(s.date), name: s.title, note: s.left === 1 ? '1 spot left' : `${s.left} spots left` })), "<p class=\"tv-note\">Sign up at the bar or on the post's website.</p>"));
+  return out.join('') || tvSlide('Welcome', POST.name, `<p class="tv-note">${esc(POST.barRule)}</p>`); // never a blank screen
 }

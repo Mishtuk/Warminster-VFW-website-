@@ -21,7 +21,7 @@ export const NAV = [
   { label: 'The Bar', path: '/bar', match: ['/bar'] },
   { label: 'Events', path: '/events', match: ['/events'] },
   { label: 'Hall Rental', path: '/hall', match: ['/hall'] },
-  { label: 'Programs & Resources', path: '/programs', match: ['/programs', '/resources'] },
+  { label: 'Programs & Resources', path: '/programs', match: ['/programs', '/resources', '/youth', '/support', '/volunteer', '/help'] },
   { label: 'News', path: '/news', match: ['/news'] },
   { label: 'About', path: '/about', match: ['/about', '/history', '/contact'] },
 ] as const;
@@ -29,4 +29,15 @@ export const NAV = [
 export const EXTRA = [
   { label: 'History', path: '/history' },
   { label: 'Contact', path: '/contact' },
+  { label: 'Your first visit', path: '/events/first-visit' },
+  { label: 'Volunteer', path: '/volunteer' },
+  { label: 'Support the Post', path: '/support' },
+  { label: 'Ask for help', path: '/help' },
 ] as const;
+
+/** Subnav shared by Programs, Youth contests, Volunteer, Support, Resources and Ask for help. */
+export const PROGRAM_TABS = [
+  { label: 'Programs', path: '/programs' }, { label: 'Youth contests', path: '/youth' }, { label: 'Volunteer', path: '/volunteer' },
+  { label: 'Support the Post', path: '/support' }, { label: 'Resources', path: '/resources' }, { label: 'Ask for help', path: '/help' },
+];
+export const EVENT_TABS = [{ label: 'Calendar', path: '/events' }, { label: 'Your first visit', path: '/events/first-visit' }];

@@ -50,3 +50,17 @@ Privacy line to show under the hall inquiry form (exact sentence, in hall.astro)
 > We use what you send only to answer your hall rental question. Inquiries are kept for up to 12 months and then deleted; call the post any time to have yours removed.
 
 The server deletes inquiries older than INQUIRY_RETENTION_DAYS (default 365, so "12 months" matches the default; if the env var is changed, change this sentence too).
+
+## Round 3 markers (volunteers, help, donate, bar TV)
+`injectMarkers(html, state, today, year, { photos, photoBase, shifts, settings })`. The server passes `shifts` as the public shape only (`{id, title, date, start, end, notes, slots, left}`, enabled and dated today or later) and `settings` as only `{helpEnabled, responderName, responderRole, donateUrl, donateLabel}`. Sign-ups, help requests and `responderEmail` never reach a renderer. The `data` script never carries shifts or settings. Injected markup has no `<script>`.
+| NAME | Where | Output | Static seed |
+|---|---|---|---|
+| tv-slides | /tv | `tvHtml`: `div.tv-slide[data-secs]` (12, kitchen 20) > `p.tv-label`, `h2.tv-title`, `ul.tv-rows > li.tv-row > span.tv-when, strong.tv-name, span.tv-price, p.tv-note`. Kitchen adds `p.tv-hours` and `ul.tv-rows.tv-cols`. Coming up adds `div.tv-next > time.vfw-datebox.tv-big`. Help wanted adds a closing `p.tv-note`. Lists over 5 rows split as "(1 of 2)". With nothing to show, one welcome slide. | src/content |
+| volunteer-board | /volunteer | `form#vol-form.vfw-vol` (fields shift radios, name, phone, email, honeypot website, `_page=/volunteer`), or `p.vfw-empty` when no open shifts | empty text |
+| help-form | /help | enabled: `div.info-two.vfw-help[data-responder]` with `form#help-form` and the "What happens next" panel; off: `div.panel.vfw-help-off` | off panel |
+| donate-link | /support | `p.btn-row > a.btn` plus `p.hint`, or nothing while no https link is set | nothing |
+
+Form post fields, errors and redirects: `POST /api/volunteer` takes `shift, name, phone, email, website, _page`, answers `{ok:true, shift:{title,date}}` or `{error}` (shift, closed, full, name, phone, email, contact, rate; 400 or 429). `POST /api/help-request` takes `name, phone, email, kind, bestTime, message, website, _page`, answers `{ok:true, responder}` or `{error}` (off 403, name, phone, email, contact, kind, bestTime, rate). Plain posts get a 303 to `/volunteer/?sent=1#signup` or `?error=CODE#signup`, and `/help/?sent=1#request` or `?error=CODE#request`.
+
+Admin API (signed in, Origin checked on writes): `GET shifts`, `PUT shifts/<id|new>`, `DELETE shifts/<id>`, `DELETE signups/<n>`, `GET help`, `PUT help/<n> {handled}`, `DELETE help/<n>`, `GET|PUT settings`; `GET state` also returns `newHelp`.
+Retention: shifts and their sign-ups are deleted when the shift date is more than 7 days past; help requests after 90 days. The server marks `/tv` noindex and no-store and does not count it in stats.

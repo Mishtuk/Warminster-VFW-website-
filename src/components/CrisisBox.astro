@@ -1,0 +1,25 @@
+---
+/** Veterans Crisis Line box, identical on Resources and Ask for help. Anything in the slot is added as a last line inside the box. */
+---
+<section class="crisis" id="crisis" aria-labelledby="crisis-h">
+  <div class="container">
+    <div class="callout callout-crisis crisis-box">
+      <h2 id="crisis-h">In crisis? Call now.</h2>
+      <p><strong>Veterans Crisis Line:</strong> dial 988, then press 1. Free, confidential and open all day, every day.</p>
+      <slot />
+      <p><a class="btn" href="tel:988">Call 988</a></p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .crisis { padding-top: clamp(1.5rem, 1rem + 2vw, 2.5rem); padding-bottom: 1.5rem; }
+  .crisis-box { padding: clamp(1.1rem, 1rem + 1vw, 1.75rem); }
+  .crisis-box h2 { font-size: var(--step-2); }
+  .crisis-box > * + * { margin-top: 0.6rem; }
+  @media (min-width: 760px) {
+    .crisis-box { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0.4rem 2rem; }
+    .crisis-box > * + * { margin-top: 0; }
+    .crisis-box > p:last-child { grid-column: 2; grid-row: 1 / span 3; }
+  }
+</style>

@@ -4,9 +4,9 @@ import PageHead from '../components/PageHead.astro';
 import Subnav from '../components/Subnav.astro';
 import InfoSection from '../components/info/InfoSection.astro';
 import OnThisPage from '../components/info/OnThisPage.astro';
-import { POST } from '../lib/site';
+import CrisisBox from '../components/CrisisBox.astro';
+import { POST, href, PROGRAM_TABS } from '../lib/site';
 import { BENEFITS, DISCOUNTS, DISCOUNTS_CHECKED } from '../lib/resources.js';
-const tabs = [{ label: 'Programs', path: '/programs' }, { label: 'Resources', path: '/resources' }];
 const host = (u: string) => new URL(u).host.replace(/^www\./, '');
 const groups = [
   { id: 'benefits', label: 'Benefits and claims', summary: 'Apply for benefits and get free help with a VA claim.' },
@@ -17,17 +17,10 @@ const sections = [...groups.map(({ id, label }) => ({ id, label })), { id: 'disc
 ---
 <Base title="Resources" description="Veteran benefits, assistance and discounts, with links to official sources.">
   <PageHead title="Resources" lede="Help for veterans, sorted by need, with links to the official sources." />
-  <Subnav items={tabs} label="Programs and resources" />
+  <Subnav items={PROGRAM_TABS} label="Programs and resources" />
 
-  <section class="crisis" id="crisis" aria-labelledby="crisis-h">
-    <div class="container">
-      <div class="callout callout-crisis crisis-box">
-        <h2 id="crisis-h">In crisis? Call now.</h2>
-        <p><strong>Veterans Crisis Line:</strong> dial 988, then press 1. Free, confidential and open all day, every day.</p>
-        <p><a class="btn" href="tel:988">Call 988</a></p>
-      </div>
-    </div>
-  </section>
+  <CrisisBox />
+  <p class="container ask-line">Need a hand from the post, like a ride to the VA? <a href={href('/help')}>Ask the post for help</a>.</p>
 
   <OnThisPage items={sections} title="Go straight to" label="Resource groups" />
 
@@ -69,15 +62,8 @@ const sections = [...groups.map(({ id, label }) => ({ id, label })), { id: 'disc
 </Base>
 
 <style>
-  .crisis { padding-top: clamp(1.5rem, 1rem + 2vw, 2.5rem); padding-bottom: 1.5rem; }
-  .crisis-box { padding: clamp(1.1rem, 1rem + 1vw, 1.75rem); }
-  .crisis-box h2 { font-size: var(--step-2); }
-  .crisis-box > * + * { margin-top: 0.6rem; }
-  @media (min-width: 760px) {
-    .crisis-box { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0.4rem 2rem; }
-    .crisis-box > * + * { margin-top: 0; }
-    .crisis-box > p:last-child { grid-column: 2; grid-row: 1 / span 2; }
-  }
+  .ask-line { margin-bottom: 1rem; }
+  .ask-line a { font-weight: 700; }
   .help-grid { display: grid; gap: clamp(1rem, 0.6rem + 1.5vw, 1.5rem); }
   @media (min-width: 760px) {
     .help-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: 'benefits health' 'benefits money'; align-items: start; }

@@ -1,3 +1,4 @@
+import { POST } from './post.js';
 // Outside-world content for /resources, /programs and /history. Every entry traces to docs/research.md.
 // need: health | benefits | money (the groups on /resources)
 export const BENEFITS = [
@@ -91,3 +92,83 @@ export const POST_DOES = {
     'Cub Scout Pack 139 holds events at the post, including its spring craft fair, and the post works with Scout Troop 139.',
   ],
 };
+
+// ---------- Round 3: first-visit guides, youth contests, Support the Post, volunteer jobs, help kinds ----------
+// Sources: docs/research.md and the post's Facebook group. No times or prices here: those come from the events data.
+export const HELP_KINDS = {
+  ride: 'A ride to a VA appointment',
+  visit: 'A visit or a phone call',
+  benefits: 'Help with VA benefits or a claim',
+  other: 'Something else',
+};
+
+export const GUIDES = [
+  { id: 'bingo', name: 'Thursday Bingo', cat: 'auxiliary',
+    happens: ['The Auxiliary runs bingo on Thursday nights.', 'It is open to the public. You do not need to be a member.', 'Admission covers your bingo boards. This week\'s price is in the list below.'],
+    good: ['The kitchen opens before bingo on Thursday evenings. The menu is on The Bar page.', 'Parking, age rules and what to bring: call the post.'] },
+  { id: 'line-dancing', name: 'Line dancing', cat: 'bar',
+    happens: ['A DJ, Shotgun Jenny, plays the music, with a lesson before the dancing starts.', 'It is every Monday except the second Monday, which is meeting night.', 'It is open to the public.'],
+    good: ['Some nights have a theme, like an 80s night or a Halloween costume contest.', 'The kitchen is open on Monday evenings.', 'Shoes, beginner steps, parking and age rules: call the post.'] },
+  { id: 'watch-parties', name: 'Game-day watch parties', cat: 'bar',
+    happens: ['The big-screen TV shows the Eagles, Phillies, Flyers, Sixers and Union.', 'There are food and drink specials on game days.', 'On some Sundays, guests bring a dish to share.'],
+    good: ['The bar is for members and guests, and membership cards are checked.'] },
+];
+
+export const FIRST_VISIT_FAQ = [
+  ['Do I need to be a member?', `Not for events marked Open to the Public: ${POST.publicNights.join(', ')}. The bar itself is for members and guests, and membership cards are checked. Joining is open to veterans and non-veterans.`],
+  ['Is there food?', 'Yes. A caterer runs the kitchen on set evenings. The menu and the kitchen hours are on The Bar page.'],
+  ['Can I bring a guest?', 'Members may bring guests to the bar. For how a guest signs in, call the post.'],
+];
+
+export const YOUTH = {
+  deadline: '2026-10-31', // the contest's yearly deadline; change it here when VFW National announces the next one
+  rules: 'https://www.vfw.org/community/youth-and-education/youth-scholarships',
+  contests: [
+    { name: 'Voice of Democracy', rows: [
+      ['Grades', '9 to 12'], ['Theme this year', 'What a Veteran Taught Me About America'], ['Format', 'A recorded audio essay'],
+      ['Prizes', 'National first prize of $35,000, paid to the school, and other national scholarships up to $21,000. State winners get at least $1,000 and a trip to the Spirit of America program at Valley Forge.'],
+    ] },
+    { name: "Patriot's Pen", rows: [
+      ['Grades', '6 to 8'], ['Theme this year', 'What a Veteran Taught Me About America'], ['Format', 'A written essay of 300 to 400 words'],
+      ['Prizes', 'National first prize of $5,000. Each state first-place winner gets at least $500 at the national level.'],
+    ] },
+  ],
+  scholarships: [
+    { name: 'Sport Clips Help A Hero Scholarship', line: 'Up to $5,000 for a qualified student veteran with financial need. Spring applications run August 1 to November 15.', host: 'VFW', url: 'https://www.vfw.org/assistance/student-veterans-support' },
+    { name: 'Voice of Democracy and Patriot\'s Pen scholarships', line: 'National scholarships from the contests above.', host: 'VFW', url: 'https://www.vfw.org/community/youth-and-education/youth-scholarships' },
+    { name: 'Scout of the Year', line: 'A yearly VFW honor for Scouts, Girl Scouts, Sea Scouts and Venturing youth.', host: 'VFW', url: 'https://www.vfw.org/community/youth-and-education/scout-of-the-year' },
+  ],
+  winners: [], // [{ year, name, school, contest }] only with a parent's written permission
+};
+
+export const SUPPORT = {
+  national: [
+    { name: 'VFW donate page', line: 'Give to the VFW nationally.', url: 'https://www.vfw.org/donate' },
+    { name: 'Buddy Poppy', line: 'Poppy donations fund veteran relief.', url: 'https://www.vfw.org/community/community-initiatives/buddy-poppy' },
+    { name: 'Unmet Needs', line: 'Financial grants for service members and families.', url: 'https://www.vfw.org/assistance/financial-grants' },
+  ],
+  drives: [
+    ['All year', 'Food for the Warminster Food Bank', 'Collection boxes are at the rear door. The post gives $1,000 a year to the food bank.'],
+    ['Late May', 'Buddy Poppy sales', 'Poppies were sold at ShopRite Warminster on May 25, 2025. The money goes to veterans in need.'],
+    ['Spring', 'Easter baskets', 'The Auxiliary prepared 50 baskets for F.E.A.S.T. in spring 2025.'],
+    ['Fall', 'Blood drive', 'Red Cross blood drives were held at the post in October 2024 and on September 12, 2025.'],
+    ['Late fall', 'Toys for Tots trivia night', 'The Brad Fox Foundation trivia night was held on November 23, 2024, and again in October 2025.'],
+    ['Winter', 'Toy drive and coat drive', 'Christmas toys were gathered with the Knights of the Inferno, Apollo Chapter, in 2023 and December 2024. The post also shares the Coats for Homeless Veterans drive.'],
+  ],
+  fundraisers: [
+    ['Cash Bash', 'The Auxiliary\'s yearly night of prizes and drawings.'],
+    ['Thursday Bingo', 'Run by the Auxiliary every Thursday.'],
+    ['Red Day apparel', 'The Auxiliary sold Red Day shirts in January 2026.'],
+    ['Cookie Exchange', 'Held in December 2024 and December 2025.'],
+    ['Chili cook-off', 'Held in November 2025.'],
+  ],
+};
+
+export const VOLUNTEER_JOBS = [
+  ['Flags on veterans\' graves', 'Every year around Armed Forces Day at Sunset Memorial Park.'],
+  ['Memorial Day', 'The ceremony at the post flagpole, the cemetery visits and the parade.'],
+  ['Poppy sales', 'Selling Buddy Poppies for veterans in need, as at ShopRite in May 2025.'],
+  ['Drives', 'Collecting food, toys and coats, and helping at the Toys for Tots trivia night.'],
+  ['Veterans home visits', 'Auxiliary volunteers visit the Delaware Valley Veterans Home.'],
+  ['Flag retirement', 'A ceremony with Scout Troop 139, held in June 2026.'],
+];

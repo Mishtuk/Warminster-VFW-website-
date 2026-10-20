@@ -5,9 +5,8 @@ import Subnav from '../components/Subnav.astro';
 import InfoSection from '../components/info/InfoSection.astro';
 import OnThisPage from '../components/info/OnThisPage.astro';
 import KeyFacts from '../components/info/KeyFacts.astro';
-import { POST, href } from '../lib/site';
+import { POST, href, PROGRAM_TABS } from '../lib/site';
 import { POST_DOES, PROGRAMS } from '../lib/resources.js';
-const tabs = [{ label: 'Programs', path: '/programs' }, { label: 'Resources', path: '/resources' }];
 const pillars = [
   { id: 'service', name: 'Community service', summary: 'Food bank giving, toy drives, flag retirement, and national honors for the post.', items: POST_DOES.service, national: PROGRAMS.service,
     link: { url: 'https://www.vfw.org/community/community-initiatives', note: 'Buddy Poppy, Still Serving, troop support' } },
@@ -20,11 +19,11 @@ const sections = [...pillars.map((p) => ({ id: p.id, label: p.name })), { id: 't
 ---
 <Base title="Programs" description={`VFW programs for community service, veteran outreach and youth and education, and how to reach ${POST.name}.`}>
   <PageHead title="Programs" lede="What Post 6493 does, in three pillars, with the national VFW program behind each one." />
-  <Subnav items={tabs} label="Programs and resources" />
+  <Subnav items={PROGRAM_TABS} label="Programs and resources" />
   <OnThisPage items={sections} />
 
   <InfoSection id="pillars" title="Three pillars" summary="What the post does locally, side by side, with the national VFW program under each.">
-    <div class="pillar-grid">
+    <div class="card-grid">
       {pillars.map((p) => (
         <article class="panel info-body pillar" id={p.id} aria-labelledby={`${p.id}-h`}>
           <h3 id={`${p.id}-h`}>{p.name}</h3>
@@ -33,6 +32,7 @@ const sections = [...pillars.map((p) => ({ id: p.id, label: p.name })), { id: 't
           <ul>{p.items.map((t) => <li>{t}</li>)}</ul>
           <h4>The national VFW program</h4>
           <ul class="link-list">
+            {p.id === 'youth' && <li><a href={href('/youth')}><span>Contests and scholarships</span><small>Voice of Democracy, Patriot's Pen, how to enter</small></a></li>}
             <li><a href={p.link.url} rel="noopener"><span>{p.name} at the VFW</span><small>{p.link.note} (vfw.org)</small></a></li>
           </ul>
           <div class="faq">
@@ -51,9 +51,9 @@ const sections = [...pillars.map((p) => ({ id: p.id, label: p.name })), { id: 't
   <InfoSection id="take-part" title="Take part" summary="Ask the post which programs it runs and how you can help.">
     <div class="info-two">
       <div class="panel info-body">
-        <p>To learn which programs the post runs and how to take part, call the post.</p>
+        <p>Pick a way to help, or call the post to ask how to take part.</p>
+        <p class="btn-row"><a class="btn" href={href('/volunteer')}>Volunteer for a shift</a><a class="btn btn-outline" href={href('/support')}>Support the Post</a></p>
         <p>Looking for help for a veteran? Benefits, health care and discounts are on the <a href={href('/resources')}>Resources page</a>.</p>
-        <p><a class="btn btn-outline" href={href('/resources')}>Go to Resources</a></p>
       </div>
       <KeyFacts address={false} />
     </div>
@@ -61,10 +61,6 @@ const sections = [...pillars.map((p) => ({ id: p.id, label: p.name })), { id: 't
 </Base>
 
 <style>
-  .pillar-grid { display: grid; gap: clamp(1rem, 0.6rem + 1.5vw, 1.5rem); }
-  @media (min-width: 760px) and (max-width: 1099px) { .pillar-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .pillar:last-child { grid-column: 1 / -1; } }
-  @media (min-width: 1100px) { .pillar-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; } }
-  .pillar { border-top: 6px double var(--gold); scroll-margin-top: calc(var(--header-h) + 0.5rem); }
   .pillar h3 { font-size: var(--step-2); }
   .pillar .pillar-sum { margin-top: 0.4rem; color: var(--ink-2); }
   .pillar h4 { font-family: var(--font-ui); font-size: var(--step-0); font-weight: 700; color: var(--gold-ink); margin-top: 1.5rem; }

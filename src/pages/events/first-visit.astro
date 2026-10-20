@@ -1,0 +1,73 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Subnav from '../../components/Subnav.astro';
+import InfoSection from '../../components/info/InfoSection.astro';
+import OnThisPage from '../../components/info/OnThisPage.astro';
+import KeyFacts from '../../components/info/KeyFacts.astro';
+import { POST, href, EVENT_TABS } from '../../lib/site';
+import { GUIDES, FIRST_VISIT_FAQ } from '../../lib/resources.js';
+import { seed } from '../../lib/seed';
+const sections = [
+  { id: 'who', label: 'Who can come' }, { id: 'bingo', label: 'Bingo' }, { id: 'line-dancing', label: 'Line dancing' }, { id: 'watch-parties', label: 'Watch parties' },
+  { id: 'when', label: "When they're on" }, { id: 'faq', label: 'Questions' },
+];
+---
+<Base title="Your first visit" description={`What to expect at bingo, line dancing and game-day watch parties at ${POST.name}.`}>
+  <PageHead title="Your first visit" lede="What to expect at bingo, line dancing and game-day watch parties, for members and first-time guests alike." />
+  <Subnav items={EVENT_TABS} label="Events" />
+  <OnThisPage items={sections} />
+
+  <InfoSection id="who" title="Who can come" summary="Everyone is welcome at the nights marked Open to the Public.">
+    <div class="info-two">
+      <div class="panel info-body">
+        <p>Events marked Open to the Public need no membership: {POST.publicNights.join(', ')}.</p>
+        <p>{POST.barRule}</p>
+        <p><strong>Joining is easy.</strong> <a href={href('/about#join')}>How to join</a></p>
+      </div>
+      <KeyFacts title="Call or visit" today />
+    </div>
+  </InfoSection>
+
+  <InfoSection id="guides" title="What to expect" summary="Three nights, in a minute each. Times and prices are always the current ones, so they are in the list further down.">
+    <div class="card-grid">
+      {GUIDES.map((g) => (
+        <article class={`panel info-body guide vfw-cat-${g.cat}`} id={g.id} aria-labelledby={`${g.id}-h`}>
+          <h3 id={`${g.id}-h`}>{g.name}</h3>
+          <h4>What happens</h4>
+          <ul>{g.happens.map((t) => <li>{t}</li>)}</ul>
+          <h4>Good to know</h4>
+          <ul>{g.good.map((t) => <li>{t}</li>)}</ul>
+          {g.id === 'watch-parties' ? (
+            <p><strong>Are guests welcome?</strong> {POST.callText}. Game-day specials are on <a href={href('/bar')}>The Bar</a> page.</p>
+          ) : (
+            <p class="guide-when"><strong>Times and prices:</strong> <a href="#when">see this week</a></p>
+          )}
+        </article>
+      ))}
+    </div>
+  </InfoSection>
+
+  <InfoSection id="when" title="When they're on" summary="The nights that repeat, with their times and prices as the post has them now." band="stone">
+    <Fragment set:html={seed.regular} />
+    <p class="btn-row" style="margin-top:1.5rem"><a class="btn btn-outline" href={href('/events')}>See the full calendar</a></p>
+  </InfoSection>
+
+  <InfoSection id="faq" title="Questions" summary="Short answers for a first visit.">
+    <div class="panel info-body">
+      <div class="faq">
+        {FIRST_VISIT_FAQ.map(([q, a]) => <details><summary>{q}</summary><p>{a}</p></details>)}
+      </div>
+      <p><strong>Anything else?</strong> Call the post: <a href={POST.tel}>{POST.phone}</a></p>
+    </div>
+  </InfoSection>
+</Base>
+
+<style>
+  .card-grid > .guide { border-top: 0; padding-top: 0; overflow: hidden; }
+  .guide::before { content: ''; display: block; height: 8px; margin: 0 calc(-1 * clamp(1.25rem, 1rem + 1.5vw, 2rem)) 1.25rem; background: var(--ribbon); box-shadow: inset 0 0 0 1px rgb(23 18 14 / 0.4); }
+  .guide h3 { font-size: var(--step-2); }
+  .guide h4 { font-family: var(--font-ui); font-size: var(--step-0); font-weight: 700; color: var(--gold-ink); margin-top: 1.5rem; }
+  .guide h4 + * { margin-top: 0.5rem; }
+  .guide-when { margin-top: 1.5rem; }
+</style>

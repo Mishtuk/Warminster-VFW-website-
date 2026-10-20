@@ -2,60 +2,250 @@
  "hours": "Mon 6:30 to 8 PM. Tue to Thu 5 to 8 PM. Fri 5:30 to 8:30 PM. No kitchen on hall rental days.",
  "sections": [
   {
-   "name": "The Loaded Belly",
+   "name": "Signature sandwiches",
    "items": [
     {
-     "name": "Create-your-own bagel",
-     "price": "",
-     "description": "",
-     "available": true
-    },
-    {
-     "name": "Cheesesteak bagel",
-     "price": "$10",
-     "description": "",
-     "available": true
-    },
-    {
-     "name": "Chicken fingers and fries",
-     "price": "$9",
-     "description": "",
-     "available": true
-    },
-    {
-     "name": "Scrapple fries with french toast bites",
+     "name": "Chicken Sandwich",
      "price": "$8",
-     "description": "",
+     "description": "Grilled or fried chicken breast with lettuce and tomato.",
+     "available": true
+    },
+    {
+     "name": "Loaded Chicken Sandwich",
+     "price": "$9",
+     "description": "Grilled or fried chicken breast loaded with melted cheese, bacon, lettuce, tomato and Belly Sauce.",
+     "available": true
+    },
+    {
+     "name": "Belly Burger",
+     "price": "$9",
+     "description": "Two smashed beef patties with American cheese, lettuce, tomato and pickles.",
+     "available": true
+    },
+    {
+     "name": "Loaded Belly Burger",
+     "price": "$11",
+     "description": "Two smashed beef patties with American cheese, bacon, crispy onion rings, pickles and Belly Sauce.",
+     "available": true
+    },
+    {
+     "name": "Cheesesteak with Fried Onions",
+     "price": "$10",
+     "description": "Sliced steak with fried onions, choice of Provolone or American cheese on a hoagie roll.",
+     "available": true
+    },
+    {
+     "name": "Hot or Sweet Sausage",
+     "price": "$8",
+     "description": "Hot or sweet sausage with fried onions and peppers.",
+     "available": true
+    },
+    {
+     "name": "Add fries to any sandwich",
+     "price": "$2",
+     "description": "You can also make any sandwich a wrap.",
+     "available": true
+    }
+   ]
+  },
+  {
+   "name": "Baskets",
+   "items": [
+    {
+     "name": "Chicken Finger Basket",
+     "price": "$9",
+     "description": "Chicken fingers served with fries and your choice of dipping sauce.",
+     "available": true
+    },
+    {
+     "name": "Shrimp Basket",
+     "price": "$10",
+     "description": "6 breaded butterfly shrimp served with fries and cocktail sauce.",
      "available": true
     },
     {
      "name": "Belly Basket",
      "price": "$10",
-     "description": "",
+     "description": "Chicken fingers, mozzarella sticks, onion rings, fries and your choice of dipping sauces.",
      "available": true
     },
     {
-     "name": "Mozzarella sticks",
-     "price": "$6",
-     "description": "",
-     "available": true
-    },
-    {
-     "name": "Loaded tots",
-     "price": "$6",
-     "description": "",
-     "available": true
-    },
-    {
-     "name": "12\" cheese pizza",
+     "name": "Burger Slider Basket",
      "price": "$10",
-     "description": "",
+     "description": "Two burger sliders with American cheese, lettuce and tomato. Served with fries.",
      "available": true
     },
     {
-     "name": "12\" pepperoni pizza",
-     "price": "$11",
-     "description": "",
+     "name": "Dipping sauces",
+     "price": "",
+     "description": "BBQ, honey mustard, buffalo, Belly Sauce and cocktail.",
+     "available": true
+    }
+   ]
+  },
+  {
+   "name": "Loaded favorites",
+   "items": [
+    {
+     "name": "Loaded Belly Fries",
+     "price": "$10",
+     "description": "Fries topped with melted cheese, grilled or fried chicken, chopped bacon and drizzled with Belly Sauce.",
+     "available": true
+    },
+    {
+     "name": "French Fries",
+     "price": "$4",
+     "description": "Golden crispy seasoned fries.",
+     "available": true
+    },
+    {
+     "name": "Onion Rings",
+     "price": "$5",
+     "description": "Beer-battered onion rings served with Belly Sauce.",
+     "available": true
+    },
+    {
+     "name": "Mozzarella Sticks",
+     "price": "$6",
+     "description": "Served with marinara sauce.",
+     "available": true
+    },
+    {
+     "name": "Breaded Mushrooms",
+     "price": "$5",
+     "description": "Crispy breaded mushrooms served with ranch.",
+     "available": true
+    },
+    {
+     "name": "Pierogis",
+     "price": "$7",
+     "description": "With fried onions.",
+     "available": true
+    },
+    {
+     "name": "Dave's Dog",
+     "price": "$5",
+     "description": "A quarter pound hot dog grilled to perfection. Toppings: ketchup, mustard, relish, onions.",
+     "available": true
+    }
+   ]
+  },
+  {
+   "name": "Wings",
+   "items": [
+    {
+     "name": "10 wings",
+     "price": "$12",
+     "description": "Sauces: BBQ, garlic parm, buffalo, hot honey, sweet chili, Belly Burner. Dry rubs: lemon pepper, sweet and smoky BBQ, hot honey dry rub.",
+     "available": true
+    },
+    {
+     "name": "20 wings",
+     "price": "$22",
+     "description": "Sauces: BBQ, garlic parm, buffalo, hot honey, sweet chili, Belly Burner. Dry rubs: lemon pepper, sweet and smoky BBQ, hot honey dry rub.",
+     "available": true
+    },
+    {
+     "name": "10 boneless wings",
+     "price": "$10",
+     "description": "Sauces: BBQ, garlic parm, buffalo, hot honey, sweet chili, Belly Burner. Dry rubs: lemon pepper, sweet and smoky BBQ, hot honey dry rub.",
+     "available": true
+    }
+   ]
+  },
+  {
+   "name": "Quesadillas",
+   "items": [
+    {
+     "name": "Chicken Quesadilla",
+     "price": "$8",
+     "description": "Served with salsa and sour cream.",
+     "available": true
+    },
+    {
+     "name": "Beef Quesadilla",
+     "price": "$8",
+     "description": "Served with salsa and sour cream.",
+     "available": true
+    },
+    {
+     "name": "Veggie Quesadilla",
+     "price": "$7",
+     "description": "Served with salsa and sour cream.",
+     "available": true
+    }
+   ]
+  },
+  {
+   "name": "Salads",
+   "items": [
+    {
+     "name": "Loaded House Salad",
+     "price": "$6",
+     "description": "Fresh lettuce, tomatoes, cucumbers, onions, shredded cheese and croutons. Add crispy or grilled chicken for $3. Dressings: ranch, blue cheese, honey mustard, French, balsamic vinaigrette.",
+     "available": true
+    }
+   ]
+  },
+  {
+   "name": "Personal pizzas",
+   "items": [
+    {
+     "name": "Cheese Pizza",
+     "price": "$6",
+     "description": "8-inch personal pizza.",
+     "available": true
+    },
+    {
+     "name": "White Pizza",
+     "price": "$7",
+     "description": "8-inch personal pizza.",
+     "available": true
+    },
+    {
+     "name": "Veggie Pizza",
+     "price": "$7",
+     "description": "8-inch personal pizza.",
+     "available": true
+    },
+    {
+     "name": "Pepperoni Pizza",
+     "price": "$7",
+     "description": "8-inch personal pizza.",
+     "available": true
+    },
+    {
+     "name": "Supreme Pizza",
+     "price": "$8",
+     "description": "8-inch personal pizza.",
+     "available": true
+    }
+   ]
+  },
+  {
+   "name": "Dessert",
+   "items": [
+    {
+     "name": "Belly Buster",
+     "price": "$6",
+     "description": "Warm brownie with vanilla ice cream, chocolate drizzle and whipped cream.",
+     "available": true
+    }
+   ]
+  },
+  {
+   "name": "Make it loaded",
+   "items": [
+    {
+     "name": "Extra toppings",
+     "price": "$1 each",
+     "description": "Add bacon, cheese, fried onions or peppers, or roasted peppers.",
+     "available": true
+    },
+    {
+     "name": "Free toppings",
+     "price": "Free",
+     "description": "Lettuce, tomato, pickles, onions, hot peppers.",
      "available": true
     }
    ]

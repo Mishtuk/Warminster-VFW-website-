@@ -1,0 +1,115 @@
+---
+// The bar TV screen: a full-screen slide show for the wall TV. Hidden from search and from every menu. The server fills the slides marker.
+import Base from '../layouts/Base.astro';
+import TodayHours from '../components/TodayHours.astro';
+import { POST, href } from '../lib/site';
+import { seed } from '../lib/seed';
+---
+<Base title="Bar TV" bare description="The screen at the bar.">
+  <div class="tv" id="tv">
+    <header class="tv-top">
+      <img src={href('/brand/logo-mark-reverse.svg')} width="152" height="60" alt="" />
+      <p class="tv-open"><TodayHours prefix="Bar open today" fallback="" /></p>
+      <time class="tv-clock" id="tv-clock"></time>
+    </header>
+    <div class="tv-stage" id="tv-slides" aria-live="off"><Fragment set:html={seed.tv} /></div>
+    <footer class="tv-foot">
+      <span class="tv-dots" id="tv-dots" aria-hidden="true"></span>
+      <p>Members and guests · cards checked · {POST.phone}</p>
+    </footer>
+    <p class="tv-hint" id="tv-hint">Press F for full screen</p>
+  </div>
+</Base>
+
+<script>
+  const SLIDE = 12000, KITCHEN = 20000, CHECK = 5 * 60e3, RELOAD = 6 * 3600e3;
+  const stage = document.getElementById('tv-slides')!;
+  const dots = document.getElementById('tv-dots')!;
+  const root = document.documentElement;
+  let slides: HTMLElement[] = [], at = 0, timer = 0;
+
+  const play = () => {
+    clearTimeout(timer);
+    slides = [...stage.querySelectorAll<HTMLElement>('.tv-slide')];
+    dots.replaceChildren(...slides.map(() => document.createElement('i')));
+    at = 0;
+    const show = () => {
+      slides.forEach((s, i) => s.classList.toggle('is-on', i === at));
+      [...dots.children].forEach((d, i) => d.classList.toggle('is-on', i === at));
+      if (slides.length > 1) timer = window.setTimeout(() => { at = (at + 1) % slides.length; show(); }, (Number(slides[at].dataset.secs) || (slides[at].querySelector('.tv-hours') ? KITCHEN / 1000 : SLIDE / 1000)) * 1000);
+    };
+    show();
+  };
+  play();
+
+  // Clock
+  const clock = document.getElementById('tv-clock')!;
+  const tick = () => { clock.textContent = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' }); };
+  tick(); setInterval(tick, 15000);
+
+  // Fresh data every 5 minutes. Any failure keeps the slides already on screen; a full reload happens only after a good check, every 6 hours.
+  const born = Date.now();
+  setInterval(async () => {
+    try {
+      const res = await fetch(location.pathname, { cache: 'no-store' });
+      if (!res.ok) return;
+      const next = new DOMParser().parseFromString(await res.text(), 'text/html').getElementById('tv-slides');
+      if (next?.querySelector('.tv-slide')) { stage.innerHTML = next.innerHTML; play(); }
+      if (Date.now() - born > RELOAD) location.reload();
+    } catch { /* offline: keep showing the last good slides */ }
+  }, CHECK);
+
+  // Keep the screen awake where the TV browser allows it
+  const keepAwake = async () => { try { await (navigator as any).wakeLock?.request('screen'); } catch { /* ignored */ } };
+  keepAwake();
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') keepAwake(); });
+
+  // Click or key toggles full screen; the hint goes away after 10 seconds
+  const toggle = () => { try { if (document.fullscreenElement) document.exitFullscreen(); else root.requestFullscreen(); } catch { /* ignored */ } };
+  document.addEventListener('click', toggle);
+  document.addEventListener('keydown', toggle);
+  setTimeout(() => document.getElementById('tv-hint')?.setAttribute('hidden', ''), 10000);
+</script>
+
+<style is:global>
+  html[data-theme='dark'] body:has(.tv) { background: var(--night); overflow: hidden; }
+  .tv {
+    position: fixed; inset: 0; display: grid; grid-template-rows: 11vh minmax(0, 1fr) 7vh; padding: 3.5vh 5vw 3vh;
+    background: var(--night); color: var(--on-dark); cursor: none; overflow: hidden; font-family: var(--font-ui);
+  }
+  .tv-top, .tv-foot { display: flex; align-items: center; gap: 2vw; }
+  .tv-top { background: var(--night-2); padding: 0 2vw; border-bottom: 1px solid var(--gold); font-size: 2.2vw; font-weight: 700; }
+  .tv-top img { height: 7vh; width: auto; }
+  .tv-top .tv-open { flex: 1; margin: 0; color: var(--brass); }
+  .tv-clock { font-variant-numeric: tabular-nums; }
+  .tv-foot { font-size: 2.1vw; font-weight: 600; color: var(--on-dark-2); justify-content: space-between; border-top: 1px solid rgb(165 140 82 / 0.35); }
+  .tv-foot p { margin: 0; }
+  .tv-dots { display: flex; gap: 1vw; }
+  .tv-dots i { width: 1.1vw; height: 1.1vw; border-radius: 50%; border: 2px solid var(--on-dark-2); }
+  .tv-dots i.is-on { background: var(--brass); border-color: var(--brass); }
+  .tv-hint { position: absolute; right: 5vw; bottom: 11vh; margin: 0; padding: 0.6vw 1.4vw; background: var(--night-2); border: 1px solid var(--gold); font-size: 1.9vw; font-weight: 600; }
+  .tv-stage { position: relative; overflow: hidden; min-height: 0; padding-top: 2.5vh; }
+  .tv-slide { position: absolute; inset: 2.5vh 0 0; display: flex; flex-direction: column; opacity: 0; visibility: hidden; transition: opacity 0.6s, visibility 0.6s; }
+  .tv-slide.is-on { opacity: 1; visibility: visible; }
+  .tv-label { margin: 0; font-size: 2.1vw; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--brass); }
+  .tv-title { margin: 0.5vh 0 1.5vh; font-family: var(--font-display); font-size: 5vw; line-height: 1.05; font-weight: 700; color: var(--on-dark); }
+  .tv-rows { list-style: none; margin: 0; padding: 0; }
+  .tv-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: baseline; padding: 1vh 0; border-top: 1px solid rgb(165 140 82 / 0.35); }
+  .tv-row:first-child { border-top: 0; }
+  .tv-row:has(> .tv-when) { grid-template-columns: 15vw minmax(0, 1fr) auto; }
+  .tv-when { grid-column: 1; margin-right: 2vw; font-size: 2.6vw; font-weight: 700; color: var(--brass); }
+  .tv-name { grid-column: 2; font-family: var(--font-display); font-size: 3vw; line-height: 1.1; font-weight: 700; }
+  .tv-price { grid-column: 3; margin-left: 2vw; font-size: 2.6vw; font-weight: 700; color: var(--brass); text-align: right; }
+  .tv-note { grid-column: 2 / -1; margin: 0.3vh 0 0; font-size: 2.2vw; line-height: 1.25; font-weight: 600; color: var(--on-dark-2); }
+  .tv-slide .tv-hours { margin: 0 0 1.5vh; font-size: 2.6vw; line-height: 1.25; font-weight: 700; color: var(--brass); }
+  .tv-cols .tv-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tv-cols { display: grid; grid-template-columns: 1fr 1fr; column-gap: 4vw; }
+  .tv-cols .tv-row:nth-child(2) { border-top: 0; }
+  .tv-next { display: flex; align-items: center; gap: 3vw; margin: 1vh 0 2.5vh; }
+  .tv-next .tv-name { display: block; font-size: 4.2vw; }
+  .tv-next .tv-when { display: block; margin: 0.8vh 0 0; }
+  .tv .vfw-datebox { min-width: 12vw; padding: 1.2vh 1.5vw; gap: 0.6vh; }
+  .tv .vfw-dn { font-size: 6.5vw; }
+  .tv .vfw-dm, .tv .vfw-dw { font-size: 2vw; }
+  @media (prefers-reduced-motion: reduce) { .tv-slide { transition: none; } }
+</style>

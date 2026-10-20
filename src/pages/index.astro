@@ -123,11 +123,6 @@ const hallGallery = JSON.stringify(HALL_PHOTOS.map((p) => ({ src: photo(p.name).
   .vfw-featured { display: grid; gap: 1.25rem; }
   .vfw-feature, .vfw-card { display: flex; gap: 1.25rem; align-items: flex-start; background: var(--card); color: var(--ink); border: 1px solid var(--line); border-left: 6px solid var(--navy); border-radius: var(--radius); padding: 1.25rem; }
   .vfw-feature { gap: 1.75rem; padding: 1.5rem 1.75rem; align-items: center; }
-  /* Date box: one big numeral, then month and weekday as small caps lines with room to breathe. */
-  .vfw-datebox { flex: none; display: flex; flex-direction: column; align-items: center; gap: 0.3rem; min-width: 5rem; padding: 0.7rem 0.6rem 0.8rem; background: var(--night); color: var(--on-dark); border-bottom: 4px solid var(--brass); border-radius: var(--radius); line-height: 1; }
-  .vfw-dn { font-family: var(--font-display); font-weight: 700; font-size: 2.1rem; font-variant-numeric: lining-nums; }
-  .vfw-dm, .vfw-dw { font-size: var(--step--1); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
-  .vfw-dw { color: var(--brass); }
   .vfw-feature .vfw-datebox { min-width: 7rem; padding: 1rem 1rem 1.1rem; gap: 0.4rem; }
   .vfw-feature .vfw-dn { font-size: 3.25rem; }
   .vfw-feature-body { min-width: 0; }
@@ -135,9 +130,6 @@ const hallGallery = JSON.stringify(HALL_PHOTOS.map((p) => ({ src: photo(p.name).
   .vfw-feature-time { margin-top: 0.5rem; font-size: var(--step-1); font-weight: 700; color: var(--red-ink); }
   .vfw-feature-time:empty { display: none; }
   .vfw-feature-desc { margin-top: 0.6rem; color: var(--ink-2); line-height: 1.55; max-width: 60ch; }
-  .vfw-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; }
-  .vfw-badge { display: inline-block; padding: 0.2rem 0.75rem; border-radius: var(--radius); background: var(--night); color: var(--brass); font-size: var(--step--1); font-weight: 700; line-height: 1.4; }
-  .vfw-badge-now { background: #7d2528; color: #f4eee3; }
   .vfw-cards { display: grid; gap: 1rem; list-style: none; padding: 0; margin: 0; }
   @media (min-width: 800px) { .vfw-cards { grid-template-columns: 1fr 1fr; } }
   .vfw-card { padding: 1.1rem; }

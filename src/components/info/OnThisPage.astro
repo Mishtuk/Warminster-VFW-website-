@@ -14,6 +14,7 @@ const { items, label = 'On this page', title = 'On this page' } = Astro.props;
 
 <style>
   .otp { padding-block: 0.25rem 0.5rem; }
+  :global(.subnav) + .otp { padding-top: 1.25rem; }
   .otp-title { font-weight: 700; color: var(--ink-2); margin-bottom: 0.6rem; }
   ul { display: flex; flex-wrap: wrap; gap: 0.6rem; list-style: none; padding: 0; }
   a {

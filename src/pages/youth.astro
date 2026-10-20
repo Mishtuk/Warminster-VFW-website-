@@ -1,0 +1,107 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Subnav from '../components/Subnav.astro';
+import InfoSection from '../components/info/InfoSection.astro';
+import OnThisPage from '../components/info/OnThisPage.astro';
+import KeyFacts from '../components/info/KeyFacts.astro';
+import { POST, PROGRAM_TABS } from '../lib/site';
+import { YOUTH } from '../lib/resources.js';
+const longDate = new Date(`${YOUTH.deadline}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+const winners = YOUTH.winners as { year: string; name: string; school: string; contest: string }[];
+const sections = [
+  { id: 'contests', label: 'The contests' }, { id: 'enter', label: 'How to enter' }, { id: 'scholarships', label: 'Scholarships' },
+  ...(winners.length ? [{ id: 'winners', label: 'Past winners' }] : []),
+];
+const steps = [
+  ['Step 1', 'Write your essay, or record it for Voice of Democracy, on the theme for this year.'],
+  ['Step 2', 'Fill in the entry form for the 2026-27 contest.'],
+  ['Step 3', `Bring or send it to the post by ${longDate}.`],
+  ['Step 4', `To arrange the drop-off, ${POST.callText.replace('Call', 'call')}.`],
+];
+---
+<Base title="Youth contests and scholarships" description="Voice of Democracy and Patriot's Pen essay contests for grades 6 to 12, and VFW scholarships, at VFW Post 6493.">
+  <PageHead title="Contests and scholarships" lede="Essay and audio contests for students in grades 6 to 12, with national scholarships and prizes." />
+  <Subnav items={PROGRAM_TABS} label="Programs and resources" />
+  <section class="section info-sec" id="deadline" aria-labelledby="deadline-h">
+    <div class="container">
+      <div class="callout deadline" data-deadline={YOUTH.deadline}>
+        <h2 id="deadline-h" data-open>Entries are due by {longDate}</h2>
+        <p class="countdown" data-countdown={YOUTH.deadline}></p>
+        <p data-closed hidden>This year's entries are closed. {POST.callText} to ask about next year's contest.</p>
+      </div>
+    </div>
+  </section>
+
+  <OnThisPage items={sections} />
+
+  <InfoSection id="contests" title="The contests" summary="Both are run by the VFW, and the post takes entries. Rules and entry forms are on the VFW's page.">
+    <div class="card-grid">
+      {YOUTH.contests.map((c) => (
+        <article class="panel info-body">
+          <h3>{c.name}</h3>
+          <dl class="rows">
+            {c.rows.map(([k, v]) => <div><dt>{k}</dt><dd>{v}</dd></div>)}
+            <div><dt>Official rules</dt><dd><a href={YOUTH.rules} rel="noopener">Rules and entry form at vfw.org</a></dd></div>
+          </dl>
+        </article>
+      ))}
+    </div>
+  </InfoSection>
+
+  <InfoSection id="enter" title="How to enter" summary="Four steps, and the post helps with the last one." band="stone">
+    <div class="info-two">
+      <div class="panel info-body">
+        <ol class="tl">
+          {steps.map(([w, t], i) => (
+            <li><span class="when">{w}</span><span class="what">{t}{i === 1 && <> <a href={YOUTH.rules} rel="noopener">Get the entry form</a>.</>}</span></li>
+          ))}
+        </ol>
+      </div>
+      <KeyFacts title="Questions about entering" email />
+    </div>
+  </InfoSection>
+
+  <InfoSection id="scholarships" title="Scholarships" summary="Money for school from the VFW. Each link opens the VFW's own page.">
+    <div class="panel info-body">
+      <ul class="link-list">
+        {YOUTH.scholarships.map((s) => <li><a href={s.url} rel="noopener"><span>{s.name}</span><small>{s.line}</small><small>From the {s.host}</small></a></li>)}
+      </ul>
+      <p>For the Auxiliary's scholarships, ask the Auxiliary: {POST.callText.replace('Call', 'call')}.</p>
+    </div>
+  </InfoSection>
+
+  {winners.length > 0 && (
+    <InfoSection id="winners" title="Past winners" summary="Local winners of the post's contests.">
+      <div class="panel info-body">
+        <dl class="rows">
+          {winners.map((w) => <div><dt>{w.year}</dt><dd><strong>{w.name}</strong>, {w.school}. {w.contest}.</dd></div>)}
+        </dl>
+        <p class="hint">Shown with a parent's written permission.</p>
+      </div>
+    </InfoSection>
+  )}
+</Base>
+
+<script>
+  // Days left until the deadline, counted on the Eastern calendar day. After it passes, the callout says the entries are closed.
+  const box = document.querySelector<HTMLElement>('.deadline');
+  const out = document.querySelector<HTMLElement>('[data-countdown]');
+  if (box && out) {
+    const [y, m, d] = box.dataset.deadline!.split('-').map(Number);
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date()).split('-').map(Number);
+    const days = Math.round((Date.UTC(y, m - 1, d) - Date.UTC(today[0], today[1] - 1, today[2])) / 864e5);
+    if (days < 0) {
+      box.querySelector<HTMLElement>('[data-open]')!.hidden = true;
+      out.hidden = true;
+      box.querySelector<HTMLElement>('[data-closed]')!.hidden = false;
+    } else out.textContent = days === 0 ? 'Due today' : days === 1 ? '1 day left' : `${days} days left`;
+  }
+</script>
+
+<style>
+  .deadline h2 { font-size: var(--step-3); }
+  .countdown { margin-top: 0.4rem; font-family: var(--font-display); font-weight: 700; font-size: var(--step-1); color: var(--red-ink); }
+  .countdown:empty { display: none; }
+  .tl { padding-left: 0; }
+</style>
