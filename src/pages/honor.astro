@@ -27,7 +27,7 @@ const veterans = honorList(entries).map((v) => {
 });
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
-<Base title="Wall of Honor" description={`Members of ${POST.name} in ${POST.city}, PA who served, shown with their families' permission.`}>
+<Base title="Wall of Honor" sharePhoto="hero-memorial-flag" imageAlt="A flag at a Memorial Day ceremony" description={`Members of ${POST.name} in ${POST.city}, PA who served, shown with their families' permission.`}>
   <PageHead title="Wall of Honor" lede="Honoring the veterans of our post, with their families' permission." image="hero-memorial-flag" />
   <Subnav items={ABOUT_TABS} label="About" />
 

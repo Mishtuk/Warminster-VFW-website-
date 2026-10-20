@@ -9,7 +9,7 @@ import KeyFacts from '../components/info/KeyFacts.astro';
 const sections = [{ id: 'included', label: "What's included" }, { id: 'photos', label: 'Photos' }, { id: 'faq', label: 'Questions' }, { id: 'inquiry', label: 'Ask about a date' }];
 const gallery = JSON.stringify(HALL_PHOTOS.map((p) => ({ src: photo(p.name).src, alt: p.alt, cap: p.cap })));
 ---
-<Base title="Rent the Hall" description={POST.hallBlurb}>
+<Base title="Rent the Hall" sharePhoto="hall-07" imageAlt="The rentable hall at VFW Post 6493" description={POST.hallBlurb}>
   <PageHead title="Rent the Hall" lede="Our hall is always available for rent. See what's included, look at the photos, then ask about your date." image="hall-07">
     <p class="btn-row hall-cta"><a class="btn" href="#inquiry">Ask about a date</a><a class="btn btn-outline" href={POST.tel}>Call {POST.phone}</a></p>
   </PageHead>

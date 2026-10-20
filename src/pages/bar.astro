@@ -18,7 +18,7 @@ const rows = POST.hours.map(([d, h]) => {
   return { d, h, days: days.join(' ') };
 });
 ---
-<Base title="The Bar" description={`Bar hours, drink specials and the food menu at ${POST.name}, ${POST.city}, PA.`}>
+<Base title="The Bar" sharePhoto="food-1-burgers" imageAlt="Burgers from the Loaded Belly kitchen" description={`Bar hours, drink specials and the food menu at ${POST.name}, ${POST.city}, PA.`}>
   <PageHead title="The Bar" lede="Hours, drink specials and food from the Loaded Belly kitchen." image="food-1-burgers" />
 
   <OnThisPage items={sections} />
