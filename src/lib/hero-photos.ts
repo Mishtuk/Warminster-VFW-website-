@@ -1,4 +1,4 @@
-// Bank of photos from different post events for the home hero carousel (sources: .claude/team/media-sources.md).
+// Bank of photos from different post events for the home hero carousel (all from the post's Facebook group).
 // Each page load shows a random 9. Captions say only what the photo shows and when; no names, no amounts.
 export const HERO_BANK = [
   { name: 'hero-memorial-guard', alt: 'Honor guard standing with rifles at the Memorial Day ceremony', cap: 'Memorial Day honor guard, May 2026' },
