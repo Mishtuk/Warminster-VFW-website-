@@ -1,24 +1,21 @@
 ---
 /**
  * Hero photo stack: pinned snapshots from different post events. Every page load shows a random 9 from a bank of 150.
- * An inline script picks them and builds the stack before first paint and starts loading photo 1 straight away (low priority, so the poster stays the LCP).
- * Photos 2 to 9 load in the background after the page has loaded. Every 5.5 s the top one slides away and the next settles in;
+ * The HTML carries only 9 of them. An inline script shuffles those, builds the stack before first paint and starts loading photo 1 straight away (low priority, so the poster stays the LCP).
+ * After the page has loaded the full bank comes from /media/hero-bank.json and photos 2 to 9 are swapped for random ones from it (on a fetch error the 9 stay), then load in the background. Every 5.5 s the top one slides away and the next settles in;
  * auto-cycling stops on hover or focus, when the tab is hidden, on the Pause button, and always under reduced motion.
  * Clicking a photo opens the viewer with the whole set (data-gallery="hero").
  */
-import { photo, href } from '../lib/site';
-import { HERO_BANK } from '../lib/hero-photos';
+import { href } from '../lib/site';
+import { bank as fullBank } from '../lib/hero-bank';
 import Arrow from './Arrow.astro';
 
-const bank = HERO_BANK.map((p) => ({
-  thumb: photo(p.name).src,
-  small: photo(p.name).srcset.split(' ')[0],
-  full: href(`/media/photos/${p.name}-full.webp`),
-  alt: p.alt, cap: p.cap,
-}));
+const all = fullBank();
+const bank = all.filter((_, i) => i % Math.ceil(all.length / 9) === 0).slice(0, 9); // 9 spread across the bank: enough for the first paint
 const first = bank[0];
+const bankUrl = href('/media/hero-bank.json');
 ---
-<div class="car" data-gallery="hero" role="group" aria-roledescription="carousel" aria-label="Photos from events at the post">
+<div class="car" data-gallery="hero" data-bank={bankUrl} role="group" aria-roledescription="carousel" aria-label="Photos from events at the post">
   <ol class="car-stack">
     <noscript>
       <li class="car-slide" data-pos="0">
@@ -119,7 +116,27 @@ const first = bank[0];
       };
 
       // Photos 2 to 9 load in the background right after the page has loaded.
-      const loadRest = () => {
+      const swapIn = async () => {
+        try {
+          const res = await fetch(root.dataset.bank || '');
+          const all: { thumb: string; small: string; full: string; alt: string; cap: string }[] = await res.json();
+          const cur0 = slides[0].querySelector('img')?.getAttribute('src');
+          const head = all.find((p) => p.small === cur0);
+          const pool = all.filter((p) => p !== head);
+          for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+          const pick = (head ? [head] : []).concat(pool).slice(0, n);
+          if (pick.length < n) return;
+          slides.forEach((s, i) => {
+            const img = s.querySelector('img'), cap = s.querySelector('figcaption');
+            if (i === 0 || !img || !cap) return;
+            img.dataset.src = pick[i].small; img.alt = pick[i].alt; cap.textContent = pick[i].cap;
+          });
+          const list = root.querySelector('script[data-gallery-list]');
+          if (list) list.textContent = JSON.stringify(pick.map((p) => ({ src: p.full, thumb: p.thumb, alt: p.alt, cap: p.cap })));
+        } catch { /* stay on the photos already in the page */ }
+      };
+      const loadRest = async () => {
+        await swapIn();
         for (const img of root.querySelectorAll<HTMLImageElement>('img[data-src]')) {
           if (!img.getAttribute('src')) img.setAttribute('src', img.dataset.src || '');
         }

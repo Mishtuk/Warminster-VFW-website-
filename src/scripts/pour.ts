@@ -369,18 +369,28 @@ function press(tap: Element, hold: boolean) {
   if (!raf) { last = performance.now(); fresh = true; sy = scrollY; raf = requestAnimationFrame(frame); }
 }
 
-document.addEventListener('pointerdown', (e) => {
+const onDown = (e: PointerEvent, held = true) => {
   const h = (e.target as Element)?.closest?.('[data-pour] .tap-handle');
   const tap = h?.closest('.tap');
   if (!tap || e.button !== 0) return;
-  press(tap, true);
+  press(tap, held);
+  if (!held) return;
   const up = () => { removeEventListener('pointerup', up); removeEventListener('pointercancel', up); const s = pours.get(tap); if (s) s.held = false; }; // a quick click still pours the full burst
   addEventListener('pointerup', up); addEventListener('pointercancel', up);
-});
-document.addEventListener('keydown', (e) => {
+};
+const onKey = (e: KeyboardEvent) => {
   const tap = (e.target as Element)?.closest?.('[data-pour] .tap-handle')?.closest('.tap');
   if (!tap || (e.key !== 'Enter' && e.key !== ' ')) return;
   e.preventDefault();
   if (!e.repeat) press(tap, false);
-});
-document.addEventListener('keyup', (e) => { if (e.key === ' ' && (e.target as Element)?.closest?.('[data-pour] .tap-handle')) e.preventDefault(); });
+};
+const onKeyUp = (e: KeyboardEvent) => { if (e.key === ' ' && (e.target as Element)?.closest?.('[data-pour] .tap-handle')) e.preventDefault(); };
+
+/** Registers the listeners (pour-loader.ts calls this on the first touch of a tap) and replays the press that triggered the load. */
+export function arm(first?: Event, held = true) {
+  document.addEventListener('pointerdown', onDown);
+  document.addEventListener('keydown', onKey);
+  document.addEventListener('keyup', onKeyUp);
+  if (first?.type === 'pointerdown') onDown(first as PointerEvent, held);
+  else if (first?.type === 'keydown') onKey(first as KeyboardEvent);
+}
