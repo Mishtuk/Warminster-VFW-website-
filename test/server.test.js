@@ -163,6 +163,7 @@ test('M4 security headers on pages, the admin page and error replies; CSP hashes
   const csp = page.headers.get('content-security-policy');
   assert.ok(csp.includes("object-src 'none'") && csp.includes("frame-ancestors 'self'"));
   assert.ok(csp.includes("'sha256-") && csp.includes("'unsafe-hashes'"));
+  assert.ok(/script-src 'self' 'sha256-/.test(csp), 'inline script blocks must be hashed into script-src');
   assert.ok(!/script-src[^;]*'unsafe-inline'/.test(csp));
   check(await call('GET', '/admin/'));
   check(await call('GET', '/nope'));
