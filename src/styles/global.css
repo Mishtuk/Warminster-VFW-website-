@@ -254,11 +254,18 @@ a.card:hover h3 { text-decoration: underline 2px var(--gold); text-underline-off
   box-shadow: var(--shadow); transform: rotate(var(--tilt, 0deg));
 }
 .snap img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
-.snap figcaption { padding: 0.6rem 0.25rem 0.7rem; color: #952f32; font-family: 'Special Elite', 'Courier New', monospace; font-size: var(--step--1); font-weight: 400; line-height: 1.35; letter-spacing: 0.01em; transform: rotate(-0.6deg); mix-blend-mode: multiply; }
-/* Rubber-stamp captions in rotating inks, all AA on the photo paper: red, navy, green, brass. */
-:nth-child(4n+2) > .snap figcaption, .snap:nth-child(4n+2) figcaption { color: #1f3a5f; transform: rotate(0.5deg); }
-:nth-child(4n+3) > .snap figcaption, .snap:nth-child(4n+3) figcaption { color: #2f5d3a; transform: rotate(-0.3deg); }
-:nth-child(4n+4) > .snap figcaption, .snap:nth-child(4n+4) figcaption { color: #6e5418; transform: rotate(0.8deg); }
+/* Photo captions as inked rubber stamps: condensed bold capitals in a ruled box, speckled by a noise mask, in rotating inks
+   (red, navy, green, brass; all AA on the photo paper in both themes). */
+.snap figcaption {
+  width: fit-content; max-width: calc(100% - 0.5rem); margin: 0.6rem 0.25rem 0.75rem; padding: 0.2em 0.5em 0.15em;
+  border: 3px solid currentColor; border-radius: 3px; color: #a52a2e;
+  font-family: 'Archivo', 'Archivo Fallback', sans-serif; font-stretch: 62%; font-weight: 800; font-size: var(--step-0);
+  line-height: 1.15; letter-spacing: 0.04em; text-transform: uppercase; transform: rotate(-1.2deg);
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.2 0 0 0 1.95'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.2 0 0 0 1.95'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+:nth-child(4n+2) > .snap figcaption, .snap:nth-child(4n+2) figcaption { color: #1f3a5f; transform: rotate(0.9deg); }
+:nth-child(4n+3) > .snap figcaption, .snap:nth-child(4n+3) figcaption { color: #2f5d3a; transform: rotate(-0.6deg); }
+:nth-child(4n+4) > .snap figcaption, .snap:nth-child(4n+4) figcaption { color: #6e5418; transform: rotate(1.4deg); }
 .snap:not(:has(figcaption)) { padding-bottom: 8px; }
 @media (prefers-reduced-motion: reduce) { .snap { transform: none; } }
 .media, .frame { position: relative; overflow: hidden; background: var(--stone); border: 8px solid var(--snap); box-shadow: var(--shadow); }
