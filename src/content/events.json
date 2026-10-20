@@ -138,5 +138,125 @@
   "recurring": "none",
   "category": "Holiday",
   "enabled": true
+ },
+ {
+  "title": "Pre-Blizzard Bash",
+  "date": "2026-01-24",
+  "start": "",
+  "end": "",
+  "description": "A party at the post.",
+  "recurring": "none",
+  "category": "Bar",
+  "enabled": true
+ },
+ {
+  "title": "Winter cornhole league starts",
+  "date": "2026-01-13",
+  "start": "",
+  "end": "",
+  "description": "$100 for the league, or $10 a night. Run by Glenside Cornhole and Scoreholio.",
+  "recurring": "none",
+  "category": "Bar",
+  "enabled": true
+ },
+ {
+  "title": "Valentine's cocktails",
+  "date": "2026-02-14",
+  "start": "",
+  "end": "",
+  "description": "Valentine's cocktails at the bar.",
+  "recurring": "none",
+  "category": "Bar",
+  "enabled": true
+ },
+ {
+  "title": "Delta Waterfowl banquet",
+  "date": "2026-03-28",
+  "start": "",
+  "end": "",
+  "description": "Banquet at the post.",
+  "recurring": "none",
+  "category": "Community",
+  "enabled": true
+ },
+ {
+  "title": "Cub Scout Pack 139 craft fair",
+  "date": "2026-03-29",
+  "start": "",
+  "end": "",
+  "description": "Spring craft fair at the post.",
+  "recurring": "none",
+  "category": "Community",
+  "enabled": true
+ },
+ {
+  "title": "Spring cornhole league starts",
+  "date": "2026-04-14",
+  "start": "",
+  "end": "",
+  "description": "Run by Glenside Cornhole and Scoreholio.",
+  "recurring": "none",
+  "category": "Bar",
+  "enabled": true
+ },
+ {
+  "title": "Cinco de Mayo",
+  "date": "2026-05-05",
+  "start": "",
+  "end": "",
+  "description": "Cinco de Mayo at the bar.",
+  "recurring": "none",
+  "category": "Bar",
+  "enabled": true
+ },
+ {
+  "title": "Flags on veterans' graves",
+  "date": "2026-05-16",
+  "start": "",
+  "end": "",
+  "description": "Flags placed at Sunset Memorial Park for Armed Forces Day.",
+  "recurring": "none",
+  "category": "Community",
+  "enabled": true
+ },
+ {
+  "title": "Memorial Day ceremony and parade",
+  "date": "2026-05-25",
+  "start": "10:00",
+  "end": "",
+  "description": "Ceremony 10 AM at the township building. Parade 11 AM, ending at the post.",
+  "recurring": "none",
+  "category": "Holiday",
+  "enabled": true
+ },
+ {
+  "title": "Line dance lessons",
+  "date": "2026-06-14",
+  "start": "",
+  "end": "",
+  "description": "Sunday line dance lessons.",
+  "recurring": "none",
+  "category": "Bar",
+  "enabled": true
+ },
+ {
+  "title": "Iron Pigs night",
+  "date": "2026-06-27",
+  "start": "",
+  "end": "",
+  "description": "Night at the ballpark with the post.",
+  "recurring": "none",
+  "category": "Community",
+  "enabled": true
+ },
+ {
+  "title": "Independence Day party",
+  "date": "2026-07-04",
+  "start": "",
+  "end": "",
+  "description": "Happy Birthday America party at the post.",
+  "recurring": "none",
+  "category": "Holiday",
+  "enabled": true
  }
 ]

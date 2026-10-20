@@ -34,8 +34,8 @@ export const DISCOUNTS = [
 
 export const PROGRAMS = {
   youth: [
-    { name: 'Voice of Democracy', line: 'Audio essay contest for grades 9 to 12. Entry deadline October 31.', url: 'https://www.vfw.org/community/youth-and-education/youth-scholarships' },
-    { name: "Patriot's Pen", line: 'Essay contest for grades 6 to 8, 300 to 400 words. Entry deadline October 31.', url: 'https://www.vfw.org/community/youth-and-education/youth-scholarships' },
+    { name: 'Voice of Democracy', line: 'Audio essay contest for grades 9 to 12.', url: 'https://www.vfw.org/community/youth-and-education/youth-scholarships' },
+    { name: "Patriot's Pen", line: 'Essay contest for grades 6 to 8, 300 to 400 words.', url: 'https://www.vfw.org/community/youth-and-education/youth-scholarships' },
     { name: 'Scout of the Year', line: 'Annual honor for Scouts, Girl Scouts, Sea Scouts and Venturing youth.', url: 'https://www.vfw.org/community/youth-and-education/scout-of-the-year' },
     { name: 'Teacher of the Year', line: 'Honors three teachers: elementary, junior high and high school.', url: 'https://www.vfw.org/community/youth-and-education/teacher-of-the-year' },
   ],
@@ -85,7 +85,7 @@ export const POST_DOES = {
     "A Veteran Muster (October 2025), and veterans service hours with elected officials' offices at the post (May 2025).",
   ],
   youth: [
-    "Voice of Democracy (grades 9 to 12) and Patriot's Pen (grades 6 to 8). The deadline is October 31.",
+    "Voice of Democracy (grades 9 to 12) and Patriot's Pen (grades 6 to 8). The deadline is October 31, 2026 (2026-27 contest).",
     'The post sponsors youth teams: Hatboro Little League, Warrington-Warwick Softball, Centennial, Hatboro and Warwick baseball, and Warminster Spartans Youth Wrestling.',
     'Cub Scout Pack 139 holds events at the post, including its spring craft fair, and the post works with Scout Troop 139.',
   ],

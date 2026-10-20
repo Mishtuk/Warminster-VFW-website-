@@ -18,20 +18,17 @@ const fmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'n
       </div>
       <aside>
         <h2>Veteran news</h2>
-        {items.length ? (
+        {items.length > 0 && (
           <ul class="link-list" style="margin-top:1rem">
             {items.map((i) => (
               <li><a href={i.link} rel="noopener"><span>{i.title}</span><small>{i.source}, {fmt(i.date)}</small></a></li>
             ))}
           </ul>
-        ) : (
-          <>
-            <p style="margin-top:0.75rem">Where to find veteran news:</p>
-            <ul class="link-list" style="margin-top:0.5rem">
-              {FALLBACK_LINKS.map((l) => <li><a href={l.url} rel="noopener"><span>{l.title}</span><small>{l.note}</small></a></li>)}
-            </ul>
-          </>
         )}
+        <h3 style="margin-top:2rem">More veteran news and resources</h3>
+        <ul class="link-list" style="margin-top:0.5rem">
+          {FALLBACK_LINKS.map((l) => <li><a href={l.url} rel="noopener"><span>{l.title}</span><small>{l.note}</small></a></li>)}
+        </ul>
       </aside>
     </div>
   </section>
