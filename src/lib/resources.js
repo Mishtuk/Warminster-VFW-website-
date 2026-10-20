@@ -22,10 +22,10 @@ export const DISCOUNTS = [
     { biz: 'Target', offer: '10% around Veterans Day and July 4 with Target Circle. Not year round.', url: 'https://corporate.target.com/press/fact-sheet/2023/10/target-is-again-thanking-military-families-with-a-discount-for-veterans-day', vdOnly: true },
   ] },
   { cat: 'Dining', items: [
-    { biz: "Applebee's", offer: 'Free full-size entree on Veterans Day (November 11), dine-in. Bring proof of service.', url: 'https://www.applebees.com/en/news/2025/applebees-honors-veterans-and-active-duty-military-with-free-meals-on-veterans-day', vdOnly: true },
+    { biz: "Applebee's", offer: 'Free full-size entree on Veterans Day, November 11, dine-in. Bring proof of service.', url: 'https://www.applebees.com/en/news/2025/applebees-honors-veterans-and-active-duty-military-with-free-meals-on-veterans-day', vdOnly: true },
   ] },
   { cat: 'Fun and fitness', items: [
-    { biz: 'Sesame Place Philadelphia (Langhorne)', offer: 'Veterans 50% off single-day tickets, up to 6 per person per visit, online only, valid through December 31, 2026.', url: 'https://sesameplace.com/philadelphia/tickets/military/veteran-offer/' },
+    { biz: 'Sesame Place Philadelphia in Langhorne', offer: 'Veterans 50% off single-day tickets, up to 6 per person per visit, online only, valid through December 31, 2026.', url: 'https://sesameplace.com/philadelphia/tickets/military/veteran-offer/' },
     { biz: 'Planet Fitness', offer: 'Free workouts during Veterans Day week in past years. No ongoing national veteran discount confirmed.', url: 'https://www.military.com/discounts/planet-fitness-veterans-day-military-discount', vdOnly: true },
   ] },
   { cat: 'Phone plans', items: [
@@ -73,21 +73,21 @@ export const DISCOUNTS_CHECKED = 'October 2026';
 export const POST_DOES = {
   service: [
     'The post gives $1,000 every year to the Warminster Food Bank. Food collection boxes are at the rear door.',
-    'Christmas toy drives with the Knights of the Inferno (Apollo Chapter), in 2023 and 2024, and a Brad Fox Foundation trivia night for Toys for Tots.',
+    'Christmas toy drives with the Knights of the Inferno, Apollo Chapter, in 2023 and 2024, and a Brad Fox Foundation trivia night for Toys for Tots.',
     'The Auxiliary prepared 50 Easter baskets for F.E.A.S.T. in spring 2025.',
     'Worn flags can be dropped in the blue receptacle at the rear door, left side. In June 2026 the post held a flag retirement ceremony with Scout Troop 139.',
-    'Post named #1 in the nation for community service by VFW National HQ (posted in the Facebook group, December 2023).',
-    'Won the Pennsylvania "Working Together Excellence Award" at the Gettysburg convention (about June 2025).',
+    'Post named #1 in the nation for community service by VFW National HQ, as posted in the Facebook group in December 2023.',
+    'Won the Pennsylvania "Working Together Excellence Award" at the Gettysburg convention in about June 2025.',
   ],
   outreach: [
     "Flags placed on veterans' graves at Sunset Memorial Park every Armed Forces Day.",
     'Buddy Poppy sales, with the money going to veterans in need.',
     "Auxiliary volunteers at the Delaware Valley Veterans Home. The Auxiliary's hospital program received the Citation of Excellence, Outstanding Hospital of the Year, from the PA Auxiliary.",
-    'Memorial Day ceremony each year, and a free veterans and military brunch (June 2024).',
-    "A Veteran Muster (October 2025), and veterans service hours with elected officials' offices at the post (May 2025).",
+    'Memorial Day ceremony each year, and a free veterans and military brunch in June 2024.',
+    "A Veteran Muster in October 2025, and veterans service hours with elected officials' offices at the post in May 2025.",
   ],
   youth: [
-    "Voice of Democracy (grades 9 to 12) and Patriot's Pen (grades 6 to 8). The deadline is October 31, 2026 (2026-27 contest).",
+    "Voice of Democracy for grades 9 to 12 and Patriot's Pen for grades 6 to 8. The deadline for the 2026-27 contest is October 31, 2026.",
     'The post sponsors youth teams: Hatboro Little League, Warrington-Warwick Softball, Centennial, Hatboro and Warwick baseball, and Warminster Spartans Youth Wrestling.',
     'Cub Scout Pack 139 holds events at the post, including its spring craft fair, and the post works with Scout Troop 139.',
   ],

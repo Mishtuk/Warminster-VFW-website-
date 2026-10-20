@@ -16,7 +16,7 @@ export const POST = {
   email: 'vfwpost6493@gmail.com',
   hallEmail: 'VFW6493HallRental@gmail.com',
   barRule: 'The bar is for members and guests. Membership cards are checked at the door.',
-  joinPrice: 'Home Association (social) membership at the post is $35 a year, due December 31.',
+  joinPrice: 'Home Association social membership at the post is $35 a year, due December 31.',
   officeHours: 'Thursday and Friday, 8 AM to 12 PM',
   // Kitchen hours from the Aug 2026 flyer: call to confirm
   kitchen: [['Monday', '6:30 PM to 8 PM'], ['Tuesday to Thursday', '5 PM to 8 PM'], ['Friday', '5:30 PM to 8:30 PM']],
@@ -25,7 +25,7 @@ export const POST = {
   commander: 'Bill Zuk',
   auxPresident: 'Nichole Zuk',
   pastCommanders: [['Harry DeLorenzo', 'Commander for three years to July 2024, and again from October 2024'], ['John Otte', 'July to October 2024']],
-  pastAuxPresident: 'Evy (Evelyn) Dobson Brennan',
+  pastAuxPresident: 'Evelyn "Evy" Dobson Brennan',
   // Hall rental (hallrentalreviews.com/venue/vfw-post-6493)
   hallBlurb: 'Our Hall is always available for rent. You can supply your own food and entertainment. We have free wifi; tables and chairs are furnished and we have complete bar facilities.',
   hallSource: 'https://hallrentalreviews.com/venue/vfw-post-6493',
