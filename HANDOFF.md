@@ -22,7 +22,6 @@ Two machines work on this repo at the same time. Live coordination happens on th
 
 ### Now working on
 - **Laptop:** social share cards: Open Graph and Twitter tags per page (the head of src/layouts/Base.astro, PageHead props, a default share image in public/media/).
-- **Laptop:** #10 What's going on photos (src/lib/event-photos.js, featuredHtml in src/lib/state.js, the whats-on style block in src/pages/index.astro, maybe a small src/scripts/ script for the cycling bundles).
 
 ## Status (handoff, 2026-10-20)
 **The site is feature-complete on the preview. The next steps are the owner's choices.**
@@ -32,7 +31,7 @@ Two machines work on this repo at the same time. Live coordination happens on th
   - The theme switch is a small moon/sun button at the bottom right (`ThemeFab.astro`). It follows the system setting and is remembered per visitor.
 - **Home:**
   - The hero has a background video and a polaroid stack showing a random 9 from a 150-photo bank (`HeroCarousel.astro`, `src/lib/hero-photos.ts`). The page carries 9 spread-out bank photos; the full bank is `/media/hero-bank.json` (`src/pages/media/hero-bank.json.ts`, built by `src/lib/hero-bank.ts`), fetched after load to reshuffle slides 2 to 9. `BeerTaps.astro` loads `pour-loader.ts`, which imports `pour.ts` on the first touch of a tap. On phones the stack is a strip below the hero.
-  - Then "What's going on at the post": the next special event within 30 days, else the next event, plus 4 compact cards (`featuredHtml` in `state.js`, marker `events-featured`). Each event gets a real post photo by title, else by category (`src/lib/event-photos.js`); add a title rule there when a new kind of event gets its own photo. Details and card titles link to `/events#ev-...` (`anchorOf` in `state.js`): one-off events anchor in the calendar month list, repeating nights on their weekly card.
+  - Then "What's going on at the post": the next special event within 30 days, else the next event, plus 4 compact cards (`featuredHtml` in `state.js`, marker `events-featured`). Each event gets real post photos by title, else by category (`src/lib/event-photos.js`; a rule can list several photos). Events with 3 or more photos cycle slowly (`src/scripts/event-cycle.ts`: one shared timer, paused off-screen, on hover or focus and with reduced motion). Card photos are 192x144 on desktop and full width on phones. Details and card titles link to `/events#ev-...` (`anchorOf` in `state.js`): one-off events anchor in the calendar month list, repeating nights on their weekly card.
   - Then New here?, food snapshots with the specials menu card, the hall band (2 photos that open a 14-photo gallery, `src/lib/hall-photos.ts`), the namesakes plaque and post news.
 - **Info pages:**
   - Join the post `/join` (under the About tabs, `ABOUT_TABS` in `site.ts`): who can join, three paths (VFW, Auxiliary, Home Association) with official links or Call the post, how to join, renewing and meetings. Facts are from vfw.org and vfwauxiliary.org (sources in a code comment). The Home Association price shows Call the post until `homePrice` in `join.astro` is set to `POST.joinPrice` (the $35 in post.js has no source in research.md).
