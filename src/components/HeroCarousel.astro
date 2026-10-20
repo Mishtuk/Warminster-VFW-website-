@@ -8,6 +8,7 @@
  */
 import { photo, href } from '../lib/site';
 import { HERO_BANK } from '../lib/hero-photos';
+import Arrow from './Arrow.astro';
 
 const bank = HERO_BANK.map((p) => ({
   thumb: photo(p.name).src,
@@ -26,9 +27,9 @@ const first = bank[0];
     </noscript>
   </ol>
   <div class="car-ctrl">
-    <button type="button" class="car-btn car-prev" aria-label="Previous photo"><span aria-hidden="true">&#8592;</span></button>
+    <button type="button" class="car-btn car-prev" aria-label="Previous photo"><Arrow dir="left" /></button>
     <button type="button" class="car-btn car-play" aria-label="Pause the photo slideshow"><span class="car-ico" aria-hidden="true"></span></button>
-    <button type="button" class="car-btn car-next" aria-label="Next photo"><span aria-hidden="true">&#8594;</span></button>
+    <button type="button" class="car-btn car-next" aria-label="Next photo"><Arrow /></button>
     <span class="car-count">1 of 9</span>
   </div>
   <p class="sr-only car-live" aria-live="off"></p>

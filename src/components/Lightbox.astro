@@ -4,6 +4,7 @@
  * Photos are grouped by their nearest .food-snaps, .life, .gallery, .hall-photos or section, so Previous/Next
  * walk only through related photos. No JS: the hall gallery still links to the full image; other photos stay plain pictures.
  */
+import Arrow from './Arrow.astro';
 ---
 <dialog id="lightbox" class="lightbox" aria-label="Photo viewer">
   <div class="lb-top">
@@ -15,8 +16,8 @@
     <figcaption class="lb-cap"></figcaption>
   </figure>
   <div class="lb-nav">
-    <button type="button" class="lb-btn lb-prev"><span aria-hidden="true">&#8592;</span> Previous</button>
-    <button type="button" class="lb-btn lb-next">Next <span aria-hidden="true">&#8594;</span></button>
+    <button type="button" class="lb-btn lb-prev"><Arrow dir="left" size={20} /> Previous</button>
+    <button type="button" class="lb-btn lb-next">Next <Arrow size={20} /></button>
   </div>
 </dialog>
 

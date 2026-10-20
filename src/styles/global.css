@@ -642,3 +642,9 @@ a.card:hover h3 { text-decoration: underline 2px var(--gold); text-underline-off
 .vfw-chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
 .vfw-chip:has(input:checked) { background: var(--night); color: var(--on-dark); border-color: var(--night); }
 @media (max-width: 479px) { .vfw-chip { flex: 1 1 calc(50% - 0.6rem); } }
+
+/* Drawn Previous/Next arrows (Arrow.astro): nudge toward where they go on hover. */
+.arrow { flex: none; transition: transform 0.15s ease; }
+.car-prev:hover .arrow, .lb-prev:hover .arrow { transform: translateX(-3px); }
+.car-next:hover .arrow, .lb-next:hover .arrow { transform: translateX(3px); }
+@media (prefers-reduced-motion: reduce) { .arrow { transition: none; } }
