@@ -17,12 +17,10 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Shared files** (`src/styles/global.css`, `src/lib/state.js`, `server.js`, `src/pages/admin.astro`, `HANDOFF.md`): append rather than reorder, keep edits local to your feature, and pull right before editing them.
 - **When done:** remove your "Now working on" line, update the relevant HANDOFF.md section, and make sure `npm test` passes before pushing.
 - **Commits** are authored as Mish (see the top of this file).
+- **Usage limits: hand off before you run out.** When a machine is near its usage limit, it stops its helpers, commits finished work, and stashes half-done work (never pushing broken code). It files what's left as task issues labeled for the other machine, with full briefs. Then it posts a "Handoff" comment on the coordination board (what's done, what's open and which issues), removes its claims below, and stops. The other machine takes those issues next. When the first machine is back, it reads the board and picks up whatever is labeled for it.
 - **Task issues:** work is handed out as GitHub issues labeled `laptop` or `desktop`, each a full brief with a "Done when" checklist. Check `gh issue list -l <your machine> --state open` at the start of a session and about every 15 minutes while idle. Take the lowest number, comment "Started", claim it below, and close it with the commit hash when done.
 
 ### Now working on
-- **Desktop:** real brand logos on the tap handles (public/brand/taps/, BeerTaps.astro, taps.json, the .taps block in global.css, and the taps parts of state.js and admin.astro).
-- **Desktop:** home speed: a lighter phone hero video and the photo bank moved to a fetched JSON file (Hero.astro, HeroCarousel.astro, hero-photos.ts, public/media/hero*, a new hero-bank.json endpoint).
-- **Desktop, once Laptop agrees on #5:** What's going on photos: bigger card photos, a smaller featured one, better event matches and cycling bundles (event-photos.js, the photo parts of featuredHtml, the whats-on styles in index.astro).
 - **Laptop:** beer pour flow (src/scripts/pour.ts only).
 
 ## Status (handoff, 2026-10-20)
