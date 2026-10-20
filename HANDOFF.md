@@ -10,55 +10,72 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
   - `source/hall/` holds the hall-rental listing photos.
   - `source/fb/` holds the Facebook group photos, videos and flyers.
 
-## Status
-**2026-10-20 (afternoon):** the site is feature-complete on the preview (7406b7b). It is waiting on the owner for hosting, the domain and SMTP.
-- **Live on the preview:**
-  - **Pages:** 11 pages in the cozy "Canteen" look. Each has a dark/light theme toggle in the header (an icon in the phone header). The theme follows the system setting and is remembered per visitor.
-  - **Home:** a background-video hero, real food snapshots beside a printed menu card of specials, a large hall-rental band, What's on with event photos, the namesakes plaque (six branches and POW/MIA), and post news.
-  - **Hero video:** cut from the post's own Facebook clips (the Memorial Day parade and line dancing in the hall) and upscaled with Real-ESRGAN.
-    - Encoded with 2-pass bitrate targets: `hero.av1.mp4` (1440p AV1, about 4 Mbps, served first to large screens that support it), `hero.mp4` (1080p, 4.5 Mbps), `hero-720.mp4` and `hero-portrait.mp4` (1080x1920).
-    - The video loads only after the page does, and is skipped under Data Saver or reduced motion. The re-cut scripts are local only.
-  - **Photo viewer:** tap any photo to see it large, then use Previous/Next, the arrow keys or a swipe to go through that group, with a "3 of 7" count and the caption. Close with the Close button, Esc or the backdrop.
-    - It is built on the native `<dialog>` element (`src/components/Lightbox.astro`).
-    - Facebook photos have an uncropped 1600px `-full.webp` copy for the viewer.
-  - **Content:** real content from the Facebook group, the official VFW Post 6493 logo, and veteran news led by VA News.
-- **Added 2026-10-20 (later):**
-  - **Home hero:**
-    - a polaroid stack cycling through 9 photos from different post events (`src/components/HeroCarousel.astro`, `src/lib/hero-photos.ts`); tapping a photo opens all of them
-    - a 14-photo hall gallery behind two pictures (`src/lib/hall-photos.ts`)
-  - **Theme switch:** a small moon/sun button at the bottom right (`ThemeFab.astro`). The header toggle was removed.
-  - **Info pages:** one layout across all of them (`src/components/info/`: InfoSection, OnThisPage, KeyFacts), with an "On this page" jump list. Resources is grouped by need.
-  - **New content:** Join the post (VFW, Auxiliary and Home Association membership types from vfw.org and vfwauxiliary.org), the Auxiliary, a renter FAQ, a "New here?" block, a post timeline and observances.
-  - **Calendar:** an "Add to my calendar" .ics feed, and month lists that show dated events only.
-  - **Hero video:** deblocked and denoised before the Real-ESRGAN upscale (scripts are local only).
-  - **Security:**
-    - Fixes taken from a community security thread the owner shared: a security log on the dashboard, session nonces, a web-root guard, and 12-month inquiry retention.
-    - The red-team test (by a different model) failed to get into /admin.
-    - Crash-proofing: clientError handling, logged fatal errors and a graceful shutdown.
-    - CI on every push: tests, npm audit and CodeQL. GitHub secret scanning, push protection and Dependabot are on.
-    - `npm test` passes 52/52.
-- **Security:** hardened 2026-10-20.
-  - **Logins:** per-address login backoff, and the server refuses to start in production with the default or a weak admin password.
-  - **Headers:** a strict CSP with per-page script hashes, plus security headers on every response.
-  - **Requests:** same-site form redirects; set `TRUST_PROXY=1` only behind a real proxy.
-  - **Deploy:** a least-privilege deploy workflow pinned to commit SHAs.
-  - **Checks:** `npm audit` is clean and there are no secrets in history.
-  - **Verified:** `npm test` passes 41/41. The admin has been checked in a browser under the CSP.
-- **Final QA (2026-10-20):**
-  - **Lighthouse mobile:** accessibility 100 on every page tested. Performance is 91 on / and 90 on /hall under simulated throttling, with about 0.1 s observed.
-  - AA contrast in both themes, no horizontal scroll at 360px, and no CSP refusals.
-  - The admin flows and hall inquiries work end to end.
-- **Rules for editing code:**
-  - Keep every asset self-hosted (the CSP blocks other origins).
-  - Use no inline `on*=` handlers; use `addEventListener`.
-  - After editing regex-heavy code, grep for raw control bytes, because an editor slip once turned a regex escape into a backspace byte.
-- **Media:** 45 photos and 23 videos from the Facebook group are in `source/fb/` (local only).
-  - Food photos exist; drink photos don't, because the post posts drink specials as text, so drinks are shown typographically.
-  - Facebook only serves SD video (640x360).
-- **Waiting on the owner:**
-  - Hosting and domain.
-  - SMTP for real inquiry email.
-- **Later:** a merch store using the logo (keep a Store tab in mind).
+## Status (handoff, 2026-10-20)
+**The site is feature-complete on the preview. The next steps are the owner's choices, plus finishing the hero video.**
+
+### What's live
+- **Pages:** 11 pages in the cozy "Canteen" look, plus a light/dark theme.
+  - The theme switch is a small moon/sun button at the bottom right (`ThemeFab.astro`). It follows the system setting and is remembered per visitor.
+- **Home:**
+  - The hero has a background video and a polaroid stack showing a random 9 from a 22-photo bank (`HeroCarousel.astro`, `src/lib/hero-photos.ts`). On phones the stack is a strip below the hero.
+  - Then the featured What's on: the next special event within 30 days, else the next event, plus 4 compact cards (`featuredHtml` in `state.js`, marker `events-featured`).
+  - Then New here?, food snapshots with the specials menu card, the hall band (2 photos that open a 14-photo gallery, `src/lib/hall-photos.ts`), the namesakes plaque and post news.
+- **Info pages:**
+  - All of them use one layout (`src/components/info/`: InfoSection, OnThisPage, KeyFacts), with multi-column layouts on desktop.
+  - Resources are grouped by need, with the crisis line first.
+  - Programs shows the 3 pillars side by side.
+  - Events: the weekly nights appear as a row of cards, the year calendar lists dated events per month, and there is an `.ics` "Add to my calendar" feed.
+  - News: post news has photos (an optional `photo` field, chosen in the admin), and VA/DVIDS stories have self-hosted thumbnails.
+- **Photo viewer:** a native `<dialog>` (`Lightbox.astro`) on every photo group, with Previous/Next, swipe, a count and Close/Esc. `-full.webp` copies are used for the large view.
+- **Admin (`server.js`):**
+  - stats
+  - events (add, edit, disable)
+  - drink specials and the food menu
+  - news with photos
+  - the hall inquiries inbox (deleted after 12 months)
+  - the security log
+- **Security:**
+  - server-side scrypt login with backoff
+  - signed HttpOnly SameSite=Strict sessions
+  - a strict CSP with per-page script hashes
+  - CSRF origin checks
+  - crash-proofing
+  - Hardened from an audit, a community checklist and a red-team test, which failed to get into /admin.
+  - CI runs tests, npm audit and CodeQL. Secret scanning, push protection and Dependabot are on.
+- **Tests:** `npm test` passes 55/55. Home mobile Lighthouse performance is about 92; accessibility is 100.
+
+### In progress
+- **Hero video quality:** see "Hero video" below.
+
+### Waiting on the owner
+- Hosting and domain (see the launch security checklist below).
+- SMTP for inquiry email.
+- A short HD video of the post if possible: the best fix for the hero.
+
+### Ideas offered to the owner (not started; the owner decides)
+1. **Online hall booking calendar:** the owner marks booked dates in the admin, and renters see open dates before they inquire.
+2. **Event sign-ups / RSVPs** (bingo nights, the Cash Bash), with counts in the admin.
+3. **A merch store** with the official logo (the vector files are ready). Check VFW National licensing first.
+4. **An email or text list** for event reminders and closures, managed from the admin.
+5. **Photo uploads in the admin,** so staff can add event photos and news pictures without a developer.
+6. **A "Wall of Honor"** of member veterans (branch, era, photo), added with family consent.
+7. **Online membership renewal / dues** (link to the VFW national portal, plus post-side Home Association info).
+8. **A live "Bar open now" / "Kitchen open now" badge** driven by the hours.
+9. **A printable monthly flyer** generated from the events, for the bar's bulletin board.
+10. **A Spanish or large-print toggle,** plus a read-aloud option for accessibility.
+
+### Rules for editing code
+- Keep every asset self-hosted (the CSP blocks other origins).
+- Use no inline `on*=` handlers.
+- Styles for elements created by script must be global (`is:global`), because scoped styles don't reach them.
+- After editing regex code, grep for raw control bytes: an editor slip once turned a backslash escape into a raw control byte.
+- Never mention AI tools or internal notes in repo files.
+
+### Media
+- `source/` is local only.
+  - 45+ photos and 23+ videos from the Facebook group.
+  - The 13 hall-rental listing photos.
+- There are no drink photos (the post posts drink specials as text).
 
 ## Launch security checklist (do these when hosting is chosen)
 - **Put proven login in front of `/admin` and `/api/admin/*`.** Use Cloudflare Access (Zero Trust, free for small teams) or Azure App Service Authentication, in addition to the site's own sign-in. The app's login then becomes a second layer, not the only one.
