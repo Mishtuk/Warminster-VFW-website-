@@ -11,7 +11,7 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
   - `source/fb/` holds the Facebook group photos, videos and flyers.
 
 ## Status
-**2026-10-20:** the Canteen redesign is live and has passed final QA (2147127).
+**2026-10-20 (afternoon):** the site is feature-complete on the preview (7406b7b). It is waiting on the owner for hosting, the domain and SMTP.
 - **Live on the preview:**
   - **Pages:** 11 pages in the cozy "Canteen" look. Each has a dark/light theme toggle in the header (an icon in the phone header). The theme follows the system setting and is remembered per visitor.
   - **Home:** a background-video hero, real food snapshots beside a printed menu card of specials, a large hall-rental band, What's on with event photos, the namesakes plaque (six branches and POW/MIA), and post news.
@@ -22,6 +22,21 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
     - It is built on the native `<dialog>` element (`src/components/Lightbox.astro`).
     - Facebook photos have an uncropped 1600px `-full.webp` copy for the viewer.
   - **Content:** real content from the Facebook group, the official VFW Post 6493 logo, and veteran news led by VA News.
+- **Added 2026-10-20 (later):**
+  - **Home hero:**
+    - a polaroid stack cycling through 9 photos from different post events (`src/components/HeroCarousel.astro`, `src/lib/hero-photos.ts`); tapping a photo opens all of them
+    - a 14-photo hall gallery behind two pictures (`src/lib/hall-photos.ts`)
+  - **Theme switch:** a small moon/sun button at the bottom right (`ThemeFab.astro`). The header toggle was removed.
+  - **Info pages:** one layout across all of them (`src/components/info/`: InfoSection, OnThisPage, KeyFacts), with an "On this page" jump list. Resources is grouped by need.
+  - **New content:** Join the post (VFW, Auxiliary and Home Association membership types from vfw.org and vfwauxiliary.org), the Auxiliary, a renter FAQ, a "New here?" block, a post timeline and observances.
+  - **Calendar:** an "Add to my calendar" .ics feed, and month lists that show dated events only.
+  - **Hero video:** deblocked and denoised before the Real-ESRGAN upscale (scripts are local only).
+  - **Security:**
+    - Fixes taken from a community security thread the owner shared: a security log on the dashboard, session nonces, a web-root guard, and 12-month inquiry retention.
+    - The red-team test (by a different model) failed to get into /admin.
+    - Crash-proofing: clientError handling, logged fatal errors and a graceful shutdown.
+    - CI on every push: tests, npm audit and CodeQL. GitHub secret scanning, push protection and Dependabot are on.
+    - `npm test` passes 52/52.
 - **Security:** hardened 2026-10-20.
   - **Logins:** per-address login backoff, and the server refuses to start in production with the default or a weak admin password.
   - **Headers:** a strict CSP with per-page script hashes, plus security headers on every response.
@@ -41,7 +56,6 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
   - Food photos exist; drink photos don't, because the post posts drink specials as text, so drinks are shown typographically.
   - Facebook only serves SD video (640x360).
 - **Waiting on the owner:**
-  - The Reddit security thread the owner linked can't be fetched automatically. Paste its text to cross-check it against the audit.
   - Hosting and domain.
   - SMTP for real inquiry email.
 - **Later:** a merch store using the logo (keep a Store tab in mind).
