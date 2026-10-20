@@ -63,9 +63,11 @@ export function createStats({ db, log = () => {}, now: clock = () => new Date() 
     const by = Object.fromEntries(q("SELECT day, SUM(n) n FROM stats_daily WHERE metric = 'visitors' AND day BETWEEN ? AND ? GROUP BY day").all(start, end).map((r) => [r.day, r.n]));
     const series = [];
     for (let d = start; d <= end; d = addDays(d, 1)) series.push({ day: d, n: by[d] ?? 0 });
+    const pEnd = addDays(start, -1), pStart = addDays(pEnd, -(RANGES[range] ?? RANGES['30d'])); // the equal-length window just before
     const inq = q('SELECT COUNT(*) n FROM inquiries WHERE day BETWEEN ? AND ?').get(start, end);
     return {
       range: RANGES[range] === undefined ? '30d' : range, start, end, views: sum('views', start, end), visitors: sum('visitors', start, end), series,
+      prev: { visitors: sum('visitors', pStart, pEnd), views: sum('views', pStart, pEnd), inquiries: q('SELECT COUNT(*) n FROM inquiries WHERE day BETWEEN ? AND ?').get(pStart, pEnd).n },
       pages: top('page', start, end).map((p) => ({ path: p.item, n: p.n })), referrers: top('ref', start, end).map((p) => ({ host: p.item, n: p.n })),
       inquiries: { inRange: inq.n, new: q('SELECT COUNT(*) n FROM inquiries WHERE handled = 0').get().n, total: q('SELECT COUNT(*) n FROM inquiries').get().n },
     };

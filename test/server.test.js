@@ -2,7 +2,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { mkdtempSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -123,6 +123,7 @@ test('stats counts a visit (not the signed-in admin) and the dashboard reports i
   assert.deepEqual(s.referrers, [{ host: 'facebook.com', n: 1 }]);
   assert.equal(s.inquiries.total, 2);
   assert.equal(s.series.length, 7);
+  assert.deepEqual(s.prev, { visitors: 0, views: 0, inquiries: 0 }); // the 7 days before
 });
 
 test('change password: needs the current one, then the old password stops working', async () => {
@@ -218,9 +219,65 @@ test('security log: sign-in failure, edits and deletes are recorded; passwords n
   const fail = events.find((e) => e.type === 'login_fail');
   assert.equal(fail.who, 'ad min'); // CR/LF flattened
   assert.ok(!JSON.stringify(events).includes('secret-wrong-pass') && !JSON.stringify(events).includes('a-better-password'));
-  assert.ok(events.find((e) => e.type === 'news_create').detail.startsWith('id '));
+  assert.equal(events.find((e) => e.type === 'news_create').detail, 'Log me'); // the item's name, not an id
+  assert.equal(events.find((e) => e.type === 'news_delete').detail, 'Log me');
   assert.notEqual(fail.ip, '9.9.9.9'); // X-Forwarded-For is ignored without TRUST_PROXY
   await call('POST', '/api/logout', null, { Origin: origin, Cookie: c });
+});
+
+test('picture upload: bad files, oversize bodies and strangers are refused and nothing is stored', async () => {
+  const sharp = (await import('sharp')).default;
+  const c = (await call('POST', '/api/login', { username: 'admin', password: 'a-better-password' }, { Origin: origin })).headers.get('set-cookie').split(';')[0];
+  const post = (b, h = {}) => call('POST', '/api/admin/photos', b, { Origin: origin, Cookie: c, ...h });
+  const url = (buf) => 'data:image/webp;base64,' + buf.toString('base64');
+  const img = (w, h) => sharp({ create: { width: w, height: h, channels: 3, background: '#887766' } }).webp().toBuffer();
+  const [big, small] = [await img(1024, 768), await img(800, 600)];
+  const png = await sharp({ create: { width: 1024, height: 768, channels: 3, background: '#fff' } }).png().toBuffer();
+  const skewed = Buffer.from(big); skewed.writeUInt32LE(skewed.length, 4); // RIFF size field is wrong
+  const dir = join(tmp, 'data', 'photos');
+  const empty = () => assert.deepEqual(existsSync(dir) ? readdirSync(dir) : [], []);
+  for (const [what, b, code] of [['png as webp', { big: url(png), small: url(small) }, 400], ['bad size field', { big: url(skewed), small: url(small) }, 400], ['wrong dimensions', { big: url(small), small: url(small) }, 400],
+    ['500 KB', { big: url(Buffer.alloc(500 * 1024)), small: url(small) }, 400], ['not a data url', { big: 'x', small: 'y' }, 400]]) {
+    const r = await post(b);
+    assert.equal(r.status, code, what);
+    assert.ok(['file_type', 'file_size'].includes((await r.json()).error), what);
+  }
+  const huge = await post({ big: 'A'.repeat(2.5 * 1024 * 1024), small: '' }).then((r) => r.status, () => 413); // the server may also just drop the connection
+  assert.equal(huge, 413);
+  empty();
+  assert.equal((await call('POST', '/api/admin/photos', { big: url(big), small: url(small) }, { Origin: origin })).status, 401); // no session
+  assert.equal((await call('POST', '/api/admin/photos', { big: url(big), small: url(small) }, { Origin: 'http://evil.example', Cookie: c })).status, 403);
+  assert.equal(await call('POST', '/api/admin/photos', { big: 'A'.repeat(300 * 1024) }, { Origin: origin }).then((r) => r.status, () => 413), 413); // 256 KB cap without a session
+  empty();
+});
+
+test('picture upload: round trip, served from DATA with nosniff, usable on news, traversal 404, delete refused while in use', async () => {
+  const sharp = (await import('sharp')).default;
+  const c = (await call('POST', '/api/login', { username: 'admin', password: 'a-better-password' }, { Origin: origin })).headers.get('set-cookie').split(';')[0];
+  const as = (m, p, b) => call(m, p, b, { Origin: origin, Cookie: c });
+  const img = (w, h) => sharp({ create: { width: w, height: h, channels: 3, background: '#887766' } }).webp().toBuffer().then((b) => 'data:image/webp;base64,' + b.toString('base64'));
+  const r = await as('POST', '/api/admin/photos', { big: await img(1024, 768), small: await img(800, 600) });
+  assert.equal(r.status, 200);
+  const { name, photos } = await r.json();
+  assert.match(name, /^news-\d{8}-[0-9a-f]{6}\.webp$/);
+  assert.ok(photos.some((p) => p.name === name && p.thumb === name.replace('.', '-800.')));
+  assert.equal(readdirSync(join(tmp, 'data', 'photos')).length, 2);
+  for (const f of [name, name.replace('.', '-800.')]) {
+    const g = await call('GET', `/media/photos/${f}`);
+    assert.equal(g.status, 200);
+    assert.equal(g.headers.get('content-type'), 'image/webp');
+    assert.equal(g.headers.get('x-content-type-options'), 'nosniff');
+    assert.match(g.headers.get('cache-control'), /immutable/);
+  }
+  const news = await as('PUT', '/api/admin/news/new', { title: 'With picture', date: '2026-10-02', body: 'x', photo: name });
+  assert.equal(news.status, 200);
+  const id = (await news.json()).item.id;
+  assert.equal((await as('DELETE', `/api/admin/photos/${name}`)).status, 409); // still used
+  await as('DELETE', `/api/admin/news/${id}`);
+  assert.equal((await as('DELETE', '/api/admin/photos/pic.webp')).status, 404); // built photos are not deletable
+  assert.equal((await as('DELETE', `/api/admin/photos/${name}`)).status, 200);
+  assert.equal(readdirSync(join(tmp, 'data', 'photos')).length, 0);
+  for (const bad of ['/media/photos/..%2f..%2fapp.db', '/media/photos/.x.webp', '/media/photos/news-20260101-zzzzzz.webp', '/media/photos/news-20260101-abcdef.webp']) assert.equal((await call('GET', bad)).status, 404, bad);
 });
 
 test('malformed and aborted requests do not take the server down', async () => {

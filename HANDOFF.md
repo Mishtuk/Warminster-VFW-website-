@@ -18,7 +18,7 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
   - The theme switch is a small moon/sun button at the bottom right (`ThemeFab.astro`). It follows the system setting and is remembered per visitor.
 - **Home:**
   - The hero has a background video and a polaroid stack showing a random 9 from a 22-photo bank (`HeroCarousel.astro`, `src/lib/hero-photos.ts`). On phones the stack is a strip below the hero.
-  - Then the featured What's on: the next special event within 30 days, else the next event, plus 4 compact cards (`featuredHtml` in `state.js`, marker `events-featured`).
+  - Then "What's going on at the post": the next special event within 30 days, else the next event, plus 4 compact cards (`featuredHtml` in `state.js`, marker `events-featured`).
   - Then New here?, food snapshots with the specials menu card, the hall band (2 photos that open a 14-photo gallery, `src/lib/hall-photos.ts`), the namesakes plaque and post news.
 - **Info pages:**
   - All of them use one layout (`src/components/info/`: InfoSection, OnThisPage, KeyFacts), with multi-column layouts on desktop.
@@ -27,13 +27,13 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
   - Events: the weekly nights appear as a row of cards, the year calendar lists dated events per month, and there is an `.ics` "Add to my calendar" feed.
   - News: post news has photos (an optional `photo` field, chosen in the admin), and VA/DVIDS stories have self-hosted thumbnails.
 - **Photo viewer:** a native `<dialog>` (`Lightbox.astro`) on every photo group, with Previous/Next, swipe, a count and Close/Esc. `-full.webp` copies are used for the large view.
-- **Admin (`server.js`):**
-  - stats
-  - events (add, edit, disable)
-  - drink specials and the food menu
-  - news with photos
-  - the hall inquiries inbox (deleted after 12 months)
-  - the security log
+- **Admin (`/admin`, UI in `src/pages/admin.astro`, API in `server.js`):** written for volunteers. It has the site's look with the logo top-left, plain wording (no brackets, codes or file names), and a phone menu.
+  - Dashboard: visitors, page views and inquiries with the change against the previous period, a bar chart, friendly page and referrer names, and a security summary.
+  - Events, drink specials and news: Coming up / Already happened lists, repeating events shown as "Every Thursday", and errors shown under the field.
+  - Food menu: sections and items with Move up/down, Remove with Undo, an unsaved-changes bar, and a leave warning.
+  - News pictures: pick an existing photo or upload one. The browser crops it to 4:3 WebP (1024 and 800 wide). The server checks the file bytes, re-encodes it with sharp when sharp is present, names it itself, and stores it in `DATA_DIR/photos` (served at `/media/photos/`). Uploads are capped and rate-limited, and a photo in use can't be deleted.
+  - Hall inquiries inbox (deleted after 12 months), and a Security log view grouped by day with a filter and "Show older entries".
+  - Local testing: `ALLOW_DEFAULT_ADMIN=1` gives admin / admin on a fresh data folder. Change it before launch.
 - **Security:**
   - server-side scrypt login with backoff
   - signed HttpOnly SameSite=Strict sessions

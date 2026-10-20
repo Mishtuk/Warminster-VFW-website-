@@ -1,6 +1,6 @@
 [
  {
-  "label": "Happy Hour (Friday)",
+  "label": "Friday Happy Hour",
   "price": "Drafts from $2.50",
   "description": "Fridays 4 PM to 6 PM.",
   "period": "weekly",
@@ -10,7 +10,7 @@
   "enabled": true
  },
  {
-  "label": "Happy Hour (Monday)",
+  "label": "Monday Happy Hour",
   "price": "Drafts from $2.50",
   "description": "Mondays 5 PM to 7 PM.",
   "period": "weekly",
@@ -20,7 +20,7 @@
   "enabled": true
  },
  {
-  "label": "Happy Hour (Wednesday)",
+  "label": "Wednesday Happy Hour",
   "price": "Drafts from $2.50",
   "description": "Wednesdays 5 PM to 7 PM.",
   "period": "weekly",
@@ -30,7 +30,7 @@
   "enabled": true
  },
  {
-  "label": "Happy Hour (Thursday)",
+  "label": "Thursday Happy Hour",
   "price": "Drafts from $2.50",
   "description": "Thursdays 5 PM to 7 PM.",
   "period": "weekly",

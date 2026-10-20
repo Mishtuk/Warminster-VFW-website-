@@ -1,7 +1,7 @@
 // The whole website server (`node server.js`): serves the static Astro build in dist/, fills admin-edited content into the HTML at
 // <!--vfw:*--> markers, answers /api/*, and runs the single admin sign-in. No framework; Node 22+ built-ins and nodemailer only.
 import { createServer } from 'node:http';
-import { createReadStream, existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, mkdirSync, readFileSync, readdirSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { extname, join, normalize, sep } from 'node:path';
 import { createHash, randomBytes } from 'node:crypto';
 import { brotliCompressSync, constants as zc, gzipSync } from 'node:zlib';
@@ -29,9 +29,15 @@ const DIST = env.DIST_DIR || join(ROOT, 'dist');
 const DATA = env.DATA_DIR || (PROD ? '/home/data' : join(ROOT, '.data'));
 const log = (...a) => console.log(new Date().toISOString(), ...a);
 
-// News photos live in dist/media/photos. The folder is read when needed, so new files are picked up without a restart.
-// ponytail: one readdir per page view (about 100 names); cache by folder mtime if the folder ever gets large.
-const photoFiles = () => { try { return new Set(readdirSync(join(DIST, 'media', 'photos'))); } catch { return new Set(); } };
+// News photos: the built ones in dist/media/photos plus admin uploads in DATA/photos (dist is wiped on every build). Folders are read when
+// needed, so new files are picked up without a restart.
+// ponytail: one readdir per folder per page view (about 100 names); cache by folder mtime if the folders ever get large.
+const PHOTOS = join(DATA, 'photos');
+const ls = (d) => { try { return readdirSync(d); } catch { return []; } };
+const photoFiles = () => new Set([...ls(join(DIST, 'media', 'photos')), ...ls(PHOTOS)]);
+// Uploads are re-encoded with sharp when it loads (it ships with astro, but is not our dependency), otherwise only validated.
+const sharp = (await import('sharp').catch(() => null))?.default ?? null;
+log(sharp ? 'upload: sharp found, re-encoding pictures to WebP' : 'upload: sharp missing, validate-only');
 const pickablePhotos = (set) => [...set].filter((f) => !f.includes('-800.') && !f.includes('-full.')).sort();
 
 const dirProblem = dataDirProblem(DATA, DIST, join(ROOT, '.env'));
@@ -141,6 +147,8 @@ async function serveStatic(nreq, nres, url) {
     file = join(file, 'index.html');
     st = statSafe(file);
   }
+  const up = !st?.isFile() && /^\/media\/photos\/(news-\d{8}-[0-9a-f]{6}(-800)?\.webp)$/.exec(decoded); // uploaded pictures live in DATA/photos
+  if (up) { const f = join(PHOTOS, up[1]); if (f.startsWith(PHOTOS + sep) && statSafe(f)?.isFile()) { file = f; st = statSafe(f); } }
   if (!st?.isFile()) return notFound(nreq, nres, url);
   const type = TYPES[extname(file)] ?? 'application/octet-stream';
   const headers = { ...baseHeaders(url), 'Content-Type': type };
@@ -157,7 +165,7 @@ async function serveStatic(nreq, nres, url) {
     if (!isAdmin) stats.record(nreq, nres);
     return nres.end(nreq.method === 'HEAD' ? undefined : body);
   }
-  headers['Cache-Control'] = p.startsWith('/_astro/') ? 'public, max-age=31536000, immutable' : 'public, max-age=86400';
+  headers['Cache-Control'] = p.startsWith('/_astro/') || file.startsWith(PHOTOS + sep) ? 'public, max-age=31536000, immutable' : 'public, max-age=86400';
   headers['Last-Modified'] = st.mtime.toUTCString();
   if (nreq.headers['if-modified-since'] && new Date(nreq.headers['if-modified-since']) >= new Date(st.mtime.toUTCString())) { nres.writeHead(304, headers); return nres.end(); }
   if (TEXT.test(type)) {
@@ -248,6 +256,45 @@ async function route(req, url) {
   return bad('not_found', 404);
 }
 
+/** Width and height of a plain WebP, or null when it is not one: bad RIFF size, no VP8 chunk first, or an animation, EXIF or XMP chunk. */
+function webpInfo(b) {
+  if (b.length < 30 || b.toString('latin1', 0, 4) !== 'RIFF' || b.toString('latin1', 8, 12) !== 'WEBP' || b.readUInt32LE(4) !== b.length - 8) return null;
+  for (let o = 12, n; o + 8 <= b.length; o += 8 + n + (n & 1)) { n = b.readUInt32LE(o + 4); if (/^(ANIM|ANMF|EXIF|XMP )$/.test(b.toString('latin1', o, o + 4))) return null; }
+  const t = b.toString('latin1', 12, 16);
+  if (t === 'VP8 ') return b[23] === 0x9d && b[24] === 1 && b[25] === 0x2a ? { w: b.readUInt16LE(26) & 0x3fff, h: b.readUInt16LE(28) & 0x3fff } : null;
+  if (t === 'VP8L') { const v = b.readUInt32LE(21); return b[20] === 0x2f ? { w: (v & 0x3fff) + 1, h: ((v >>> 14) & 0x3fff) + 1 } : null; }
+  return t === 'VP8X' ? { w: b.readUIntLE(24, 3) + 1, h: b.readUIntLE(27, 3) + 1 } : null;
+}
+const DATA_WEBP = /^data:image\/webp;base64,[A-Za-z0-9+/]+=*$/;
+/** A base64 WebP data URL of exactly w x h, as bytes; otherwise the error key. The client's claimed type is ignored. */
+async function takeWebp(v, w, h) {
+  if (typeof v !== 'string' || !DATA_WEBP.test(v)) return 'file_type';
+  let buf = Buffer.from(v.slice(23), 'base64');
+  if (buf.length > 400 * 1024) return 'file_size';
+  const i = webpInfo(buf);
+  if (!i || i.w !== w || i.h !== h) return 'file_type';
+  if (sharp) { try { buf = await sharp(buf).webp({ quality: 82 }).toBuffer(); } catch { return 'file_type'; } } // drops metadata and anything hidden in the file
+  return buf;
+}
+async function uploadPhoto(body, ip, note, photoList) {
+  const stop = (error, why, status = 400) => { note('photo_upload_blocked', why); return bad(error, status); };
+  if (!allow(`up:${ip}`, 20)) return stop('rate', 'rate', 429);
+  const big = await takeWebp(body?.big, 1024, 768), small = await takeWebp(body?.small, 800, 600);
+  for (const x of [big, small]) if (typeof x === 'string') return stop(x, x === 'file_size' ? 'size' : 'type');
+  const have = ls(PHOTOS).map((f) => statSafe(join(PHOTOS, f))?.size ?? 0);
+  if (have.length >= 600 || have.reduce((a, b) => a + b, 0) + big.length + small.length > 100 * 1024 * 1024) { log('upload: quota reached'); return stop('upload', 'quota'); }
+  mkdirSync(PHOTOS, { recursive: true, mode: 0o755 });
+  let name;
+  for (let i = 0; i < 3 && !name; i++) {
+    const n = `news-${etDay().replaceAll('-', '')}-${randomBytes(3).toString('hex')}.webp`, wrote = [];
+    try { for (const [f, b] of [[n.replace('.', '-800.'), small], [n, big]]) { writeFileSync(join(PHOTOS, f), b, { flag: 'wx', mode: 0o644 }); wrote.push(f); } name = n; } // small first, big last
+    catch (e) { for (const f of wrote) try { unlinkSync(join(PHOTOS, f)); } catch {} if (e.code !== 'EEXIST') { log('upload: write failed', e.message); break; } }
+  }
+  if (!name) return bad('upload', 500);
+  note('photo_upload', `${name} ${big.length} bytes`);
+  return json({ name, photos: photoList() });
+}
+
 async function adminApi(req, url, user) {
   const [section, a1] = url.pathname.slice('/api/admin/'.length).split('/');
   const key = `${req.method} ${section}`;
@@ -260,18 +307,27 @@ async function adminApi(req, url, user) {
 
   if (key === 'GET state') return json({ user, defaultPassword: defaultInUse(db), events: list('events'), specials: list('specials'), news: list('news'), menu: state.menu ?? emptyMenu, today: etDay(new Date()) });
   if (key === 'GET stats') return json(stats.summary(url.searchParams.get('range') ?? '30d'));
-  if (key === 'GET photos') { const all = photoFiles(); return json({ photos: pickablePhotos(all).map((name) => ({ name, thumb: all.has(name.replace('.', '-800.')) ? name.replace('.', '-800.') : name })) }); }
-  if (key === 'GET security') return json({ events: audit.recent(50) });
+  const photoList = () => { const all = photoFiles(); return pickablePhotos(all).map((name) => ({ name, thumb: all.has(name.replace('.', '-800.')) ? name.replace('.', '-800.') : name })); };
+  if (key === 'GET photos') return json({ photos: photoList() });
+  if (key === 'POST photos') return uploadPhoto(body, ip, note, photoList);
+  if (key === 'DELETE photos' && /^news-\d{8}-[0-9a-f]{6}\.webp$/.test(a1 ?? '')) { // only uploads; built photos are never touched
+    if (list('news').some((n) => n.photo === a1)) return bad('in_use', 409);
+    if (!existsSync(join(PHOTOS, a1))) return bad('not_found', 404);
+    for (const f of [a1, a1.replace('.', '-800.')]) try { unlinkSync(join(PHOTOS, f)); } catch {}
+    note('photo_delete', a1);
+    return json({ ok: true, photos: photoList() });
+  }
+  if (key === 'GET security') return json({ events: audit.recent(500) });
 
   if (Object.hasOwn(FIELDS, section) && ['PUT', 'DELETE'].includes(req.method)) { // /api/admin/<events|specials|news>/<id or "new">
     const items = list(section);
     if (a1 !== 'new' && !items.some((x) => x.id === a1)) return bad('not_found', 404);
-    if (req.method === 'DELETE') { state[section] = items.filter((x) => x.id !== a1); setState(db, state); note(`${section}_delete`, `id ${a1}`); return json({ ok: true, items: state[section] }); }
+    if (req.method === 'DELETE') { const gone = items.find((x) => x.id === a1); state[section] = items.filter((x) => x.id !== a1); setState(db, state); note(`${section}_delete`, gone.title ?? gone.label); return json({ ok: true, items: state[section] }); }
     const v = FIELDS[section]({ ...body, id: a1 === 'new' ? undefined : a1 }, { photos: photoFiles() });
     if (v.error) return bad(v.error);
     state[section] = [...items.filter((x) => x.id !== v.value.id), v.value].sort(SORT[section]);
     setState(db, state);
-    note(`${section}_${a1 === 'new' ? 'create' : 'update'}`, `id ${v.value.id}${v.value.enabled === false ? ' (hidden)' : ''}`);
+    note(`${section}_${a1 === 'new' ? 'create' : 'update'}`, (v.value.title ?? v.value.label) + (v.value.enabled === false ? ' · hidden' : ''));
     return json({ item: v.value, items: state[section] });
   }
   if (key === 'PUT menu') {
@@ -279,14 +335,15 @@ async function adminApi(req, url, user) {
     if (v.error) return bad(v.error);
     state.menu = v.value;
     setState(db, state);
-    note('menu_update', `${v.value.sections.length} sections`);
+    note('menu_update', `${v.value.sections.length} ${v.value.sections.length === 1 ? 'section' : 'sections'}`);
     return json({ menu: v.value });
   }
 
   if (key === 'GET inquiries') return json({ inquiries: db.prepare('SELECT * FROM inquiries ORDER BY id DESC LIMIT 500').all().map((r) => ({ ...r, handled: Boolean(r.handled), emailed: Boolean(r.emailed) })) });
   if ((key === 'PUT inquiries' || key === 'DELETE inquiries') && /^\d{1,12}$/.test(a1 ?? '')) {
+    const who = db.prepare('SELECT name FROM inquiries WHERE id = ?').get(+a1)?.name ?? '';
     const r = req.method === 'PUT' ? db.prepare('UPDATE inquiries SET handled = ? WHERE id = ?').run(body?.handled ? 1 : 0, +a1) : db.prepare('DELETE FROM inquiries WHERE id = ?').run(+a1);
-    if (r.changes) note(req.method === 'PUT' ? 'inquiry_update' : 'inquiry_delete', `id ${a1}${req.method === 'PUT' ? (body?.handled ? ' handled' : ' new') : ''}`);
+    if (r.changes) note(req.method === 'PUT' ? 'inquiry_update' : 'inquiry_delete', who + (req.method === 'PUT' ? (body?.handled ? ' · handled' : ' · new') : ''));
     return r.changes ? json({ ok: true }) : bad('not_found', 404);
   }
 
@@ -302,12 +359,12 @@ async function adminApi(req, url, user) {
 }
 
 // ---------- HTTP ----------
-const MAX_BODY = 256 * 1024;
-function readBody(nreq) {
+const MAX_BODY = 256 * 1024, MAX_PHOTO_BODY = 2 * 1024 * 1024;
+function readBody(nreq, max = MAX_BODY) {
   return new Promise((resolve, reject) => {
     const chunks = [];
     let size = 0;
-    nreq.on('data', (c) => { size += c.length; if (size > MAX_BODY) { reject(Object.assign(new Error('too large'), { status: 413 })); nreq.destroy(); } else chunks.push(c); });
+    nreq.on('data', (c) => { size += c.length; if (size > max) { reject(Object.assign(new Error('too large'), { status: 413 })); nreq.destroy(); } else chunks.push(c); });
     nreq.on('end', () => resolve(Buffer.concat(chunks)));
     nreq.on('error', reject);
   });
@@ -327,7 +384,10 @@ const server = createServer(async (nreq, nres) => {
     const headers = new Headers();
     for (const [k, v] of Object.entries(nreq.headers)) for (const x of [v].flat()) headers.append(k, x);
     headers.set('x-vfw-peer', nreq.socket.remoteAddress ?? ''); // overwrites any copy the client sent; see clientIp()
-    const body = ['GET', 'HEAD'].includes(nreq.method) ? undefined : await readBody(nreq);
+    // Only a signed-in admin posting a picture may send up to 2 MB; everyone else gets 256 KB, checked before anything is buffered.
+    const max = nreq.method === 'POST' && url.pathname === '/api/admin/photos' && signedIn({ headers: { get: (k) => nreq.headers[k] } }, url) ? MAX_PHOTO_BODY : MAX_BODY;
+    if (Number(nreq.headers['content-length']) > max) throw Object.assign(new Error('too large'), { status: 413 });
+    const body = ['GET', 'HEAD'].includes(nreq.method) ? undefined : await readBody(nreq, max);
     await send(nreq, nres, url, await route(new Request(url, { method: nreq.method, headers, body }), url));
   } catch (e) {
     if (e.status !== 413) log('error', clean(nreq.method, 10), clean(url.pathname, 200), clean(e.stack ?? e, 2000));

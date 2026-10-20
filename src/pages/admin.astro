@@ -1,7 +1,6 @@
 ---
 // Post admin. A static page with no secrets: signed-out visitors see the sign-in form, and every read or save goes to /api/admin/*,
 // where server.js checks the session cookie. Plain on purpose: big text, big buttons, one thing per screen (volunteers use it).
-const NAV = [['dashboard', 'Dashboard'], ['events', 'Events'], ['specials', 'Drink specials'], ['menu', 'Food menu'], ['news', 'News'], ['inquiries', 'Hall inquiries'], ['account', 'Account']];
 ---
 
 <!doctype html>
@@ -13,72 +12,178 @@ const NAV = [['dashboard', 'Dashboard'], ['events', 'Events'], ['specials', 'Dri
     <title>Admin | VFW Post 6493</title>
     <style is:global>
       @view-transition { navigation: auto; }
-      :root { --ink: #1a1d21; --muted: #4a525c; --bg: #f3f2ee; --card: #fff; --line: #b9bcc0; --accent: #1f3a5f; --accent-ink: #fff; --bad: #8a1c1c; --ok: #1d5a2c; }
+      @font-face { font-family: Archivo; src: url('/fonts/archivo.woff2') format('woff2'); font-weight: 100 900; font-stretch: 62% 125%; font-display: swap; }
+      @font-face { font-family: Literata; src: url('/fonts/literata.woff2') format('woff2'); font-weight: 200 900; font-display: swap; }
+      :root { --night: #17120e; --on-dark: #f1eadf; --brass: #d6bb7e; --paper: #ece4d6; --card: #f7f2e9; --stone: #e0d6c4; --ink: #2a2119; --ink-2: #4f4236; --field: #5c4e40; --line: rgb(42 33 25 / .18);
+        --gold-ink: #6a521d; --warn-bg: #f3e7c6; --red-ink: #7d2528; --bad-bg: #f4dedb; --olive: #4a5233; --ok-bg: #e4e6d3; --edit: #24405f; --edit-bg: #dfe6ee; --red: #952f32; --gold: #a58c52; }
       * { box-sizing: border-box; }
-      body { margin: 0; background: var(--bg); color: var(--ink); font: 19px/1.55 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+      body { margin: 0; background: var(--paper); color: var(--ink); font: 19px/1.55 Archivo, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+      h1, h2, .num { font-family: Literata, Georgia, serif; font-weight: 600; }
       h1 { font-size: 2rem; margin: 0 0 .5rem; line-height: 1.2; }
-      h2 { font-size: 1.4rem; margin: 0 0 .75rem; }
-      a { color: var(--accent); }
+      h2 { font-size: 1.4rem; margin: 0 0 .75rem; line-height: 1.25; }
+      a { color: var(--ink); }
       [hidden] { display: none !important; }
-      .wrap { display: grid; grid-template-columns: 15rem 1fr; min-height: 100vh; }
-      .side { background: var(--accent); color: var(--accent-ink); padding: 1rem; }
-      .side strong { display: block; font-size: 1.15rem; margin-bottom: 1rem; }
-      .side a { display: block; color: var(--accent-ink); text-decoration: none; padding: .7rem .8rem; min-height: 44px; border-radius: 6px; font-weight: 600; }
-      .side a[aria-current='page'] { background: #fff; color: var(--accent); }
-      .side a:focus-visible, .btn:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid #e0a100; outline-offset: 2px; }
-      .main { padding: 1.5rem; max-width: 60rem; width: 100%; }
-      .card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 1.25rem; margin: 0 0 1.25rem; }
-      label { display: block; font-weight: 600; margin: 0 0 1rem; }
+      :focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+      .side :focus-visible, .top :focus-visible, .bar :focus-visible, .toast :focus-visible { outline-color: var(--brass); }
+      .ic { display: inline-flex; flex: none; vertical-align: middle; }
+      .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+      .wrap { display: grid; grid-template-columns: 16rem minmax(0, 1fr); min-height: 100vh; }
+      .top { display: none; }
+      .side { background: var(--night); color: var(--on-dark); position: sticky; top: 0; height: 100vh; overflow: auto; display: flex; flex-direction: column; padding: 1.25rem .75rem; }
+      .brand { padding: 0 .5rem 1.25rem; }
+      .brand img { display: block; width: 152px; height: auto; }
+      .brand p { margin: .35rem 0 0; font: 600 1.05rem Literata, Georgia, serif; color: var(--brass); }
+      .brand::after { content: ''; display: block; width: 3rem; height: 2px; background: var(--gold); margin-top: .75rem; }
+      .side nav, .tail { display: grid; gap: 2px; }
+      .tail { margin-top: auto; padding-top: 1rem; }
+      .side a, .side .linkbtn, .mnav a, .mnav .linkbtn { display: flex; align-items: center; gap: .7rem; min-height: 52px; padding: 0 .8rem; border-radius: 6px; font: 600 1.05rem/1.2 Archivo, system-ui, sans-serif; color: var(--on-dark); text-decoration: none; position: relative; width: 100%; background: none; border: 0; cursor: pointer; text-align: left; }
+      .side a:hover, .side .linkbtn:hover, .mnav a:hover, .mnav .linkbtn:hover { background: rgb(241 234 223 / .08); }
+      a[aria-current='page'] { background: rgb(214 187 126 / .16); color: var(--brass); }
+      a[aria-current='page']::before { content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 4px; background: var(--brass); border-radius: 2px; }
+      .linkbtn { text-decoration: underline; }
+      .count { margin-left: auto; background: var(--brass); color: var(--night); font-size: .85rem; font-weight: 700; border-radius: 999px; padding: 0 .55rem; }
+
+      .main { padding: 1.5rem; max-width: 60rem; width: 100%; min-width: 0; }
+      .banner { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; justify-content: space-between; background: var(--bad-bg); color: var(--red-ink); font-weight: 700; border-radius: 6px; padding: .8rem 1rem; margin-bottom: 1.25rem; }
+      .card { background: var(--card); border-radius: 6px; padding: 1.25rem; margin: 0 0 1.25rem; box-shadow: 0 1px 2px rgb(42 33 25 / .12); }
+      .head { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+      .head h1 { margin: 0; }
+      .meta, .hint { color: var(--ink-2); font-size: .95rem; }
+      .big { font-size: 1.15rem; font-weight: 700; margin: 0 0 .25rem; }
+
+      .fld { margin: 0 0 1.1rem; }
+      .fld > label { display: block; font-weight: 600; }
+      .opt { font-size: .85rem; font-weight: 500; color: var(--ink-2); margin-left: .5rem; }
+      .hint { display: block; }
       input[type=text], input[type=password], input[type=date], input[type=time], input[type=number], select, textarea {
-        display: block; width: 100%; min-height: 48px; margin-top: .3rem; padding: .55rem .7rem; font: inherit; color: inherit; background: #fff; border: 2px solid #6b7480; border-radius: 6px; }
+        display: block; width: 100%; min-height: 52px; margin-top: .3rem; padding: .55rem .7rem; font: inherit; color: inherit; background: var(--card); border: 2px solid var(--field); border-radius: 6px; }
       textarea { min-height: 8rem; }
-      label.check { display: flex; gap: .75rem; align-items: center; font-weight: 600; min-height: 44px; }
-      input[type=checkbox] { width: 28px; height: 28px; flex: none; }
-      .btn { font: inherit; font-weight: 700; min-height: 48px; padding: .5rem 1.1rem; border-radius: 6px; border: 2px solid var(--accent); background: var(--accent); color: var(--accent-ink); cursor: pointer; }
-      .btn.alt { background: #fff; color: var(--accent); }
-      .btn.danger { background: #fff; color: var(--bad); border-color: var(--bad); }
-      .row { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
-      .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 0 1rem; }
-      .item { display: flex; flex-wrap: wrap; gap: .75rem 1rem; justify-content: space-between; align-items: center; padding: .9rem 0; border-top: 1px solid var(--line); }
-      .item:first-child { border-top: 0; }
+      .fld.bad input, .fld.bad select, .fld.bad textarea { border-color: var(--red-ink); }
+      .ferr, .err { color: var(--red-ink); font-weight: 700; margin: .3rem 0 0; }
+      label.check { display: flex; gap: .75rem; align-items: center; font-weight: 600; min-height: 44px; margin: 0 0 .5rem; }
+      input[type=checkbox] { width: 28px; height: 28px; flex: none; accent-color: var(--night); }
+      .ff { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }
+      .ff .wide { grid-column: 1 / -1; }
+
+      .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; font: inherit; font-weight: 700; min-height: 48px; padding: .5rem 1.1rem; border-radius: 6px; border: 2px solid var(--night); background: var(--night); color: var(--on-dark); cursor: pointer; text-decoration: none; }
+      .btn.alt { background: var(--card); color: var(--ink); border-color: var(--ink); }
+      .btn.danger { background: var(--card); color: var(--red-ink); border-color: var(--red-ink); }
+      .btn.quiet { background: none; border-color: transparent; color: var(--ink); text-decoration: underline; }
+      .row, .acts { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+      .chip { display: inline-block; font-size: .85rem; font-weight: 700; padding: .15rem .55rem; border-radius: 999px; background: var(--stone); color: var(--ink-2); line-height: 1.4; vertical-align: middle; }
+      .chip.ok { background: var(--ok-bg); color: var(--olive); } .chip.warn { background: var(--warn-bg); color: var(--gold-ink); }
+      .chip.bad { background: var(--bad-bg); color: var(--red-ink); } .chip.edit { background: var(--edit-bg); color: var(--edit); }
+
+      .item { display: flex; flex-wrap: wrap; gap: .75rem 1rem; align-items: center; padding: .9rem 0; border-top: 1px solid var(--line); }
+      .item:first-child, summary + .item { border-top: 0; }
       .item .what { flex: 1 1 18rem; min-width: 0; overflow-wrap: anywhere; }
-      .meta { color: var(--muted); font-size: .95rem; }
-      .badge { display: inline-block; font-size: .85rem; font-weight: 700; padding: .1rem .5rem; border-radius: 4px; background: #e6e0cc; color: #3b3320; margin-left: .4rem; }
-      .badge.new { background: #dbe7f5; color: #12304f; }
-      .err { color: var(--bad); font-weight: 700; }
-      .ok { color: var(--ok); font-weight: 700; }
-      .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
-      .tile { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 1rem; }
-      .tile b { display: block; font-size: 2rem; line-height: 1.1; }
+      .item .t { display: flex; flex-wrap: wrap; gap: .25rem .6rem; align-items: center; font-size: 1.1rem; }
+      .thumb { width: 96px; height: 72px; object-fit: cover; border-radius: 4px; flex: none; }
+      .hl { animation: hl 1.5s ease-out; }
+      @keyframes hl { from { background: var(--warn-bg); } to { background: transparent; } }
+      .past summary, .msec summary { cursor: pointer; font-weight: 700; min-height: 44px; display: flex; align-items: center; gap: .6rem; }
+
+      .seg { display: flex; flex-wrap: wrap; gap: .5rem; }
+      .seg .btn[aria-pressed=true] { background: var(--night); color: var(--on-dark); border-color: var(--night); }
+      .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.25rem; }
+      .tile { margin: 0; padding: 1rem; color: var(--ink); text-decoration: none; display: block; }
+      .tl { font-size: .95rem; font-weight: 600; color: var(--ink-2); }
+      .num { font-size: 2.75rem; line-height: 1.15; }
+      .chg { font-size: .95rem; display: flex; gap: .3rem; align-items: center; color: var(--ink-2); }
+      .chg.up { color: var(--olive); }
       .chart { width: 100%; height: auto; display: block; }
-      .chart text { font-size: 11px; fill: #3b4048; }
+      .chart text { font-size: 13px; fill: var(--ink-2); }
+      .chart .gl { stroke: var(--line); }
+      .chart .bar { fill: var(--gold-ink); } .chart .bar.hi { fill: var(--ink); }
+      .two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.25rem; }
+      ul.rank { list-style: none; margin: 0; padding: 0; }
+      ul.rank li { position: relative; display: flex; justify-content: space-between; gap: 1rem; align-items: center; min-height: 44px; padding: 0 .5rem; }
+      ul.rank .bg { position: absolute; left: 0; top: 4px; bottom: 4px; background: rgb(165 140 82 / .18); border-radius: 4px; }
+      ul.rank .nm, ul.rank .ct { position: relative; } ul.rank .ct { font-variant-numeric: tabular-nums; font-weight: 700; }
+
+      .ev { display: flex; gap: .85rem; align-items: flex-start; min-height: 56px; padding: .6rem 0; border-top: 1px solid var(--line); }
+      .ev:first-of-type { border-top: 0; }
+      .evi { flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--stone); color: var(--ink-2); }
+      .evi.ok { background: var(--ok-bg); color: var(--olive); } .evi.warn { background: var(--warn-bg); color: var(--gold-ink); }
+      .evi.bad { background: var(--bad-bg); color: var(--red-ink); } .evi.edit { background: var(--edit-bg); color: var(--edit); }
+      .ev details summary { cursor: pointer; font-size: .95rem; color: var(--ink-2); min-height: 44px; display: inline-flex; align-items: center; padding: 0 .5rem; }
+
       .gate { max-width: 28rem; margin: 3rem auto; padding: 0 1rem; }
-      fieldset.photos { border: 0; padding: 0; margin: 0 0 1rem; min-width: 0; }
-      fieldset.photos legend { font-weight: 600; margin-bottom: .3rem; }
-      .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr)); gap: .5rem; max-height: 22rem; overflow: auto; padding: 2px; }
-      label.pick { display: block; margin: 0; padding: .4rem; border: 2px solid var(--line); border-radius: 6px; background: #fff; font-size: .8rem; font-weight: 400; cursor: pointer; overflow-wrap: anywhere; }
-      label.pick:has(input:checked) { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
-      label.pick img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; margin: .3rem 0; }
-      label.pick input { width: 24px; height: 24px; }
-      .menu-section { border: 2px solid var(--line); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; background: #fafaf7; }
-      .menu-item { border-top: 1px solid var(--line); padding-top: .75rem; margin-top: .75rem; }
-      ol.top { padding-left: 1.4rem; margin: 0; }
-      .toast { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); background: #1a1d21; color: #fff; padding: .75rem 1.25rem; border-radius: 8px; z-index: 9; }
+      .gate img { display: block; width: 200px; height: auto; margin: 0 0 1rem; }
+      .pimg { width: 240px; height: 180px; object-fit: cover; border-radius: 6px; display: block; margin-bottom: .6rem; }
+      .pimg.none { display: grid; place-items: center; border: 2px dashed var(--field); color: var(--ink-2); font-weight: 600; }
+      .picker { margin-top: 1rem; padding: 1rem; background: var(--stone); border-radius: 6px; }
+      .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); gap: .6rem; max-height: 24rem; overflow: auto; padding: 4px; margin-bottom: 1rem; }
+      label.pick { position: relative; display: block; margin: 0; aspect-ratio: 4 / 3; border-radius: 6px; background: var(--card); cursor: pointer; overflow: hidden; }
+      label.pick img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      label.pick.up { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3rem; border: 2px dashed var(--field); font-weight: 700; text-align: center; }
+      label.pick:has(input:checked) { outline: 3px solid var(--ink); outline-offset: -3px; }
+      label.pick:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 2px; }
+      label.pick .chosen { display: none; position: absolute; right: 6px; top: 6px; gap: .25rem; align-items: center; background: var(--ink); color: var(--on-dark); border-radius: 999px; padding: 0 .55rem; font-size: .85rem; font-weight: 700; }
+      label.pick:has(input:checked) .chosen { display: flex; }
+      .preview img { width: 100%; height: auto; border-radius: 6px; display: block; margin-bottom: .75rem; }
+
+      .menu-section { padding: 0; overflow: hidden; }
+      .menu-section > summary { list-style: none; background: var(--stone); padding: .8rem 1.25rem; min-height: 56px; cursor: pointer; display: flex; align-items: center; gap: .75rem; }
+      .menu-section > summary::-webkit-details-marker { display: none; }
+      .menu-section .sname { font: 600 1.25rem Literata, Georgia, serif; }
+      .menu-section .ic:last-child { margin-left: auto; }
+      .menu-section[open] > summary .ic:last-child { transform: rotate(180deg); }
+      .sbody { padding: 1.25rem; }
+      .mitem { border: 1px solid var(--line); border-radius: 6px; padding: .9rem; margin: 0 0 .75rem; display: grid; gap: .75rem; }
+      .mitem .fld { margin: 0; }
+      .mline { display: grid; grid-template-columns: 1fr 9rem; gap: .75rem; }
+      .mtools { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+      .mitem.off input[type=text] { opacity: .6; }
+      .bar { position: sticky; bottom: 0; z-index: 6; background: var(--night); color: var(--on-dark); padding: .75rem 1rem calc(.75rem + env(safe-area-inset-bottom)); border-radius: 6px; display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; }
+      .bar .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--brass); display: inline-block; margin-right: .5rem; }
+      .bar .btn { background: var(--brass); color: var(--night); border-color: var(--brass); }
+      .bar .btn.quiet { background: none; color: var(--on-dark); border-color: transparent; }
+      .formbar { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; margin-top: .5rem; }
+
+      .toast { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); background: var(--night); color: var(--on-dark); padding: .5rem .5rem .5rem 1.25rem; border-radius: 6px; z-index: 20; display: flex; gap: .75rem; align-items: center; min-height: 48px; max-width: calc(100vw - 2rem); }
+      .toast button { background: none; border: 0; color: var(--brass); font: inherit; font-weight: 700; min-height: 48px; padding: 0 .75rem; cursor: pointer; text-decoration: underline; }
+      body.has-bar .toast { bottom: 5.5rem; }
+      dialog.ask { border: 0; border-radius: 6px; padding: 1.5rem; max-width: 28rem; width: calc(100vw - 2rem); background: var(--card); color: var(--ink); }
+      dialog.ask::backdrop { background: rgb(23 18 14 / .6); }
+
+      .btn.mv { white-space: nowrap; flex: 1 1 8rem; }
       @media (max-width: 800px) {
-        .wrap { grid-template-columns: 1fr; }
-        .side { display: flex; flex-wrap: wrap; gap: .25rem; align-items: center; }
-        .side strong { width: 100%; margin: 0; }
-        .side a { padding: .6rem .7rem; }
+        .wrap { grid-template-columns: minmax(0, 1fr); }
+        .side { display: none; }
+        .top { display: flex; position: sticky; top: 0; z-index: 10; height: 64px; background: var(--night); align-items: center; justify-content: space-between; padding: 0 1rem; }
+        .top img { height: 40px; width: auto; display: block; }
+        .mnav summary { list-style: none; display: flex; align-items: center; gap: .5rem; min-height: 48px; padding: 0 1rem; color: var(--on-dark); font-weight: 700; border: 2px solid var(--brass); border-radius: 6px; cursor: pointer; }
+        .mnav summary::-webkit-details-marker { display: none; }
+        .mnav > div { position: absolute; left: 0; right: 0; top: 64px; background: var(--night); padding: .5rem 1rem 1rem; max-height: calc(100vh - 64px); overflow: auto; }
+        .mnav a, .mnav .linkbtn { min-height: 56px; }
         .main { padding: 1rem; }
+        .btn { min-height: 52px; }
+        .head .btn.add, .formbar .btn:not(.quiet), .sbody > .btn { width: 100%; }
+        .acts { width: 100%; } .acts .btn { flex: 1; }
+        .tiles, .two, .ff, .mline { grid-template-columns: 1fr 1fr; }
+        .two, .mline { grid-template-columns: 1fr; }
+        .ff { grid-template-columns: 1fr 1fr; }
+        .num { font-size: 2.2rem; }
+        .formbar { position: sticky; bottom: 0; background: var(--card); padding: .6rem 0 calc(.6rem + env(safe-area-inset-bottom)); }
+        .toast { bottom: 1rem; }
+        .seg { display: grid; grid-template-columns: 1fr 1fr; }
+        .mitem { padding: .7rem; gap: .5rem; } .mitem .mline { gap: .5rem; }
+        .mtools label.check { flex-basis: 100%; } .mtools .btn { flex: 1 1 6rem; }
       }
+      @media (max-width: 480px) { .ff .fld.dt { grid-column: 1 / -1; } }
+      @media (prefers-reduced-motion: reduce) { .hl { animation: none; } }
     </style>
   </head>
   <body>
     <div class="gate" id="gate" hidden>
       <form class="card" id="login" novalidate>
-        <h1>Post 6493 admin</h1>
-        <label>Username <input type="text" name="username" autocomplete="username" autocapitalize="off" spellcheck="false" required /></label>
-        <label>Password <input type="password" name="password" autocomplete="current-password" required /></label>
+        <img src="/brand/logo.svg" width="200" height="103" alt="VFW Post 6493" />
+        <h1>Website admin</h1>
+        <p class="meta">Sign in to update the post's website.</p>
+        <div class="fld"><label for="lu">Username</label><input id="lu" type="text" name="username" autocomplete="username" autocapitalize="off" spellcheck="false" required /></div>
+        <div class="fld"><label for="lp">Password</label><input id="lp" type="password" name="password" autocomplete="current-password" required /></div>
         <p class="err" id="login-err" role="alert" hidden></p>
         <button class="btn" type="submit">Sign in</button>
       </form>
@@ -86,19 +191,27 @@ const NAV = [['dashboard', 'Dashboard'], ['events', 'Events'], ['specials', 'Dri
     </div>
 
     <div class="wrap" id="app" hidden>
-      <nav class="side" aria-label="Admin sections">
-        <strong>VFW Post 6493 admin</strong>
-        {NAV.map(([id, label]) => <a href={`#${id}`} data-view={id}>{label}</a>)}
-        <a href="/" target="_blank" rel="noopener">View the website</a>
-      </nav>
+      <header class="top">
+        <a href="#dashboard"><img src="/brand/logo-mark-reverse.svg" width="152" height="60" alt="VFW Post 6493" /></a>
+        <details class="mnav" id="mnav">
+          <summary><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>Menu</summary>
+          <div id="mlinks"></div>
+        </details>
+      </header>
+      <aside class="side">
+        <div class="brand"><a href="#dashboard"><img src="/brand/logo-mark-reverse.svg" width="152" height="60" alt="VFW Post 6493" /></a><p>Website admin</p></div>
+        <nav id="links" aria-label="Admin sections"></nav>
+        <div class="tail" id="tail"></div>
+      </aside>
       <main class="main" id="main" tabindex="-1">
-        <p class="card err" id="default-warning" hidden>The password is still the default (admin). Please change it under Account.</p>
+        <div class="banner" id="default-warning" hidden><span>The password is still the starter password. Please change it now.</span><a class="btn" href="#account">Change the password</a></div>
         <section data-section="dashboard"></section>
         <section data-section="events" hidden></section>
         <section data-section="specials" hidden></section>
         <section data-section="menu" hidden></section>
         <section data-section="news" hidden></section>
         <section data-section="inquiries" hidden></section>
+        <section data-section="security" hidden></section>
         <section data-section="account" hidden></section>
       </main>
     </div>
@@ -116,26 +229,77 @@ const NAV = [['dashboard', 'Dashboard'], ['events', 'Events'], ['specials', 'Dri
         for (const kid of kids.flat()) if (kid != null && kid !== false) el.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
         return el;
       };
+      // replaceChildren() does not flatten arrays (they print as "[object HTMLDivElement]"), so every redraw goes through put().
+      const put = (el, ...kids) => el.replaceChildren(...kids.flat(9).filter((k) => k != null && k !== false));
+      const IC = { home: '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>', calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+        glass: '<path d="M5 3h14l-7 9z"/><path d="M12 12v8M8 21h8"/>', plate: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/>',
+        news: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>', mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+        shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>', person: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
+        ext: '<path d="M7 17L17 7M9 7h8v8"/>', chev: '<path d="M6 9l6 6 6-6"/>', up: '<path d="M12 19V5M5 12l7-7 7 7"/>', down: '<path d="M12 5v14M5 12l7 7 7-7"/>',
+        back: '<path d="M19 12H5M12 5l-7 7 7 7"/>', upload: '<path d="M12 16V4M6 10l6-6 6 6M4 20h16"/>', check: '<path d="M5 12l5 5 9-10"/>',
+        warn: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.01"/>', bshield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9.5 9.5l5 5M14.5 9.5l-5 5"/>',
+        pencil: '<path d="M4 20l1-5L16 4l4 4L9 19z"/>', bin: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>', door: '<path d="M5 21V3h10v18M3 21h18M12 12v.01"/>',
+        clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>' };
+      const ico = (n, s = 20) => { const e = h('span', { class: 'ic', 'aria-hidden': 'true' }); e.innerHTML = `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">${IC[n]}</svg>`; return e; };
       const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
       const ERR = { title: 'Please enter a title.', date: 'Pick a valid date.', start: 'Check the start time.', end: 'Check the end time.', category: 'Pick a category.', recurring: 'Pick how it repeats.',
         label: 'Please enter a name.', period: 'Pick a period.', weekday: 'Pick the day of the week.', range: 'The end date is before the start date.', body: 'Please write the news text.',
         section_name: 'Every menu section needs a name.', item_name: 'Every menu item needs a name.', signed_out: 'Please sign in again.', origin: 'Reload the page and try again.',
         current: 'The current password is not right.', too_short: 'The new password needs at least 10 characters.', too_easy: 'Pick a harder password.', same: 'That is the same as the old password.',
-        too_long: 'That password is too long.', rate: 'Too many tries. Wait a little and try again.' };
+        too_long: 'That password is too long.', rate: 'Too many tries. Wait a little and try again.', photo: 'That picture is not available any more. Please pick another one.',
+        sections: 'The menu could not be read. Reload the page and try again.', not_found: 'That was already deleted. Reload the page to see the latest.',
+        file_type: 'That file is not a picture we can use. Please choose a JPEG, PNG or WebP photo.', file_size: 'That picture is too big. Please choose one under 15 MB.',
+        upload: 'The picture could not be saved. Try again.', in_use: 'A news item still uses that picture.' };
+      const ERRF = { title: 'title', date: 'date', start: 'start', end: 'end', label: 'label', body: 'body', range: 'end' }; // error key -> the field it belongs to
       const money = (n) => Number(n).toLocaleString('en-US');
-      const dayLabel = (d) => (d ? new Date(d + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : '');
-      let S = null; // server state
+      const plural = (n, one, many) => `${money(n)} ${n === 1 ? one : many}`;
+      const UTC = (d, o) => new Date(d + 'T12:00:00Z').toLocaleDateString('en-US', { ...o, timeZone: 'UTC' });
+      const short = (d) => (d ? UTC(d, { weekday: 'short', month: 'short', day: 'numeric', ...(d.slice(0, 4) === (S?.today ?? '').slice(0, 4) ? {} : { year: 'numeric' }) }) : '');
+      const wd = (d) => UTC(d, { weekday: 'short', month: 'short', day: 'numeric' }), md = (d) => UTC(d, { month: 'short', day: 'numeric' }), mon = (d) => UTC(d, { month: 'short' });
+      const tm = (t) => { const [H, M] = t.split(':').map(Number); return `${H % 12 || 12}${M ? ':' + String(M).padStart(2, '0') : ''} ${H < 12 ? 'AM' : 'PM'}`; };
+      const tr = (a, b) => { if (!a) return ''; const x = tm(a); if (!b) return x; const y = tm(b); return (x.slice(-2) === y.slice(-2) ? x.slice(0, -3) : x) + ' to ' + y; };
+      const ET = { timeZone: 'America/New_York' };
+      const etDay = (ms) => new Date(ms).toLocaleDateString('en-CA', ET);
+      const when = (ms) => new Date(ms).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+      let S = null, guard = null; // server state; guard() returns a warning text while the open screen has unsaved changes
 
-      function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => (t.hidden = true), 3500); }
+      function toast(msg, act) {
+        const t = $('#toast');
+        put(t, h('span', {}, msg), act && h('button', { type: 'button', onclick: () => { t.hidden = true; act.fn(); } }, act.label));
+        t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => (t.hidden = true), 6000);
+      }
+      function ask(title, text, yes, keep = 'Keep it') {
+        return new Promise((ok) => {
+          const no = h('button', { class: 'btn alt', type: 'button', onclick: () => d.close('no') }, keep);
+          const d = h('dialog', { class: 'ask', 'aria-labelledby': 'ask-t' }, h('h2', { id: 'ask-t' }, title), h('p', {}, text),
+            h('div', { class: 'row' }, h('button', { class: 'btn danger', type: 'button', onclick: () => d.close('yes') }, yes), no));
+          d.addEventListener('close', () => { d.remove(); ok(d.returnValue === 'yes'); });
+          document.body.append(d); d.showModal(); no.focus();
+        });
+      }
+      const leave = () => { const g = guard?.(); return g ? ask('Leave without saving?', g, 'Leave', 'Stay here') : true; };
       async function api(method, path, body) {
         const r = await fetch('/api/' + path, { method, credentials: 'same-origin', headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined });
-        const data = await r.json().catch(() => ({}));
+        const data = r.status === 413 ? { error: 'file_size' } : await r.json().catch(() => ({}));
         if (r.status === 401 && path !== 'login') showLogin();
         return { ok: r.ok, status: r.status, data };
       }
       const say = (r) => r.data.message || ERR[r.data.error] || 'Something went wrong. Try again.';
 
-      // ---------- sign in ----------
+      // ---------- form fields ----------
+      const clearErr = (d) => { d.classList.remove('bad'); $('.ferr', d).hidden = true; $('input,select,textarea', d)?.removeAttribute('aria-invalid'); };
+      function markErr(ctl, msg) { const d = ctl.closest('.fld'), e = $('.ferr', d); d.classList.add('bad'); e.textContent = msg; e.hidden = false; ctl.setAttribute('aria-invalid', 'true'); }
+      /** A labelled field: label (+ quiet "Optional" tag), hint, the control, and a place for its error. x = { optional, hint, half, cls }. */
+      function fld(id, label, ctl, x = {}) {
+        ctl.id = id;
+        if (x.hint) ctl.setAttribute('aria-describedby', id + '-h');
+        const d = h('div', { class: `fld ${x.half ? '' : 'wide'} ${x.cls || ''}` }, h('label', { for: id }, label, x.optional && h('span', { class: 'opt' }, 'Optional')),
+          x.hint && h('span', { class: 'hint', id: id + '-h' }, x.hint), ctl, h('p', { class: 'ferr', role: 'alert', hidden: true }));
+        ctl.addEventListener('input', () => clearErr(d));
+        return d;
+      }
+
+      // ---------- sign in and navigation ----------
       function showLogin() { $('#app').hidden = true; $('#gate').hidden = false; }
       $('#login').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -146,181 +310,350 @@ const NAV = [['dashboard', 'Dashboard'], ['events', 'Events'], ['specials', 'Dri
         f.password.value = '';
         start();
       });
+      const NAV = [['dashboard', 'Dashboard', 'home'], ['events', 'Events', 'calendar'], ['specials', 'Drink specials', 'glass'], ['menu', 'Food menu', 'plate'], ['news', 'News', 'news'],
+        ['inquiries', 'Hall inquiries', 'mail'], ['security', 'Security log', 'shield'], ['account', 'Account', 'person']];
+      const navLinks = () => NAV.map(([id, t, i]) => h('a', { href: '#' + id, 'data-view': id }, ico(i), h('span', {}, t), id === 'inquiries' && h('span', { class: 'count', 'data-count': '', hidden: true })));
+      const navTail = () => [h('a', { href: '/', target: '_blank', rel: 'noopener' }, ico('ext'), 'View the website'), h('button', { class: 'linkbtn', type: 'button', onclick: signOut }, 'Sign out')];
+      const setCount = (n) => document.querySelectorAll('[data-count]').forEach((c) => { c.textContent = n; c.hidden = !n; });
+      async function signOut() { if (!(await leave())) return; guard = null; await api('POST', 'logout'); location.reload(); }
 
       // ---------- generic list + form for events, specials and news ----------
+      const nth = (n) => n + (['th', 'st', 'nd', 'rd'][n % 10 > 3 || ~~(n / 10) === 1 ? 0 : n % 10]);
+      const pattern = (e) => { const d = new Date(e.date + 'T12:00:00Z'), n = Math.ceil(d.getUTCDate() / 7);
+        return e.recurring === 'weekly' ? 'Every ' + DAYS[d.getUTCDay()] : e.recurring === 'monthly' ? 'Every month on the ' + nth(d.getUTCDate()) : `Every ${n === 5 ? 'last' : nth(n)} ${DAYS[d.getUTCDay()]}`; };
       const OPT = (a) => a.map((x) => (Array.isArray(x) ? x : [x, x]));
+      const PERIOD = { daily: 'Every day', monthly: 'Every month', seasonal: 'Seasonal' };
       const CFG = {
-        events: { one: 'event', add: 'Add an event', fields: [
-          ['title', 'Title', 'text'], ['date', 'Date (first date, if it repeats)', 'date'], ['start', 'Start time (optional)', 'time'], ['end', 'End time (optional)', 'time'],
+        events: { title: 'Events', one: 'event', add: 'Add an event', empty: 'No events yet.', fields: [
+          ['title', 'Title', 'text'], ['date', 'Date', 'date', null, null, { hint: 'If it repeats, pick the first date.' }],
+          ['start', 'Start time', 'time', null, null, { optional: true, half: true }], ['end', 'End time', 'time', null, null, { optional: true, half: true }],
           ['category', 'Category', 'select', OPT(['Bar', 'Post', 'Auxiliary', 'Community', 'Holiday'])],
-          ['recurring', 'Repeats', 'select', [['none', 'Does not repeat'], ['weekly', 'Every week on the same weekday'], ['monthly', 'Every month on the same date'], ['monthly_weekday', 'Every month on the same weekday (like the 2nd Tuesday)']]],
-          ['description', 'Description (optional)', 'textarea'], ['enabled', 'Show on the website', 'check']],
+          ['recurring', 'Repeats', 'select', [['none', 'Does not repeat'], ['weekly', 'Every week on the same weekday'], ['monthly', 'Every month on the same date'], ['monthly_weekday', 'Every month on the same weekday, like the second Tuesday']]],
+          ['description', 'Description', 'textarea', null, null, { optional: true }], ['enabled', 'Show on the website', 'check']],
           blank: { title: '', date: '', start: '', end: '', category: 'Post', recurring: 'none', description: '', enabled: true },
-          line: (e) => e.title, sub: (e) => [dayLabel(e.date), e.start && e.start + (e.end ? ' to ' + e.end : ''), e.category, { none: '', weekly: 'repeats weekly', monthly: 'repeats monthly', monthly_weekday: 'repeats monthly by weekday' }[e.recurring]].filter(Boolean).join(' · ') },
-        specials: { one: 'drink special', add: 'Add a drink special', fields: [
-          ['label', 'Name of the special', 'text'], ['price', 'Price (as you want it shown, optional)', 'text'], ['description', 'Description (optional)', 'textarea'],
+          line: (e) => e.title, sub: (e) => [e.recurring === 'none' ? short(e.date) : pattern(e), tr(e.start, e.end), e.category].filter(Boolean).join(' · ') },
+        specials: { title: 'Drink specials', one: 'drink special', add: 'Add a drink special', empty: 'No drink specials yet.', fields: [
+          ['label', 'Name of the special', 'text'], ['price', 'Price', 'text', null, null, { optional: true, hint: 'Write it the way it should look, like $4 or 2 for $5.' }], ['description', 'Description', 'textarea', null, null, { optional: true }],
           ['period', 'How often', 'select', [['daily', 'Daily'], ['weekly', 'Weekly'], ['monthly', 'Monthly'], ['seasonal', 'Seasonal']]],
           ['weekday', 'Which day of the week', 'select', DAYS.map((d, i) => [String(i), d]), (v) => v.period === 'weekly'],
-          ['start', 'Starts on (optional)', 'date'], ['end', 'Ends on (optional)', 'date'], ['enabled', 'Show on the website', 'check']],
+          ['start', 'First day', 'date', null, null, { optional: true, half: true, hint: 'Leave empty to start right away.' }], ['end', 'Last day', 'date', null, null, { optional: true, half: true, hint: 'Leave empty to keep it running.' }],
+          ['enabled', 'Show on the website', 'check']],
           blank: { label: '', price: '', description: '', period: 'weekly', weekday: '5', start: '', end: '', enabled: true },
-          line: (s) => s.label + (s.price ? ' · ' + s.price : ''), sub: (s) => [s.period === 'weekly' ? 'Every ' + DAYS[s.weekday] : s.period, s.start && 'from ' + dayLabel(s.start), s.end && 'until ' + dayLabel(s.end)].filter(Boolean).join(' · ') },
-        news: { one: 'news item', add: 'Add a news item', fields: [
-          ['title', 'Headline', 'text'], ['date', 'Date', 'date'], ['body', 'News text (leave a blank line between paragraphs)', 'textarea'], ['photo', 'Picture', 'photo'],
-          ['alt', 'Describe the picture for people who cannot see it (optional; the headline is used if you leave this empty)', 'text'], ['enabled', 'Show on the website', 'check']],
-          blank: { title: '', date: '', body: '', photo: '', alt: '', enabled: true }, line: (n) => n.title, sub: (n) => dayLabel(n.date) },
+          line: (s) => s.label, sub: (s) => [s.price && h('span', { class: 'chip edit' }, s.price), ' ', [s.period === 'weekly' ? 'Every ' + DAYS[s.weekday] : PERIOD[s.period], s.start && 'from ' + short(s.start), s.end && 'until ' + short(s.end)].filter(Boolean).join(' · ')] },
+        news: { title: 'News', one: 'news item', add: 'Add a news item', empty: 'No news yet.', fields: [
+          ['title', 'Headline', 'text'], ['date', 'Date', 'date'], ['body', 'News text', 'textarea', null, null, { hint: 'Leave an empty line between paragraphs.' }], ['photo', 'Picture', 'photo'],
+          ['alt', 'Describe the picture', 'text', null, null, { optional: true, hint: 'For people who cannot see it, for example: Members at the 60th anniversary dinner. If you leave it empty, the headline is used.' }], ['enabled', 'Show on the website', 'check']],
+          blank: { title: '', date: '', body: '', photo: '', alt: '', enabled: true }, line: (n) => n.title, sub: (n) => [short(n.date), ((t) => (t.length > 90 ? t.slice(0, t.lastIndexOf(' ', 90)) + '…' : t))(n.body.replace(/\s+/g, ' '))].filter(Boolean).join(' · ') },
       };
-      const TITLES = { events: 'Events', specials: 'Drink specials', news: 'News' };
+      const thumbOf = (n) => '/media/photos/' + (S.photos.find((p) => p.name === n)?.thumb || n);
 
-      function field(f, v) {
-        const [k, label, type, opts] = f;
-        if (type === 'check') return h('label', { class: 'check' }, h('input', { type: 'checkbox', name: k, checked: !!v[k] }), label);
-        if (type === 'photo') {
-          const opt = (name, thumb, label) => h('label', { class: 'pick' }, h('input', { type: 'radio', name: 'photo', value: name, checked: (v.photo || '') === name }), thumb && h('img', { src: '/media/photos/' + thumb, alt: '', loading: 'lazy' }), h('span', {}, label));
-          return h('fieldset', { class: 'photos' }, h('legend', {}, label), h('div', { class: 'photo-grid' }, opt('', '', 'No photo'), (S.photos || []).map((p) => opt(p.name, p.thumb, p.name.replace(/[.][a-z]+$/, '')))));
+      /** The news Picture field: the current picture, Change/Remove, and an inline picker with Upload plus the existing photos. */
+      function photoField(f, v, form) {
+        const hid = h('input', { type: 'hidden', name: 'photo', value: v.photo || '' }), pv = h('div'), panel = h('div', { class: 'picker', hidden: true });
+        const set = (n) => { hid.value = n; drawPv(); };
+        const drawPv = () => put(pv, hid.value ? h('img', { class: 'pimg', src: thumbOf(hid.value), alt: 'The picture now chosen' }) : h('div', { class: 'pimg none' }, 'No picture'),
+          h('div', { class: 'row' }, h('button', { class: 'btn alt', type: 'button', onclick: () => { grid(); panel.hidden = false; } }, hid.value ? 'Change picture' : 'Add a picture'),
+            hid.value && h('button', { class: 'btn danger', type: 'button', onclick: () => set('') }, 'Remove picture')));
+        const perr = h('p', { class: 'err', role: 'alert', hidden: true });
+        const fail = (m) => { perr.textContent = m; perr.hidden = false; };
+        function grid() {
+          perr.hidden = true;
+          put(panel, h('div', { class: 'photo-grid' },
+            h('label', { class: 'pick up' }, h('input', { type: 'file', class: 'vh', accept: 'image/jpeg,image/png,image/webp', onchange: (e) => choose(e.target.files[0]) }), ico('upload', 28), h('span', {}, 'Upload a new picture')),
+            S.photos.map((p, i) => h('label', { class: 'pick' }, h('input', { type: 'radio', class: 'vh', name: 'pick', value: p.name, checked: p.name === hid.value, 'aria-label': `Picture ${i + 1} of ${S.photos.length}`, onchange: () => set(p.name) }),
+              h('img', { src: '/media/photos/' + p.thumb, alt: '', loading: 'lazy' }), h('span', { class: 'chosen' }, ico('check', 14), 'Chosen')))),
+            perr, h('button', { class: 'btn alt', type: 'button', onclick: () => (panel.hidden = true) }, 'Done'));
         }
-        if (type === 'textarea') return h('label', {}, label, h('textarea', { name: k, value: v[k] ?? '' }));
-        if (type === 'select') return h('label', { 'data-k': k }, label, h('select', { name: k }, opts.map(([val, text]) => h('option', { value: val, selected: String(v[k]) === val }, text))));
-        return h('label', {}, label, h('input', { type, name: k, value: v[k] ?? '' }));
+        async function choose(file) {
+          if (!file) return;
+          if (!/^image\/(jpeg|png|webp)$/.test(file.type)) return fail(ERR.file_type);
+          if (file.size > 15 * 1024 * 1024) return fail(ERR.file_size);
+          let bmp;
+          try { bmp = await createImageBitmap(file, { imageOrientation: 'from-image' }); } catch { return fail(ERR.file_type); }
+          const crop = (w) => { // centre-crop to 4:3, then scale; re-encoding drops EXIF, including the location
+            const cw = Math.min(bmp.width, (bmp.height * 4) / 3), ch = (cw * 3) / 4, c = h('canvas', { width: w, height: (w * 3) / 4 });
+            c.getContext('2d').drawImage(bmp, (bmp.width - cw) / 2, (bmp.height - ch) / 2, cw, ch, 0, 0, c.width, c.height);
+            return c.toDataURL('image/webp', 0.82);
+          };
+          const big = crop(1024), small = crop(800);
+          if (!small.startsWith('data:image/webp')) return fail(ERR.file_type);
+          const alt = h('input', { type: 'text', value: form.elements.alt.value }), go = h('button', { class: 'btn', type: 'button' }, 'Use this picture');
+          go.addEventListener('click', async () => {
+            go.disabled = true; go.textContent = 'Saving the picture…';
+            const r = await api('POST', 'admin/photos', { big, small });
+            if (!r.ok) { go.disabled = false; go.textContent = 'Use this picture'; return fail(say(r)); }
+            S.photos = r.data.photos; form.elements.alt.value = alt.value; set(r.data.name); grid(); toast('Picture added.');
+          });
+          put(panel, h('div', { class: 'preview' }, h('img', { src: small, alt: 'Preview of the new picture' }),
+            bmp.width < 800 && h('p', { class: 'meta' }, 'This picture is small and may look soft.'),
+            fld('up-alt', 'Describe the picture', alt, { optional: true, hint: f[5].hint }),
+            h('p', { class: 'meta' }, "The picture is trimmed to the website's shape. If something important is cut off, try a different photo."),
+            perr, h('div', { class: 'row' }, go, h('button', { class: 'btn alt', type: 'button', onclick: grid }, 'Choose a different one'))));
+        }
+        drawPv();
+        return h('div', { class: 'fld wide' }, h('label', {}, f[1], h('span', { class: 'opt' }, 'Optional')), hid, pv, panel);
       }
-      function renderCrud(name) {
+      function field(f, v, form) {
+        const [k, label, type, opts, , x = {}] = f;
+        if (type === 'check') return h('label', { class: 'check wide' }, h('input', { type: 'checkbox', name: k, checked: !!v[k] }), label);
+        if (type === 'photo') return photoField(f, v, form);
+        const ctl = type === 'textarea' ? h('textarea', { name: k, value: v[k] ?? '' }) : type === 'select' ? h('select', { name: k }, opts.map(([val, t]) => h('option', { value: val, selected: String(v[k]) === val }, t))) : h('input', { type, name: k, value: v[k] ?? '' });
+        return fld('f-' + k, label, ctl, type === 'date' ? { ...x, cls: 'dt' } : x);
+      }
+      function renderCrud(name, hl) {
+        guard = null;
         const c = CFG[name], sec = $(`[data-section=${name}]`), items = S[name];
-        const list = h('div', { class: 'card' }, items.length ? items.map((it) => h('div', { class: 'item' },
-          h('div', { class: 'what' }, h('strong', {}, c.line(it)), !it.enabled && h('span', { class: 'badge' }, 'Hidden'), h('div', { class: 'meta' }, c.sub(it))),
-          h('div', { class: 'row' },
+        const row = (it) => h('div', { class: 'item', 'data-id': it.id },
+          name === 'news' && it.photo && h('img', { class: 'thumb', src: thumbOf(it.photo), alt: '', loading: 'lazy' }),
+          h('div', { class: 'what' }, h('div', { class: 't' }, h('strong', {}, c.line(it)), it.enabled ? h('span', { class: 'chip ok' }, 'On the website') : h('span', { class: 'chip muted' }, 'Not on the website')), h('div', { class: 'meta' }, c.sub(it))),
+          h('div', { class: 'acts' },
             h('button', { class: 'btn alt', type: 'button', onclick: () => edit(it) }, 'Edit'),
-            h('button', { class: 'btn alt', type: 'button', onclick: () => save({ ...it, enabled: !it.enabled }, it.enabled ? 'Hidden from the website.' : 'Showing on the website.') }, it.enabled ? 'Hide' : 'Show'),
-            h('button', { class: 'btn danger', type: 'button', onclick: () => remove(it) }, 'Delete')))) : h('p', {}, 'Nothing here yet.'));
-        const box = h('div');
-        sec.replaceChildren(h('h1', {}, TITLES[name]), h('p', {}, h('button', { class: 'btn', type: 'button', onclick: () => edit(null) }, c.add)), box, list);
+            h('button', { class: 'btn alt', type: 'button', onclick: () => setOn(it.id, !it.enabled) }, it.enabled ? 'Hide' : 'Show'),
+            h('button', { class: 'btn danger', type: 'button', onclick: () => remove(it) }, 'Delete')));
+        const past = name === 'events' ? items.filter((e) => e.recurring === 'none' && e.date < S.today) : [];
+        const body = !items.length ? h('div', { class: 'card' }, h('p', { class: 'big' }, c.empty), h('p', {}, `Choose ${c.add} to make the first one.`))
+          : name === 'events' ? [h('h2', {}, 'Coming up'), h('div', { class: 'card' }, items.length > past.length ? items.filter((e) => !past.includes(e)).map(row) : h('p', { class: 'meta' }, 'Nothing is coming up.')),
+            past.length > 0 && h('details', { class: 'card past' }, h('summary', {}, 'Already happened', h('span', { class: 'chip muted' }, past.length)), past.map(row))]
+          : h('div', { class: 'card' }, items.map(row));
+        put(sec, h('div', { class: 'head' }, h('h1', {}, c.title), h('button', { class: 'btn add', type: 'button', onclick: () => edit(null) }, '+ ' + c.add)), body);
+        const hit = hl && $(`[data-id="${hl}"]`, sec);
+        if (hit) { hit.classList.add('hl'); hit.scrollIntoView({ block: 'center' }); }
 
-        async function save(v, msg) {
-          const r = await api('PUT', `admin/${name}/${v.id || 'new'}`, v);
-          if (!r.ok) return say(r);
-          S[name] = r.data.items; renderCrud(name); toast(msg || 'Saved.'); return null;
+        async function setOn(id, on) {
+          const cur = S[name].find((x) => x.id === id), r = await api('PUT', `admin/${name}/${id}`, { ...cur, enabled: on });
+          if (!r.ok) return toast(say(r));
+          S[name] = r.data.items; renderCrud(name, id);
+          toast(on ? 'Showing on the website.' : 'Hidden from the website.', { label: 'Undo', fn: () => setOn(id, !on) });
         }
         async function remove(it) {
-          if (!confirm(`Delete this ${c.one}? This cannot be undone. (Use Hide to keep it but not show it.)`)) return;
+          if (!(await ask(`Delete ${c.line(it)}?`, 'It will be gone for good. To keep it but take it off the website, choose Hide instead.', 'Delete it'))) return;
           const r = await api('DELETE', `admin/${name}/${it.id}`);
           if (r.ok) { S[name] = r.data.items; renderCrud(name); toast('Deleted.'); } else toast(say(r));
         }
         function edit(it) {
-          const v = it || { ...c.blank };
-          const form = h('form', { class: 'card', novalidate: true });
-          const err = h('p', { class: 'err', role: 'alert', hidden: true });
-          const rows = c.fields.map((f) => field(f, v));
-          const sync = () => c.fields.forEach((f, i) => { if (f[4]) rows[i].hidden = !f[4]({ period: form.period?.value }); });
-          form.append(h('h2', {}, it ? `Edit this ${c.one}` : c.add), ...rows, err,
-            h('div', { class: 'row' }, h('button', { class: 'btn', type: 'submit' }, 'Save'), h('button', { class: 'btn alt', type: 'button', onclick: () => box.replaceChildren() }, 'Cancel')));
+          const v = it || { ...c.blank }, form = h('form', { novalidate: true }), err = h('p', { class: 'err', role: 'alert', hidden: true });
+          const rows = c.fields.map((f) => field(f, v, form));
+          const sync = () => c.fields.forEach((f, i) => { if (f[4]) rows[i].hidden = !f[4]({ period: form.elements.period?.value }); });
+          const vals = () => { const out = { id: v.id }; for (const f of c.fields) out[f[0]] = f[2] === 'check' ? form.elements[f[0]].checked : form.elements[f[0]].value; return out; };
+          const back = async () => { if (await leave()) renderCrud(name); };
+          put(form, h('div', { class: 'ff' }, rows), err, h('div', { class: 'formbar' }, h('button', { class: 'btn', type: 'submit' }, 'Save'), h('button', { class: 'btn quiet', type: 'button', onclick: back }, 'Cancel')));
           form.addEventListener('change', sync);
           form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const out = { id: v.id };
-            for (const f of c.fields) out[f[0]] = f[2] === 'check' ? form[f[0]].checked : form[f[0]].value; // radio groups also give .value
-            const m = await save(out);
-            if (m) { err.textContent = m; err.hidden = false; }
+            e.preventDefault(); err.hidden = true;
+            form.querySelectorAll('.fld.bad').forEach(clearErr);
+            const r = await api('PUT', `admin/${name}/${v.id || 'new'}`, vals());
+            if (!r.ok) {
+              const ctl = form.elements[ERRF[r.data.error]];
+              if (ctl?.closest('.fld')) { markErr(ctl, say(r)); ctl.focus(); } else { err.textContent = say(r); err.hidden = false; }
+              return;
+            }
+            S[name] = r.data.items; renderCrud(name, r.data.item.id); toast('Saved.');
           });
-          box.replaceChildren(form); sync();
-          form.scrollIntoView({ block: 'start' }); form.querySelector('input,select,textarea').focus();
+          put(sec, h('button', { class: 'btn quiet', type: 'button', onclick: back }, ico('back'), 'Back to the list'), h('div', { class: 'card' }, h('h2', {}, it ? `Edit this ${c.one}` : c.add), form));
+          sync();
+          const init = JSON.stringify(vals());
+          guard = () => JSON.stringify(vals()) !== init && 'What you typed has not been saved.';
+          scrollTo(0, 0); form.querySelector('input:not([type=hidden]),select,textarea').focus();
         }
       }
 
       // ---------- food menu ----------
+      let M, savedMenu;
+      const closedSecs = new WeakSet(), sameMenu = () => JSON.stringify(M) === JSON.stringify(savedMenu);
       function renderMenu() {
-        const sec = $('[data-section=menu]'), M = S.menu;
-        const bind = (obj, key) => (e) => { obj[key] = e.target.type === 'checkbox' ? e.target.checked : e.target.value; };
-        const draw = () => {
-          const err = h('p', { class: 'err', role: 'alert', hidden: true });
-          sec.replaceChildren(
-            h('h1', {}, 'Food menu'),
-            h('p', {}, 'Make sections (like Appetizers), then add items. Turn off "Available" to hide an item without deleting it. Prices are text, so write them how you want them shown.'),
-            h('label', {}, 'Kitchen hours (shown above the menu)', h('input', { type: 'text', value: M.hours, oninput: bind(M, 'hours') })),
-            M.sections.map((s, si) => h('div', { class: 'menu-section' },
-              h('label', {}, 'Section name', h('input', { type: 'text', value: s.name, oninput: bind(s, 'name') })),
-              s.items.map((it, ii) => h('div', { class: 'menu-item' },
-                h('div', { class: 'grid2' },
-                  h('label', {}, 'Item name', h('input', { type: 'text', value: it.name, oninput: bind(it, 'name') })),
-                  h('label', {}, 'Price', h('input', { type: 'text', value: it.price, oninput: bind(it, 'price') }))),
-                h('label', {}, 'Description (optional)', h('input', { type: 'text', value: it.description, oninput: bind(it, 'description') })),
-                h('div', { class: 'row' },
-                  h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: it.available, onchange: bind(it, 'available') }), 'Available'),
-                  h('button', { class: 'btn danger', type: 'button', onclick: () => { s.items.splice(ii, 1); draw(); } }, 'Remove item')))),
-              h('div', { class: 'row' },
-                h('button', { class: 'btn alt', type: 'button', onclick: () => { s.items.push({ name: '', price: '', description: '', available: true }); draw(); } }, 'Add an item'),
-                h('button', { class: 'btn danger', type: 'button', onclick: () => { if (confirm('Remove this whole section and its items?')) { M.sections.splice(si, 1); draw(); } } }, 'Remove section')))),
-            h('p', {}, h('button', { class: 'btn alt', type: 'button', onclick: () => { M.sections.push({ name: '', items: [] }); draw(); } }, 'Add a section')),
-            err,
-            h('p', {}, h('button', { class: 'btn', type: 'button', onclick: async () => {
-              const r = await api('PUT', 'admin/menu', M);
-              if (!r.ok) { err.textContent = say(r); err.hidden = false; return; }
-              S.menu = r.data.menu; renderMenu(); toast('Menu saved.');
-            } }, 'Save the menu')));
+        const sec = $('[data-section=menu]');
+        M = structuredClone(S.menu); savedMenu = structuredClone(S.menu);
+        guard = () => !sameMenu() && 'Your menu changes will be lost.';
+        let justSaved = false;
+        const notSaved = h('span', {}, h('span', { class: 'dot' }), 'You have changes that are not saved yet.'), saved = h('span', {}, 'All changes saved');
+        const bar = h('div', { class: 'bar', role: 'region', 'aria-label': 'Saving' }, notSaved, saved,
+          h('button', { class: 'btn', type: 'button', onclick: save }, 'Save the menu'), h('button', { class: 'btn quiet', type: 'button', onclick: discard }, 'Discard changes'));
+        const refresh = () => {
+          const dirty = !sameMenu();
+          for (const b of bar.querySelectorAll('.btn')) b.hidden = !dirty;
+          notSaved.hidden = !dirty; saved.hidden = dirty || !justSaved; bar.hidden = !dirty && !justSaved;
+          document.body.classList.toggle('has-bar', !bar.hidden);
         };
+        const bind = (obj, key, after) => (e) => { obj[key] = e.target.type === 'checkbox' ? e.target.checked : e.target.value; after?.(e); refresh(); };
+        const swap = (arr, i, d, key) => { [arr[i], arr[i + d]] = [arr[i + d], arr[i]]; draw(`${key(i + d)}${d < 0 ? 'up' : 'down'}`, `${key(i + d)}${d < 0 ? 'down' : 'up'}`); };
+        const gone = (msg, undo) => { draw(); toast(msg, { label: 'Undo', fn: () => { undo(); draw(); } }); };
+        const mv = (key, label, icon, f, on) => on && h('button', { class: 'btn alt mv', type: 'button', 'data-f': key, onclick: f }, ico(icon), label);
+        function draw(...focus) {
+          put(sec, h('h1', {}, 'Food menu'),
+            h('p', {}, 'Add sections, like Sandwiches, then add items to each one. Untick Available to take an item off the menu for now without deleting it. Nothing changes on the website until you choose Save the menu.'),
+            h('div', { class: 'card' }, fld('hours', 'Kitchen hours', h('textarea', { rows: 2, style: 'min-height:5rem', value: M.hours, oninput: bind(M, 'hours') }), { hint: 'Shown above the menu.' })),
+            M.sections.map((s, si) => {
+              const nm = h('span', { class: 'sname' }, s.name || 'New section'), sk = (i) => `smv${i}`;
+              return h('details', { class: 'card menu-section', open: !closedSecs.has(s), ontoggle: (e) => closedSecs[e.target.open ? 'delete' : 'add'](s) },
+                h('summary', {}, nm, h('span', { class: 'chip muted', style: 'white-space:nowrap' }, plural(s.items.length, 'item', 'items')), ico('chev')),
+                h('div', { class: 'sbody' },
+                  fld(`s${si}`, 'Section name', h('input', { type: 'text', value: s.name, 'data-f': 'sname' + si, oninput: bind(s, 'name', (e) => (nm.textContent = e.target.value || 'New section')) })),
+                  h('div', { class: 'row', style: 'margin-bottom:1rem' }, mv(sk(si) + 'up', 'Move up', 'up', () => swap(M.sections, si, -1, sk), si > 0), mv(sk(si) + 'down', 'Move down', 'down', () => swap(M.sections, si, 1, sk), si < M.sections.length - 1),
+                    h('button', { class: 'btn danger', type: 'button', onclick: async () => {
+                      const n = s.items.length;
+                      if (!(await ask(s.name ? `Remove the ${s.name} section?` : 'Remove this section?', `This also removes its ${plural(n, 'item', 'items')}. You can still undo this until you save.`, 'Remove section'))) return;
+                      M.sections.splice(si, 1); gone(s.name ? `Removed the ${s.name} section.` : 'Removed the section.', () => M.sections.splice(si, 0, s));
+                    } }, 'Remove section')),
+                  s.items.map((it, ii) => {
+                    const id = `i${si}-${ii}`, ik = (i) => `imv${si}.${i}`, off = h('span', { class: 'chip muted', hidden: it.available }, 'Off the menu'), row = h('div', { class: 'mitem' + (it.available ? '' : ' off') });
+                    return put(row, h('div', { class: 'mline' },
+                      fld(id + 'n', 'Item name', h('input', { type: 'text', value: it.name, 'data-f': `iname${si}.${ii}`, oninput: bind(it, 'name') })),
+                      fld(id + 'p', 'Price', h('input', { type: 'text', value: it.price, oninput: bind(it, 'price') }))),
+                    fld(id + 'd', 'Description', h('input', { type: 'text', value: it.description, oninput: bind(it, 'description') }), { optional: true }),
+                    h('div', { class: 'mtools' },
+                      h('label', { class: 'check', style: 'margin:0' }, h('input', { type: 'checkbox', checked: it.available, onchange: bind(it, 'available', (e) => { row.classList.toggle('off', !e.target.checked); off.hidden = e.target.checked; }) }), 'On the menu today'), off,
+                      mv(ik(ii) + 'up', 'Move up', 'up', () => swap(s.items, ii, -1, ik), ii > 0), mv(ik(ii) + 'down', 'Move down', 'down', () => swap(s.items, ii, 1, ik), ii < s.items.length - 1),
+                      h('button', { class: 'btn danger', type: 'button', onclick: () => { s.items.splice(ii, 1); gone(it.name ? `Removed ${it.name}.` : 'Removed the item.', () => s.items.splice(ii, 0, it)); } }, 'Remove'))) || row;
+                  }),
+                  h('button', { class: 'btn alt', type: 'button', onclick: () => { s.items.push({ name: '', price: '', description: '', available: true }); draw(`iname${si}.${s.items.length - 1}`); } }, '+ Add an item')));
+            }),
+            h('p', {}, h('button', { class: 'btn alt', type: 'button', onclick: () => { M.sections.push({ name: '', items: [] }); draw('sname' + (M.sections.length - 1)); } }, '+ Add a section')), bar);
+          refresh();
+          for (const k of focus) { const el = $(`[data-f="${k}"]`, sec); if (el) { el.focus(); el.scrollIntoView({ block: 'center' }); break; } }
+        }
+        async function save() {
+          const miss = M.sections.flatMap((s, si) => [[`sname${si}`, s, s.name], ...s.items.map((it, ii) => [`iname${si}.${ii}`, s, it.name])]).find((m) => !m[2].trim());
+          if (miss) { closedSecs.delete(miss[1]); draw(); const el = $(`[data-f="${miss[0]}"]`, sec); markErr(el, 'This needs a name.'); el.scrollIntoView({ block: 'center' }); el.focus(); return; }
+          const r = await api('PUT', 'admin/menu', M);
+          if (!r.ok) return toast(say(r));
+          S.menu = r.data.menu; M = structuredClone(S.menu); savedMenu = structuredClone(S.menu); justSaved = true; draw(); toast('Menu saved.');
+          setTimeout(() => { justSaved = false; refresh(); }, 3000);
+        }
+        async function discard() {
+          if (!(await ask('Discard your changes?', 'The menu goes back to how it was last saved.', 'Discard', 'Keep editing'))) return;
+          M = structuredClone(savedMenu); draw(); toast('Changes discarded.');
+        }
         draw();
       }
 
       // ---------- hall inquiries ----------
       async function renderInquiries() {
+        guard = null;
         const sec = $('[data-section=inquiries]');
         const r = await api('GET', 'admin/inquiries');
         if (!r.ok) return;
         const list = r.data.inquiries;
-        sec.replaceChildren(h('h1', {}, 'Hall inquiries'), h('p', {}, 'Messages from the hall rental form. They are also emailed to the post.'),
+        setCount(list.filter((q) => !q.handled).length);
+        put(sec, h('h1', {}, 'Hall inquiries'), h('p', {}, 'Messages from the hall rental form. They are also emailed to the post.'),
           list.length ? list.map((q) => h('div', { class: 'card' },
-            h('h2', {}, q.name, h('span', { class: q.handled ? 'badge' : 'badge new' }, q.handled ? 'Handled' : 'New')),
-            h('p', { class: 'meta' }, 'Received ' + new Date(q.at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) + (q.emailed ? '' : ' · the email to the post did not go out')),
+            h('h2', {}, q.name, ' ', h('span', { class: q.handled ? 'chip muted' : 'chip warn' }, q.handled ? 'Handled' : 'New')),
+            h('p', { class: 'meta' }, 'Received ' + when(q.at) + (q.emailed ? '' : ' · the email to the post did not go out')),
             h('p', {}, q.phone && h('span', {}, 'Phone: ', h('a', { href: 'tel:' + q.phone.replace(/[^\d+]/g, '') }, q.phone), h('br')), q.email && h('span', {}, 'Email: ', h('a', { href: 'mailto:' + q.email }, q.email), h('br')),
-              q.event_date && h('span', {}, 'Event date: ' + dayLabel(q.event_date), h('br')), q.event_type && h('span', {}, 'Event type: ' + q.event_type, h('br')), q.guests && h('span', {}, 'Guests: ' + q.guests)),
+              q.event_date && h('span', {}, 'Event date: ' + short(q.event_date), h('br')), q.event_type && h('span', {}, 'Event type: ' + q.event_type, h('br')), q.guests && h('span', {}, 'Guests: ' + q.guests)),
             q.message && h('p', { style: 'white-space:pre-wrap' }, q.message),
             h('div', { class: 'row' },
               h('button', { class: 'btn alt', type: 'button', onclick: async () => { await api('PUT', 'admin/inquiries/' + q.id, { handled: !q.handled }); renderInquiries(); } }, q.handled ? 'Mark as new' : 'Mark as handled'),
-              h('button', { class: 'btn danger', type: 'button', onclick: async () => { if (confirm('Delete this inquiry for good?')) { await api('DELETE', 'admin/inquiries/' + q.id); renderInquiries(); } } }, 'Delete')))) : h('div', { class: 'card' }, 'No inquiries yet.'));
+              h('button', { class: 'btn danger', type: 'button', onclick: async () => { if (await ask(`Delete the message from ${q.name}?`, 'It will be gone for good.', 'Delete it')) { await api('DELETE', 'admin/inquiries/' + q.id); renderInquiries(); } } }, 'Delete')))) : h('div', { class: 'card' }, h('p', { class: 'big' }, 'No inquiries yet.'), h('p', {}, 'Messages from the hall rental form will show up here.')));
       }
 
       // ---------- dashboard ----------
-      function chart(series) {
-        const W = 640, H = 220, L = 40, B = 24, T = 10, R = 8;
-        const max = Math.max(4, ...series.map((p) => p.n)), top = Math.ceil(max / 4) * 4;
-        const x = (i) => L + (series.length < 2 ? 0 : (i * (W - L - R)) / (series.length - 1)), y = (n) => T + (H - T - B) * (1 - n / top);
-        const pts = series.map((p, i) => `${x(i).toFixed(1)},${y(p.n).toFixed(1)}`).join(' ');
-        const ns = 'http://www.w3.org/2000/svg';
-        const svg = document.createElementNS(ns, 'svg');
-        svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.setAttribute('class', 'chart'); svg.setAttribute('role', 'img');
-        svg.setAttribute('aria-label', `Visitors per day, highest ${max}`);
-        const grid = [0, 1, 2, 3, 4].map((i) => { const v = (top / 4) * i; return `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="#d6d8da"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`; }).join('');
-        const lab = (i, a) => `<text x="${x(i)}" y="${H - 6}" text-anchor="${a}">${series[i].day.slice(5)}</text>`;
-        svg.innerHTML = grid + `<polyline points="${pts}" fill="none" stroke="#1f3a5f" stroke-width="3" stroke-linejoin="round"/>` + (series.length ? lab(0, 'start') + lab(series.length - 1, 'end') : '');
+      let range = '30d';
+      const RANGES = [['7d', '7 days', 'the 7 days before'], ['30d', '30 days', 'the 30 days before'], ['90d', '90 days', 'the 90 days before'], ['365d', 'Year', 'the year before']];
+      const PAGES = { '/': 'Home', '/bar': 'The bar and food menu', '/events': 'Events calendar', '/hall': 'Hall rental', '/news': 'News', '/about': 'About the post', '/history': 'Our history', '/programs': 'Programs', '/resources': 'Help for veterans', '/contact': 'Contact' };
+      const pageName = (p) => PAGES[p] || ((s) => s.charAt(0).toUpperCase() + s.slice(1))(p.split('/').filter(Boolean).pop()?.replace(/-/g, ' ') || 'Home');
+      const SITES = [[/^maps\.google\./, 'Google Maps'], [/(^|\.)(facebook|fb)\.com$/, 'Facebook'], [/(^|\.)google\.[a-z.]+$/, 'Google'], [/(^|\.)bing\.com$/, 'Bing'], [/(^|\.)duckduckgo\.com$/, 'DuckDuckGo'],
+        [/(^|\.)yahoo\.com$/, 'Yahoo'], [/(^|\.)instagram\.com$/, 'Instagram'], [/(^|\.)nextdoor\.com$/, 'Nextdoor']];
+      const siteName = (host) => { const x = host.replace(/^www\./, ''); return SITES.find(([re]) => re.test(x))?.[1] || x; };
+      const merge = (rows, name) => [...rows.reduce((m, r) => m.set(name(r), (m.get(name(r)) || 0) + r.n), new Map())].sort((a, b) => b[1] - a[1]);
+      function change(cur, prev, before) {
+        if (!cur && !prev) return null;
+        const diff = cur - prev, pct = prev >= 5 ? Math.round((Math.abs(diff) / prev) * 100) : 0;
+        if (!diff || (prev >= 5 && !pct)) return h('div', { class: 'chg' }, `Same as ${before}`);
+        const up = diff > 0, words = prev >= 5 ? `${up ? 'Up' : 'Down'} ${pct}% on ${before}` : `${money(Math.abs(diff))} ${up ? 'more' : 'fewer'} than ${before}`;
+        return h('div', { class: 'chg' + (up ? ' up' : '') }, ico(up ? 'up' : 'down', 16), words);
+      }
+      function bars(series, r) {
+        if (r === '90d') return { head: 'Visitors per week', bs: Array.from({ length: Math.ceil(series.length / 7) }, (_, i) => { const w = series.slice(i * 7, i * 7 + 7), n = w.reduce((a, p) => a + p.n, 0); return { n, label: md(w[0].day), title: `Week of ${wd(w[0].day)}: ${plural(n, 'visitor', 'visitors')}` }; }) };
+        if (r === '365d') { const by = new Map(); for (const p of series) by.set(p.day.slice(0, 7), (by.get(p.day.slice(0, 7)) || 0) + p.n); return { head: 'Visitors per month', bs: [...by].map(([k, n], i, all) => ({ n, label: i === 0 || i === all.length - 1 ? UTC(k + '-15', { month: 'short', year: 'numeric' }) : mon(k + '-15'), title: `${UTC(k + '-15', { month: 'long', year: 'numeric' })}: ${plural(n, 'visitor', 'visitors')}` })) }; }
+        return { head: 'Visitors per day', bs: series.map((p) => ({ n: p.n, label: md(p.day), title: `${wd(p.day)}: ${plural(p.n, 'visitor', 'visitors')}` })) };
+      }
+      function chart(bs, label, W) {
+        const H = 220, L = 38, B = 26, T = 12, R = 6, max = Math.max(...bs.map((b) => b.n)), top = [5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000].find((x) => x >= max) || Math.ceil(max / 1000) * 1000;
+        const y = (n) => T + (H - T - B) * (1 - n / top), slot = (W - L - R) / bs.length, bw = slot / 1.25, hi = bs.findIndex((b) => b.n === max);
+        const grid = [0, top / 2, top].map((v) => `<line class="gl" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`).join('');
+        const rects = bs.map((b, i) => { const hh = (H - B - T) * (b.n / top), r = Math.min(2, hh), x = L + i * slot + (slot - bw) / 2; return `<g><title>${b.title}</title>` + (hh ? `<path class="bar${i === hi ? ' hi' : ''}" d="M${x} ${H - B}v${-(hh - r)}q0 ${-r} ${r} ${-r}h${bw - 2 * r}q${r} 0 ${r} ${r}v${hh - r}z"/>` : '') + `<rect x="${L + i * slot}" y="${T}" width="${slot}" height="${H - T - B}" fill="transparent"/></g>`; }).join('');
+        const lab = (i, a) => `<text x="${a === 'start' ? L + i * slot : a === 'end' ? L + (i + 1) * slot - (slot - bw) / 2 : L + i * slot + slot / 2}" y="${H - 6}" text-anchor="${a}">${bs[i].label}</text>`;
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.setAttribute('class', 'chart'); svg.setAttribute('role', 'img'); svg.setAttribute('aria-label', label);
+        svg.innerHTML = grid + rects + lab(0, 'start') + (bs.length > 2 ? lab(Math.floor((bs.length - 1) / 2), 'middle') : '') + (bs.length > 1 ? lab(bs.length - 1, 'end') : '');
         return svg;
       }
-      async function renderDashboard(range = '30d') {
+      async function renderDashboard() {
+        guard = null;
         const sec = $('[data-section=dashboard]');
         const r = await api('GET', 'admin/stats?range=' + range);
         if (!r.ok) return;
-        const d = r.data;
-        const pick = h('select', { 'aria-label': 'Time range', onchange: (e) => renderDashboard(e.target.value) }, [['7d', 'Last 7 days'], ['30d', 'Last 30 days'], ['90d', 'Last 90 days'], ['365d', 'Last year']].map(([v, t]) => h('option', { value: v, selected: v === d.range }, t)));
-        const tile = (n, t) => h('div', { class: 'tile' }, h('b', {}, money(n)), t);
-        const ev = h('div');
-        const top = (items, key, empty) => (items.length ? h('ol', { class: 'top' }, items.map((i) => h('li', {}, `${i[key]} (${money(i.n)})`))) : h('p', { class: 'meta' }, empty));
-        sec.replaceChildren(h('h1', {}, 'Dashboard'),
-          h('label', {}, 'Show', pick),
-          h('div', { class: 'tiles' }, tile(d.visitors, 'Visitors'), tile(d.views, 'Page views'), tile(d.inquiries.inRange, 'Hall inquiries'), tile(d.inquiries.new, 'Inquiries not handled yet')),
-          h('div', { class: 'card' }, h('h2', {}, 'Visitors per day'), chart(d.series), h('p', { class: 'meta' }, 'Counted without cookies. Your own visits while signed in are not counted.')),
-          h('div', { class: 'grid2' }, h('div', { class: 'card' }, h('h2', {}, 'Top pages'), top(d.pages, 'path', 'No visits counted yet.')),
-            h('div', { class: 'card' }, h('h2', {}, 'Where visitors came from'), top(d.referrers, 'host', 'No referring sites yet.'))),
-          h('div', { class: 'card' }, h('h2', {}, 'Security log (last 50)'), h('p', { class: 'meta' }, 'Sign-ins, lockouts, password changes and every change made in this admin. Read only.'), ev));
+        const d = r.data, before = RANGES.find((x) => x[0] === d.range)[2], period = d.range === '365d' ? 'Last year' : 'Last ' + d.range.replace('d', ' days');
+        setCount(d.inquiries.new);
+        const best = d.series.reduce((a, p) => (p.n > a.n ? p : a), { n: 0 });
+        const sentence = best.n ? `Busiest day: ${wd(best.day)}, with ${plural(best.n, 'visitor', 'visitors')}.` : 'No visitors counted in this period yet.';
+        const tile = (label, n, prev) => h('div', { class: 'tile card' }, h('div', { class: 'tl' }, label), h('div', { class: 'meta' }, period), h('div', { class: 'num' }, money(n)), change(n, prev, before));
+        const { head, bs } = bars(d.series, d.range), holder = h('div');
+        const rank = (rows, empty) => { const max = Math.max(1, ...rows.map((x) => x[1])); return rows.length ? h('ul', { class: 'rank' }, rows.map(([name, n]) => h('li', {}, h('span', { class: 'bg', style: `width:${(n / max) * 100}%` }, ''), h('span', { class: 'nm' }, name), h('span', { class: 'ct' }, money(n))))) : h('p', { class: 'meta' }, empty); };
+        const secCard = h('div', { class: 'card' });
+        put(sec, h('div', { class: 'head' }, h('h1', {}, 'Dashboard'),
+            h('div', { class: 'seg', role: 'group', 'aria-label': 'Time range' }, RANGES.map(([k, t]) => h('button', { class: 'btn alt', type: 'button', 'aria-pressed': String(k === d.range), onclick: () => { range = k; renderDashboard(); } }, t)))),
+          h('div', { class: 'tiles' }, tile('Visitors', d.visitors, d.prev.visitors), tile('Page views', d.views, d.prev.views), tile('Hall inquiries', d.inquiries.inRange, d.prev.inquiries),
+            h('a', { class: 'tile card', href: '#inquiries' }, h('div', { class: 'tl' }, 'Waiting for a reply'), h('div', { class: 'meta' }, 'All time'), h('div', { class: 'num' }, money(d.inquiries.new)), d.inquiries.new > 0 && h('span', { class: 'chip warn' }, 'Needs a look'))),
+          h('div', { class: 'card' }, h('h2', {}, head), holder, h('p', { class: 'meta' }, sentence), h('p', { class: 'meta' }, 'Counted without cookies. Your own visits while signed in are not counted.')),
+          h('div', { class: 'two' }, h('div', { class: 'card' }, h('h2', {}, 'Most viewed pages'), rank(merge(d.pages, (p) => pageName(p.path)), 'No page visits counted yet.')),
+            h('div', { class: 'card' }, h('h2', {}, 'Where visitors came from'), rank(merge(d.referrers, (p) => siteName(p.host)), 'No other websites have sent visitors yet.'))), secCard);
+        if (best.n) holder.append(chart(bs, sentence, holder.clientWidth || 640));
         const sr = await api('GET', 'admin/security');
-        if (sr.ok) ev.replaceChildren(...(sr.data.events.length ? sr.data.events.map((e) => h('div', { class: 'item' }, h('div', { class: 'what' }, h('strong', {}, e.type.replace(/_/g, ' ')), ' ', e.who, e.detail && ' · ' + e.detail),
-          h('div', { class: 'meta' }, new Date(e.at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) + (e.ip ? ' · ' + e.ip : '')))) : [h('p', {}, 'Nothing logged yet.')]));
+        if (sr.ok) {
+          const n = sr.data.events.filter((e) => e.at > Date.now() - 7 * 864e5 && ['warn', 'bad'].includes(evInfo(e).kind)).length;
+          put(secCard, h('h2', {}, 'Security'), h('p', {}, n ? h('span', { class: 'chip warn' }, `${plural(n, 'warning', 'warnings')} in the last 7 days`) : h('span', { class: 'chip ok' }, 'All quiet in the last 7 days')),
+            h('a', { class: 'btn alt', href: '#security' }, 'Open the security log'));
+        }
+      }
+
+      // ---------- security log ----------
+      const EVT = { login_ok: ['Signed in', 'ok'], logout: ['Signed out', 'muted', 'door'], login_fail: ['Wrong username or password', 'warn'], lockout: ['Locked out after too many wrong tries', 'bad'],
+        login_blocked: ['Sign-in refused while locked out', 'bad'], password_change: ['Password changed', 'ok'], password_change_fail: ['Password change refused: current password was wrong', 'warn'],
+        password_change_blocked: ['Password changes paused: too many tries', 'bad'], menu_update: ['Saved the food menu', 'edit'], photo_upload: ['Uploaded a picture', 'edit'], photo_delete: ['Deleted a picture', 'edit', 'bin'],
+        photo_upload_blocked: ['Stopped a picture upload that was not allowed', 'warn'], inquiry_delete: ['Deleted a hall inquiry', 'edit', 'bin'], inquiries_purged: ['Old hall inquiries cleared automatically', 'muted', 'clock'],
+        inquiry_honeypot: ['Stopped a spam message on the hall form', 'warn'], inquiry_rate_limited: ['Too many hall messages from one visitor', 'warn'] };
+      for (const [k, t] of [['events', 'an event'], ['specials', 'a drink special'], ['news', 'a news item']]) for (const [a, w] of [['create', 'Added'], ['update', 'Changed'], ['delete', 'Deleted']]) EVT[`${k}_${a}`] = [`${w} ${t}`, 'edit', a === 'delete' ? 'bin' : 'pencil'];
+      const KIND_ICON = { ok: 'check', warn: 'warn', bad: 'bshield', edit: 'pencil', muted: 'clock' };
+      function evInfo(e) {
+        let [name, kind, icon] = EVT[e.type] || ['Other activity', 'muted'], detail = e.detail;
+        if (e.type === 'inquiry_update') { name = / · handled$/.test(detail) ? 'Marked a hall inquiry as handled' : 'Marked a hall inquiry as new'; detail = detail.replace(/ · (handled|new)$/, ''); kind = 'edit'; }
+        if (kind !== 'edit' || /^id \S+/.test(detail) || e.type === 'photo_upload' || e.type === 'photo_delete') detail = '';
+        const local = ['::1', '127.0.0.1', '::ffff:127.0.0.1'].includes(e.ip);
+        const who = ['login_fail', 'lockout', 'login_blocked'].includes(e.type) ? (e.who ? 'Username tried: ' + e.who : 'No username typed') : e.who === 'visitor' ? 'by a visitor' : e.who === 'system' ? 'automatic' : e.who ? 'by ' + e.who : '';
+        return { name, kind, icon: icon || KIND_ICON[kind], detail, who, ip: e.ip && (local ? 'This computer' : e.ip) };
+      }
+      let secFilter = 'all', secShown = 50, secEvents = [];
+      const FILTERS = [['all', 'All'], ['in', 'Sign-ins'], ['edit', 'Changes'], ['warn', 'Warnings']];
+      async function renderSecurity() {
+        guard = null;
+        const r = await api('GET', 'admin/security');
+        if (!r.ok) return;
+        secEvents = r.data.events; secShown = 50; drawSecurity();
+      }
+      function drawSecurity() {
+        const sec = $('[data-section=security]');
+        const all = secEvents.map((e) => ({ e, ...evInfo(e) })).filter((x) => secFilter === 'all' || (secFilter === 'in' ? /^(login|logout|lockout|password)/.test(x.e.type) : secFilter === 'edit' ? x.kind === 'edit' : ['warn', 'bad'].includes(x.kind))), rows = all.slice(0, secShown);
+        const days = [], now = Date.now();
+        for (const x of rows) { const day = etDay(x.e.at); if (days.at(-1)?.day !== day) days.push({ day, rows: [] }); days.at(-1).rows.push(x); }
+        const dayName = (day) => (day === etDay(now) ? 'Today' : day === etDay(now - 864e5) ? 'Yesterday' : UTC(day, { weekday: 'long', month: 'long', day: 'numeric' }));
+        put(sec, h('h1', {}, 'Security log'), h('p', {}, 'Sign-ins, lockouts, password changes and every change made in this admin. Kept automatically; nothing here can be edited.'),
+          h('div', { class: 'seg', role: 'group', 'aria-label': 'Show', style: 'margin-bottom:1.25rem' }, FILTERS.map(([k, t]) => h('button', { class: 'btn alt', type: 'button', 'aria-pressed': String(k === secFilter), onclick: () => { secFilter = k; secShown = 50; drawSecurity(); } }, t))),
+          days.length ? [days.map(({ day, rows: rs }) => [h('h2', {}, dayName(day)), h('div', { class: 'card' }, rs.map((x) => h('div', { class: 'ev' }, h('span', { class: 'evi ' + x.kind }, ico(x.icon)),
+            h('div', {}, h('div', {}, h('strong', {}, x.name), x.detail && ' · ' + x.detail), h('div', { class: 'meta' }, new Date(x.e.at).toLocaleTimeString('en-US', { ...ET, hour: 'numeric', minute: '2-digit' }) + (x.who ? ' · ' + x.who : '')),
+              x.ip && h('details', {}, h('summary', {}, 'More'), h('div', { class: 'meta' }, x.ip === 'This computer' ? 'This computer' : 'Internet address: ' + x.ip))))))]),
+            all.length > secShown && h('button', { class: 'btn alt', type: 'button', onclick: () => { secShown += 50; drawSecurity(); } }, 'Show older entries')]
+            : h('div', { class: 'card' }, h('p', { class: 'big' }, secEvents.length ? (secFilter === 'warn' ? 'No warnings in the log. All quiet.' : 'Nothing of that kind in the log.') : 'Nothing logged yet.')));
       }
 
       // ---------- account ----------
       function renderAccount() {
+        guard = null;
         const sec = $('[data-section=account]');
         const err = h('p', { class: 'err', role: 'alert', hidden: true });
-        const form = h('form', { class: 'card', novalidate: true },
-          h('h2', {}, 'Change the password'),
-          h('label', {}, 'Current password', h('input', { type: 'password', name: 'current', autocomplete: 'current-password' })),
-          h('label', {}, 'New password (at least 10 characters)', h('input', { type: 'password', name: 'password', autocomplete: 'new-password' })),
-          h('label', {}, 'New password again', h('input', { type: 'password', name: 'again', autocomplete: 'new-password' })),
+        const pw = (id, label, name, auto, x) => fld(id, label, h('input', { type: 'password', name, autocomplete: auto }), x);
+        const form = h('form', { class: 'card', novalidate: true }, h('h2', {}, 'Change the password'),
+          pw('pw-c', 'Current password', 'current', 'current-password'), pw('pw-n', 'New password', 'password', 'new-password', { hint: 'At least 10 characters. A short sentence is easy to remember.' }), pw('pw-a', 'New password again', 'again', 'new-password'),
           err, h('button', { class: 'btn', type: 'submit' }, 'Change password'));
         form.addEventListener('submit', async (e) => {
           e.preventDefault(); err.hidden = true;
@@ -329,29 +662,38 @@ const NAV = [['dashboard', 'Dashboard'], ['events', 'Events'], ['specials', 'Dri
           if (!r.ok) { err.textContent = say(r); err.hidden = false; return; }
           form.reset(); $('#default-warning').hidden = true; toast('Password changed.');
         });
-        sec.replaceChildren(h('h1', {}, 'Account'), h('p', {}, 'Signed in as ' + S.user + '.'), form,
-          h('button', { class: 'btn alt', type: 'button', onclick: async () => { await api('POST', 'logout'); location.reload(); } }, 'Sign out'));
+        put(sec, h('h1', {}, 'Account'), h('p', {}, 'Signed in as ' + S.user + '.'), form);
       }
 
       // ---------- navigation ----------
-      const VIEWS = { dashboard: () => renderDashboard(), events: () => renderCrud('events'), specials: () => renderCrud('specials'), menu: renderMenu, news: () => renderCrud('news'), inquiries: renderInquiries, account: renderAccount };
+      const VIEWS = { dashboard: renderDashboard, events: () => renderCrud('events'), specials: () => renderCrud('specials'), menu: renderMenu, news: () => renderCrud('news'), inquiries: renderInquiries, security: renderSecurity, account: renderAccount };
+      let cur = '', restoring = false;
       function show() {
         const v = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'dashboard';
+        cur = v; document.body.classList.remove('has-bar'); $('#mnav').open = false;
         document.querySelectorAll('[data-section]').forEach((s) => (s.hidden = s.dataset.section !== v));
-        document.querySelectorAll('.side [data-view]').forEach((a) => (a.dataset.view === v ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')));
+        document.querySelectorAll('[data-view]').forEach((a) => (a.dataset.view === v ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')));
         VIEWS[v]();
       }
       async function start() {
         const r = await api('GET', 'admin/state');
         if (!r.ok) return showLogin();
         S = r.data;
-        const ph = await api('GET', 'admin/photos');
+        const [ph, st] = await Promise.all([api('GET', 'admin/photos'), api('GET', 'admin/stats?range=7d')]);
         S.photos = ph.ok ? ph.data.photos : [];
+        if (st.ok) setCount(st.data.inquiries.new);
+        put($('#links'), navLinks()); put($('#tail'), navTail()); put($('#mlinks'), navLinks(), navTail());
         $('#gate').hidden = true; $('#app').hidden = false;
         $('#default-warning').hidden = !S.defaultPassword;
         show();
       }
-      addEventListener('hashchange', () => S && show());
+      addEventListener('hashchange', async () => {
+        if (!S) return;
+        if (restoring) { restoring = false; return; }
+        if (!(await leave())) { restoring = true; location.hash = cur; return; }
+        show();
+      });
+      addEventListener('beforeunload', (e) => { if (guard?.()) e.preventDefault(); });
       start();
     </script>
   </body>
