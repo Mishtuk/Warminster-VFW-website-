@@ -65,6 +65,11 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
 - **Youth contests `/youth`:** Voice of Democracy and Patriot's Pen 2026-27 (theme, deadline countdown, prizes) and VFW scholarships, linked to vfw.org.
 - **Admin:** Volunteers, Help requests and Site settings views. Public forms have rate limits, origin checks, a honeypot and size caps.
 
+### Post shop `/shop` (2026-10-20)
+- Products are added in Admin > Shop: name, price, description, sizes, picture (same upload as news), Show on website, Move up/down. With no products it shows "Coming soon".
+- Each product either has a Buy online link (an https payment link from Square or PayPal; nothing about payments touches our server) or takes an order to pay at pickup. Orders go to Admin > Shop > Orders and to `POST_EMAIL`, are never shown publicly, and are deleted after 12 months.
+- Before selling: VFW name and emblem items need written consent from VFW National, or must come from the VFW Store or a licensed vendor. PA sales tax on merch: ask the post's accountant.
+
 ### Owner questions from round 3
 - Tax status/EIN and a donation link (who receives gifts).
 - Who answers help requests, and their email (set it in Site settings before turning the form on). Production also needs `POST_EMAIL`.
@@ -73,6 +78,7 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
 
 ### Ideas still open (the owner decides)
 1. Online hall booking calendar. 2. Event RSVPs. 3. Merch store (check VFW licensing). 4. Email or text reminder list. 5. Photo uploads beyond news. 6. Wall of Honor (family consent). 7. Membership renewal links. 8. Live "Bar open now" badge on more pages. 9. Printable monthly flyer. 10. Spanish or large-print toggle.
+(3. Merch store: built as `/shop`; it is waiting on products, a payment link and VFW licensing.)
 
 ### Rules for editing code
 - Keep every asset self-hosted (the CSP blocks other origins).
@@ -210,7 +216,7 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
 | The Bar | `/bar` |
 | Events | `/events` (full-year calendar and list), `/events/first-visit` (first-timer guide) |
 | Hall Rental | `/hall` |
-| Programs & Resources | `/programs`, `/resources`, `/youth` (contests and scholarships), `/support`, `/volunteer`, `/help` (veteran help request) |
+| Programs & Resources | `/programs`, `/resources`, `/youth` (contests and scholarships), `/support`, `/shop` (Post shop), `/volunteer`, `/help` (veteran help request) |
 | News | `/news` |
 | About | `/about`, `/history`, `/contact` |
 

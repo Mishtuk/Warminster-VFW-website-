@@ -5,13 +5,13 @@ import { createReadStream, existsSync, mkdirSync, readFileSync, readdirSync, sta
 import { extname, join, normalize, sep } from 'node:path';
 import { createHash, randomBytes } from 'node:crypto';
 import { brotliCompressSync, constants as zc, gzipSync } from 'node:zlib';
-import { openDb, getState, setState, backup, purgeInquiries, retentionDays, purgeHelp, purgeShifts, getSettings, setSettings, shiftsWithCounts } from './src/db.js';
+import { openDb, getState, setState, backup, purgeInquiries, retentionDays, purgeHelp, purgeOrders, purgeShifts, getSettings, setSettings, shiftsWithCounts } from './src/db.js';
 import { clean, createAudit } from './src/audit.js';
 import {
   allow, adminRow, checkLogin, clearFailures, clientIp, cookieHeader, dataDirProblem, defaultInUse, locked, readCookie, recordFailure, sameOrigin, seedAdmin, setPassword,
   signSession, startupProblem, verifySession, SESSION_DAYS,
 } from './src/auth.js';
-import { etDay, HELP_KINDS, injectMarkers, specialOrder, validateEvent, validateHelp, validateMenu, validateNews, validateSettings, validateShift, validateSignup, validateSpecial } from './src/lib/state.js';
+import { etDay, HELP_KINDS, injectMarkers, specialOrder, validateEvent, validateHelp, validateMenu, validateNews, validateOrder, validateProduct, validateSettings, validateShift, validateSignup, validateSpecial } from './src/lib/state.js';
 import { createInquiryHandler, createMailer, HONEYPOT } from './src/email/index.js';
 import { createStats } from './src/stats/index.js';
 
@@ -47,11 +47,12 @@ const db = openDb(DATA);
 const audit = createAudit({ db, log });
 const stats = createStats({ db, log });
 const submitInquiry = createInquiryHandler({ db, env, dataDir: DATA, log, audit: audit.event });
-const RETENTION = retentionDays(env.INQUIRY_RETENTION_DAYS);
+const RETENTION = retentionDays(env.INQUIRY_RETENTION_DAYS), SHOP_RETENTION = retentionDays(env.SHOP_RETENTION_DAYS);
 const sendMail = createMailer({ env, dataDir: DATA, log });
 const purge = () => {
   try { const n = purgeInquiries(db, RETENTION); if (n) audit.event('inquiries_purged', 'system', '', `${n} older than ${RETENTION} days`); } catch (e) { log('purge failed', e.message); }
   try { const n = purgeShifts(db, etDay(new Date(Date.now() - 7 * 864e5))); if (n) audit.event('shifts_purged', 'system', '', `${n} shifts, a week after the date`); } catch (e) { log('shift purge failed', e.message); }
+  try { const n = purgeOrders(db, SHOP_RETENTION); if (n) audit.event('orders_purged', 'system', '', `${n} older than ${SHOP_RETENTION} days`); } catch (e) { log('order purge failed', e.message); }
   try { const n = purgeHelp(db); if (n) audit.event('help_purged', 'system', '', `${n} older than 90 days`); } catch (e) { log('help purge failed', e.message); }
 };
 purge();
@@ -237,8 +238,8 @@ async function login(req, url) {
 }
 
 // ---------- API ----------
-const FIELDS = { events: validateEvent, specials: validateSpecial, news: validateNews };
-const SORT = { events: (a, b) => a.date.localeCompare(b.date) || (a.start ?? '').localeCompare(b.start ?? ''), specials: specialOrder, news: (a, b) => b.date.localeCompare(a.date) };
+const FIELDS = { events: validateEvent, specials: validateSpecial, news: validateNews, products: validateProduct };
+const SORT = { events: (a, b) => a.date.localeCompare(b.date) || (a.start ?? '').localeCompare(b.start ?? ''), specials: specialOrder, news: (a, b) => b.date.localeCompare(a.date) }; // products have no sort: the array order is the display order
 
 const HALL_PAGES = { __proto__: null, '/hall': '/hall/', '/hall/': '/hall/' };
 /** Public hall form: JSON (fetch) gets JSON back; a plain browser form post gets a 303 back to the hall page (works without JS). */
@@ -266,6 +267,7 @@ async function publicForm(req, url, handle, pages, anchor) {
 }
 const VOL_PAGES = { __proto__: null, '/volunteer': '/volunteer/', '/volunteer/': '/volunteer/' };
 const HELP_PAGES = { __proto__: null, '/help': '/help/', '/help/': '/help/' };
+const SHOP_PAGES = { __proto__: null, '/shop': '/shop/', '/shop/': '/shop/' };
 const digits = (s) => String(s).replace(/\D/g, '');
 
 async function volunteerSignup(f, ip) {
@@ -311,10 +313,30 @@ async function helpRequest(f, ip) {
   return { status: 200, body: { ok: true, responder: set.responderName } };
 }
 
+/** Pickup order from the shop page: stored, then emailed to the post. The log never gets the customer's words. */
+async function shopOrder(f, ip) {
+  if (String(f[HONEYPOT] ?? '').trim()) { audit.event('shop_honeypot', 'visitor', ip, 'hidden field filled, nothing stored'); return { status: 200, body: { ok: true } }; }
+  const v = validateOrder(f, getState(db).products);
+  if (v.error) return { status: 400, body: { error: v.error } };
+  if (!allow(`shop:ip:${ip}`, 5) || !allow('shop:all', 60)) { audit.event('shop_rate_limited', 'visitor', ip, 'too many orders'); return { status: 429, body: { error: 'rate' } }; }
+  const q = v.value, at = new Date();
+  const r = db.prepare('INSERT INTO shop_orders (at, day, product_id, product, option, price, qty, name, phone, email, note) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(+at, etDay(at), q.productId, q.product, q.option, q.price, q.qty, q.name, q.phone, q.email, q.note);
+  audit.event('shop_order', 'visitor', ip, q.product);
+  const to = env.POST_EMAIL || (env.SMTP_URL ? '' : 'post@localhost.invalid');
+  if (to) {
+    try {
+      await sendMail({ to, subject: 'New shop order on the post website', text: `New shop order\n\nFrom: ${q.name.split(' ')[0]}\nOrder: ${q.qty} x ${q.product}${q.option ? ` - ${q.option}` : ''}\n${q.phone ? `Phone: ${q.phone}\n` : ''}${q.email ? `Email: ${q.email}\n` : ''}${q.note ? `Note: ${q.note}\n` : ''}\nRead it in the website admin under Shop.\n` });
+      db.prepare('UPDATE shop_orders SET emailed = 1 WHERE id = ?').run(r.lastInsertRowid);
+    } catch (e) { log('shop email failed:', e.message); }
+  }
+  return { status: 200, body: { ok: true, item: { name: q.product, option: q.option, qty: q.qty } } };
+}
+
 async function route(req, url) {
   const p = url.pathname;
   if (p === '/api/volunteer' && req.method === 'POST') return publicForm(req, url, volunteerSignup, VOL_PAGES, '#signup');
   if (p === '/api/help-request' && req.method === 'POST') return publicForm(req, url, helpRequest, HELP_PAGES, '#request');
+  if (p === '/api/shop-order' && req.method === 'POST') return publicForm(req, url, shopOrder, SHOP_PAGES, '#order');
   if (p === '/api/hall-inquiry' && req.method === 'POST') return hallInquiry(req, url);
   if (p === '/api/login' && req.method === 'POST') return login(req, url);
   if (p === '/api/logout' && req.method === 'POST') {
@@ -381,13 +403,13 @@ async function adminApi(req, url, user) {
   const ip = clientIp(req);
   const note = (what, detail = '') => audit.event(what, user, ip, detail); // who = the signed-in admin
 
-  if (key === 'GET state') return json({ user, defaultPassword: defaultInUse(db), newHelp: db.prepare('SELECT COUNT(*) n FROM help_requests WHERE handled = 0').get().n, events: list('events'), specials: list('specials'), news: list('news'), menu: state.menu ?? emptyMenu, today: etDay(new Date()) });
+  if (key === 'GET state') return json({ user, defaultPassword: defaultInUse(db), newHelp: db.prepare('SELECT COUNT(*) n FROM help_requests WHERE handled = 0').get().n, newOrders: db.prepare('SELECT COUNT(*) n FROM shop_orders WHERE handled = 0').get().n, products: list('products'), events: list('events'), specials: list('specials'), news: list('news'), menu: state.menu ?? emptyMenu, today: etDay(new Date()) });
   if (key === 'GET stats') return json(stats.summary(url.searchParams.get('range') ?? '30d'));
   const photoList = () => { const all = photoFiles(); return pickablePhotos(all).map((name) => ({ name, thumb: all.has(name.replace('.', '-800.')) ? name.replace('.', '-800.') : name })); };
   if (key === 'GET photos') return json({ photos: photoList() });
   if (key === 'POST photos') return uploadPhoto(body, ip, note, photoList);
   if (key === 'DELETE photos' && /^news-\d{8}-[0-9a-f]{6}\.webp$/.test(a1 ?? '')) { // only uploads; built photos are never touched
-    if (list('news').some((n) => n.photo === a1)) return bad('in_use', 409);
+    if (list('news').some((n) => n.photo === a1) || list('products').some((n) => n.photo === a1)) return bad('in_use', 409);
     if (!existsSync(join(PHOTOS, a1))) return bad('not_found', 404);
     for (const f of [a1, a1.replace('.', '-800.')]) try { unlinkSync(join(PHOTOS, f)); } catch {}
     note('photo_delete', a1);
@@ -398,13 +420,22 @@ async function adminApi(req, url, user) {
   if (Object.hasOwn(FIELDS, section) && ['PUT', 'DELETE'].includes(req.method)) { // /api/admin/<events|specials|news>/<id or "new">
     const items = list(section);
     if (a1 !== 'new' && !items.some((x) => x.id === a1)) return bad('not_found', 404);
-    if (req.method === 'DELETE') { const gone = items.find((x) => x.id === a1); state[section] = items.filter((x) => x.id !== a1); setState(db, state); note(`${section}_delete`, gone.title ?? gone.label); return json({ ok: true, items: state[section] }); }
+    if (req.method === 'DELETE') { const gone = items.find((x) => x.id === a1); state[section] = items.filter((x) => x.id !== a1); setState(db, state); note(`${section}_delete`, gone.title ?? gone.label ?? gone.name); return json({ ok: true, items: state[section] }); }
     const v = FIELDS[section]({ ...body, id: a1 === 'new' ? undefined : a1 }, { photos: photoFiles() });
     if (v.error) return bad(v.error);
-    state[section] = [...items.filter((x) => x.id !== v.value.id), v.value].sort(SORT[section]);
+    const next = items.some((x) => x.id === v.value.id) ? items.map((x) => (x.id === v.value.id ? v.value : x)) : [...items, v.value]; // an edit keeps its place, a new one goes last
+    state[section] = SORT[section] ? next.sort(SORT[section]) : next;
     setState(db, state);
-    note(`${section}_${a1 === 'new' ? 'create' : 'update'}`, (v.value.title ?? v.value.label) + (v.value.enabled === false ? ' · hidden' : ''));
+    note(`${section}_${a1 === 'new' ? 'create' : 'update'}`, (v.value.title ?? v.value.label ?? v.value.name) + (v.value.enabled === false ? ' · hidden' : ''));
     return json({ item: v.value, items: state[section] });
+  }
+  if (key === 'PUT products-order') { // the new order of the shop products: exactly the ids that exist now
+    const items = list('products'), ids = body?.ids;
+    if (!Array.isArray(ids) || ids.length !== items.length || new Set(ids).size !== ids.length || !items.every((x) => ids.includes(x.id))) return bad('order');
+    state.products = ids.map((i) => items.find((x) => x.id === i));
+    setState(db, state);
+    note('products_reorder', '');
+    return json({ items: state.products });
   }
   if (key === 'PUT menu') {
     const v = validateMenu(body);
@@ -420,6 +451,15 @@ async function adminApi(req, url, user) {
     const who = db.prepare('SELECT name FROM inquiries WHERE id = ?').get(+a1)?.name ?? '';
     const r = req.method === 'PUT' ? db.prepare('UPDATE inquiries SET handled = ? WHERE id = ?').run(body?.handled ? 1 : 0, +a1) : db.prepare('DELETE FROM inquiries WHERE id = ?').run(+a1);
     if (r.changes) note(req.method === 'PUT' ? 'inquiry_update' : 'inquiry_delete', who + (req.method === 'PUT' ? (body?.handled ? ' · handled' : ' · new') : ''));
+    return r.changes ? json({ ok: true }) : bad('not_found', 404);
+  }
+
+  // shop pickup orders (private; deleted after SHOP_RETENTION_DAYS, default 365)
+  if (key === 'GET orders') return json({ orders: db.prepare('SELECT * FROM shop_orders ORDER BY id DESC LIMIT 500').all().map(({ id, at, product, option, price, qty, name, phone, email, note, handled, emailed }) => ({ id, at, product, option, price, qty, name, phone, email, note, handled: Boolean(handled), emailed: Boolean(emailed) })) });
+  if ((key === 'PUT orders' || key === 'DELETE orders') && /^\d{1,12}$/.test(a1 ?? '')) {
+    const what = db.prepare('SELECT product FROM shop_orders WHERE id = ?').get(+a1)?.product ?? '';
+    const r = req.method === 'PUT' ? db.prepare('UPDATE shop_orders SET handled = ? WHERE id = ?').run(body?.handled ? 1 : 0, +a1) : db.prepare('DELETE FROM shop_orders WHERE id = ?').run(+a1);
+    if (r.changes) note(req.method === 'PUT' ? 'order_update' : 'order_delete', what + (req.method === 'PUT' ? (body?.handled ? ' · handled' : ' · new') : ''));
     return r.changes ? json({ ok: true }) : bad('not_found', 404);
   }
 

@@ -64,3 +64,13 @@ Form post fields, errors and redirects: `POST /api/volunteer` takes `shift, name
 
 Admin API (signed in, Origin checked on writes): `GET shifts`, `PUT shifts/<id|new>`, `DELETE shifts/<id>`, `DELETE signups/<n>`, `GET help`, `PUT help/<n> {handled}`, `DELETE help/<n>`, `GET|PUT settings`; `GET state` also returns `newHelp`.
 Retention: shifts and their sign-ups are deleted when the shift date is more than 7 days past; help requests after 90 days. The server marks `/tv` noindex and no-store and does not count it in stats.
+
+## Post shop (marker: shop)
+| NAME | Where | Output | Static seed |
+|---|---|---|---|
+| shop | /shop | `shopHtml(state.products, { photos, photoBase })`: `ul.vfw-shop > li.vfw-prod.panel` cards (`figure.vfw-prod-photo` or `div.vfw-prod-ph`, `h3.vfw-prod-name`, price, options, description, then `a.btn` Buy online to the https checkout link, or `a.btn-outline[data-item]` Order and pay at pickup), two `p.hint` lines, and `div.vfw-order#order` with `form#order-form.vfw-orderform` (fields item, qty, name, phone, email, note, honeypot website, `_page=/shop`) only when an enabled product has no checkout link. No enabled products: `div.panel.vfw-shop-soon` | Coming soon panel |
+
+Only enabled products are rendered. Orders (names, phones, emails, notes) never reach a renderer, the `data` script or the log; they live in the `shop_orders` table and the admin Orders view.
+`POST /api/shop-order` takes `item` (`productId/N`, N the choice number from 1, or 0 when the product has no choices), `qty` (1 to 20), `name`, `phone`, `email`, `note`, `website`, `_page`. It answers `{ok:true, item:{name, option, qty}}` or `{error}` (item, qty, name, phone, email, contact 400; rate 429; origin 403). Plain posts get a 303 to `/shop/?sent=1#order` or `?error=CODE#order`. Five orders an hour per address, 60 an hour in all; each order is emailed to POST_EMAIL.
+Admin API: `PUT products/<id|new>` and `DELETE products/<id>` (array order is the display order; edits keep their place, new products go last), `PUT products-order {ids}`, `GET orders`, `PUT orders/<n> {handled}`, `DELETE orders/<n>`; `GET state` also returns `products` and `newOrders`.
+Retention: orders are deleted after SHOP_RETENTION_DAYS (default 365), logged as `orders_purged`.

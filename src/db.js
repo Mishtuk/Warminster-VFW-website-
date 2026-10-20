@@ -26,6 +26,9 @@ export function openDb(dir) {
     CREATE INDEX IF NOT EXISTS shift_signups_shift ON shift_signups (shift_id);
     CREATE TABLE IF NOT EXISTS help_requests (id INTEGER PRIMARY KEY, at INTEGER NOT NULL, day TEXT NOT NULL, name TEXT NOT NULL, phone TEXT NOT NULL DEFAULT '',
       email TEXT NOT NULL DEFAULT '', kind TEXT NOT NULL, best_time TEXT NOT NULL DEFAULT '', message TEXT NOT NULL DEFAULT '',
+      handled INTEGER NOT NULL DEFAULT 0, emailed INTEGER NOT NULL DEFAULT 0);
+    CREATE TABLE IF NOT EXISTS shop_orders (id INTEGER PRIMARY KEY, at INTEGER NOT NULL, day TEXT NOT NULL, product_id TEXT NOT NULL, product TEXT NOT NULL, option TEXT NOT NULL DEFAULT '',
+      price TEXT NOT NULL DEFAULT '', qty INTEGER NOT NULL, name TEXT NOT NULL, phone TEXT NOT NULL DEFAULT '', email TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '',
       handled INTEGER NOT NULL DEFAULT 0, emailed INTEGER NOT NULL DEFAULT 0);`);
   return db;
 }
@@ -34,6 +37,9 @@ export function openDb(dir) {
 export const retentionDays = (v) => (/^[1-9][0-9]{0,4}$/.test(String(v ?? '')) ? Number(v) : 365);
 /** Deletes inquiries older than `days`. Returns how many. Daily backups can hold an older copy for up to 7 more days. */
 export const purgeInquiries = (db, days, now = Date.now()) => Number(db.prepare('DELETE FROM inquiries WHERE at < ?').run(now - days * 864e5).changes);
+
+/** Deletes shop orders older than `days` (SHOP_RETENTION_DAYS, default 365). Returns how many. */
+export const purgeOrders = (db, days, now = Date.now()) => Number(db.prepare('DELETE FROM shop_orders WHERE at < ?').run(now - days * 864e5).changes);
 
 export const getState = (db) => JSON.parse(db.prepare("SELECT value FROM kv WHERE key = 'state'").get()?.value ?? '{}');
 export const setState = (db, state) => db.prepare("INSERT INTO kv (key, value) VALUES ('state', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(JSON.stringify(state));

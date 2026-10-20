@@ -63,7 +63,7 @@ test('markers escape everything and keep private data out', () => {
   assert.match(helpFormHtml({}), /vfw-help-off/);
   assert.match(helpFormHtml({ helpEnabled: true, responderName: '' }), /vfw-help-off/); // no named responder: stays off
   const d = donateHtml(on);
-  assert.ok(d.includes('href="https://pay.example/g?a=1&amp;b=2"') && d.includes('Give &quot;now&quot;') && d.includes('rel="noopener"'));
+  assert.ok(d.includes('href="https://pay.example/g?a=1&amp;b=2"') && d.includes('Give &quot;now&quot;') && d.includes('rel="noopener noreferrer"'));
   assert.equal(donateHtml({}), '');
   const page = injectMarkers('<!--vfw:volunteer-board--><!--vfw:help-form--><!--vfw:donate-link--><!--vfw:tv-slides--><!--vfw:data-->', { events: [], specials: [], news: [], menu: { sections: [] } }, '2099-05-10', null, { shifts, settings: on });
   assert.ok(!page.includes('secret@example.org') && page.includes('id="vfw-data"') && !/"shifts"|responder/.test(page.match(/id="vfw-data">([^<]*)/)[1])); // the data script never carries shifts or settings

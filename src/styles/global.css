@@ -381,7 +381,7 @@ a.card:hover h3 { text-decoration: underline 2px var(--gold); text-underline-off
 @media (min-width: 640px) { .form-row { grid-template-columns: 1fr 1fr; } }
 .field { display: grid; gap: 0.45rem; }
 .field label, .field legend { font-weight: 700; }
-.field .opt { font-weight: 400; color: var(--ink-2); }
+.field .opt { margin-left: 0.4rem; font-size: var(--step--1); font-weight: 400; color: var(--ink-2); }
 .field input, .field select, .field textarea {
   width: 100%; min-height: 54px; padding: 0.7rem 0.9rem;
   background: var(--card); color: var(--ink);
@@ -648,3 +648,23 @@ a.card:hover h3 { text-decoration: underline 2px var(--gold); text-underline-off
 .car-prev:hover .arrow, .lb-prev:hover .arrow { transform: translateX(-3px); }
 .car-next:hover .arrow, .lb-next:hover .arrow { transform: translateX(3px); }
 @media (prefers-reduced-motion: reduce) { .arrow { transition: none; } }
+
+/* ---------- Post shop (markup made by state.js shopHtml, so these stay global) ---------- */
+#shop-status:not([hidden]) { margin-bottom: 1.5rem; }
+.vfw-shop { list-style: none; margin: 0 0 1.25rem; padding: 0; display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 21rem), 1fr)); align-items: start; }
+.vfw-shop > .panel { display: flex; flex-direction: column; gap: 0.5rem; border-top: 6px double var(--gold); scroll-margin-top: calc(var(--header-h) + 0.5rem); }
+.vfw-prod-photo { margin: 0 0 0.5rem; aspect-ratio: 4 / 3; overflow: hidden; background: var(--stone); border-radius: 2px; }
+.vfw-prod-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.vfw-prod-ph { position: relative; }
+.vfw-prod-ph::after { content: ''; position: absolute; inset: 0; background: var(--ink-2); opacity: 0.55; -webkit-mask: url(/brand/logo-mono.svg) center / 55% no-repeat; mask: url(/brand/logo-mono.svg) center / 55% no-repeat; }
+.vfw-prod-name { font-size: var(--step-1); overflow-wrap: anywhere; }
+.vfw-prod-price { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; color: var(--ink); }
+.vfw-prod-opts, .vfw-prod-desc { color: var(--ink-2); overflow-wrap: anywhere; }
+.vfw-prod .btn-row { margin-top: auto; padding-top: 0.5rem; }
+.vfw-shop ~ .hint { margin-top: 0.5rem; }
+.vfw-order { max-width: 44rem; margin-top: 2rem; scroll-margin-top: calc(var(--header-h) + 0.5rem); }
+.vfw-order > p { margin: 0.5rem 0 1.25rem; color: var(--ink-2); }
+.vfw-orderform { max-width: none; }
+.vfw-qty input { max-width: 8rem; }
+.vfw-shop-soon { max-width: 44rem; }
+.vfw-shop-soon p { margin-top: 0.5rem; color: var(--ink-2); }

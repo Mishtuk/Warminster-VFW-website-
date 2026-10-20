@@ -53,22 +53,22 @@ const gallery = JSON.stringify(HALL_PHOTOS.map((p) => ({ src: photo(p.name).src,
           <input type="hidden" name="_page" value="/hall" />
           <div class="form-row">
             <div class="field"><label for="f-name">Your name</label><input id="f-name" name="name" type="text" autocomplete="name" required maxlength="120" /></div>
-            <div class="field"><label for="f-phone">Phone <span class="opt">(optional)</span></label><input id="f-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="40" aria-describedby="f-contact" /></div>
+            <div class="field"><label for="f-phone">Phone <span class="opt">Optional</span></label><input id="f-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="40" aria-describedby="f-contact" /></div>
           </div>
           <div class="form-row">
-            <div class="field"><label for="f-email">Email <span class="opt">(optional)</span></label><input id="f-email" name="email" type="email" autocomplete="email" maxlength="200" aria-describedby="f-contact" /></div>
-            <div class="field"><label for="f-date">Event date <span class="opt">(optional)</span></label><input id="f-date" name="eventDate" type="date" /></div>
+            <div class="field"><label for="f-email">Email <span class="opt">Optional</span></label><input id="f-email" name="email" type="email" autocomplete="email" maxlength="200" aria-describedby="f-contact" /></div>
+            <div class="field"><label for="f-date">Event date <span class="opt">Optional</span></label><input id="f-date" name="eventDate" type="date" /></div>
           </div>
           <p class="hint" id="f-contact">Phone or email, so we can reach you.</p>
           <div class="field">
-            <label for="f-type">Type of event <span class="opt">(optional)</span></label>
+            <label for="f-type">Type of event <span class="opt">Optional</span></label>
             <select id="f-type" name="eventType">
               <option value="">Choose one</option>
               <option>Birthday</option><option>Anniversary</option><option>Wedding or shower</option><option>Memorial / repast</option><option>Meeting</option><option>Other</option>
             </select>
           </div>
-          <div class="field"><label for="f-guests">Approximate guests <span class="opt">(optional)</span></label><input id="f-guests" name="guests" type="number" inputmode="numeric" min="1" max="1000" /></div>
-          <div class="field"><label for="f-msg">Message <span class="opt">(optional)</span></label><textarea id="f-msg" name="message" maxlength="2000"></textarea></div>
+          <div class="field"><label for="f-guests">Approximate guests <span class="opt">Optional</span></label><input id="f-guests" name="guests" type="number" inputmode="numeric" min="1" max="1000" /></div>
+          <div class="field"><label for="f-msg">Message <span class="opt">Optional</span></label><textarea id="f-msg" name="message" maxlength="2000"></textarea></div>
           <div class="hp" aria-hidden="true"><label>Leave this empty <input name="website" type="text" tabindex="-1" autocomplete="off" /></label></div>
           <p><button class="btn" type="submit">Send inquiry</button></p>
           <p class="hint">We use what you send only to answer your hall rental question. Inquiries are kept for up to 12 months and then deleted; call the post any time to have yours removed.</p>

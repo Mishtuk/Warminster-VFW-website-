@@ -1,0 +1,74 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Subnav from '../components/Subnav.astro';
+import InfoSection from '../components/info/InfoSection.astro';
+import { POST, PROGRAM_TABS } from '../lib/site';
+import { shopHtml } from '../lib/state.js';
+// Static seed: the Coming soon panel. The server replaces the marker with the live products and the pickup order form.
+const seed = `<!--vfw:shop-->${shopHtml([])}<!--/vfw:shop-->`;
+---
+<Base title="Post shop" description={`Post merchandise from ${POST.name}: buy online or order and pay at pickup.`}>
+  <PageHead title="Post shop" lede="Buy online where you see the button, or order here and pay when you pick it up at the post." />
+  <Subnav items={PROGRAM_TABS} label="Programs and resources" />
+
+  <InfoSection id="items" title="What's for sale" band="stone">
+    <div id="shop-status" class="form-status" role="status" data-phone={POST.phone} hidden></div>
+    <Fragment set:html={seed} />
+  </InfoSection>
+
+  <InfoSection id="faq" title="Questions" panel>
+    <div class="faq">
+      <details>
+        <summary>How do I pay?</summary>
+        <p>Items with a Buy online button are paid on our payment service's secure page. Everything else is paid at the post when you pick it up. The post never sees your card number online.</p>
+      </details>
+      <details>
+        <summary>Can you ship it?</summary>
+        <p>Not right now. Orders are picked up at the post.</p>
+      </details>
+      <details>
+        <summary>Questions about sizes?</summary>
+        <p>Call the post at <a href={POST.tel}>{POST.phone}</a>.</p>
+      </details>
+    </div>
+  </InfoSection>
+</Base>
+
+<script>
+  // Pickup order form (made by the server in the shop marker). With JS it posts JSON and shows the answer here; without JS the server redirects back with ?sent=1 or ?error=CODE.
+  const box = document.getElementById('shop-status')!;
+  const phone = box.dataset.phone;
+  const msgs: Record<string, string> = {
+    name: 'Please enter your name.', phone: 'That phone number does not look right.', email: 'That email address does not look right.',
+    contact: 'Please give a phone number or an email.', item: "Please pick what you'd like.", qty: 'Enter a quantity from 1 to 20.',
+    rate: 'Too many orders from this device. Please call the post.',
+  };
+  const show = (text: string, ok: boolean) => { box.hidden = false; box.className = 'form-status ' + (ok ? 'ok' : 'err'); box.textContent = text; box.scrollIntoView({ block: 'center' }); };
+  const q = new URLSearchParams(location.search);
+  if (q.get('sent') === '1') show("Thank you. We got your order. We'll call or email you when it's ready.", true);
+  else if (q.get('error')) show(msgs[q.get('error')!] || 'Something went wrong. Please call the post at ' + phone + '.', false);
+  const form = document.querySelector<HTMLFormElement>('form.vfw-orderform');
+  // "Order and pay at pickup" on a card preselects that product (its first choice) in the form; without JS the link just jumps to the form.
+  document.querySelectorAll<HTMLAnchorElement>('a[data-item]').forEach((a) => a.addEventListener('click', () => {
+    const sel = form?.elements.namedItem('item') as HTMLSelectElement | null;
+    if (!sel) return;
+    const first = [...sel.options].find((o) => o.value.startsWith(a.dataset.item + '/'));
+    if (first) sel.value = first.value;
+    sel.focus({ preventScroll: true });
+  }));
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(form.action, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.fromEntries(new FormData(form) as any)) });
+      const out = await res.json();
+      if (out.ok) {
+        const it = out.item;
+        form.reset();
+        show(it ? `Thank you. We got your order for ${it.qty} × ${it.name}${it.option ? ', ' + it.option : ''}. We'll call or email you when it's ready. You pay when you pick it up.` : "Thank you. We got your order. We'll call or email you when it's ready.", true);
+      } else show(msgs[out.error] || 'Something went wrong. Please call the post at ' + phone + '.', false);
+    } catch {
+      show('Please call the post at ' + phone, false);
+    }
+  });
+</script>

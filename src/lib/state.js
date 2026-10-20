@@ -87,6 +87,38 @@ export function validateNews(b, { photos } = {}) {
   return { value: { id: id(b.id), title, date: b.date, body, photo, alt: text(b.alt, 150), enabled: flag(b.enabled) } };
 }
 
+/** A shop product (admin). options = choices like sizes, an array or one per line. checkoutUrl = optional https payment link. */
+export function validateProduct(b, { photos } = {}) {
+  b = b ?? {};
+  const name = text(b.name, 80);
+  if (!name) return { error: 'name' };
+  const raw = Array.isArray(b.options) ? b.options : typeof b.options === 'string' ? b.options.split('\n') : [];
+  if (raw.length > 40 || raw.some((x) => typeof x !== 'string' || x.trim().length > 30)) return { error: 'options' };
+  const options = [...new Set(raw.map((x) => text(x, 30)).filter(Boolean))];
+  if (options.length > 12) return { error: 'options' };
+  const photo = photoName(b.photo, photos);
+  if (photo === null) return { error: 'photo' };
+  const checkoutUrl = httpsUrl(b.checkoutUrl);
+  if (checkoutUrl === null) return { error: 'checkoutUrl' };
+  return { value: { id: id(b.id), name, price: text(b.price, 30), description: para(b.description, 300), options, photo, alt: text(b.alt, 150), checkoutUrl, enabled: flag(b.enabled) } };
+}
+
+/** A pickup order from the public shop form. item = "productId/N" (N = choice number from 1, or 0 when the product has no choices). Only products that are on the website and have no checkout link can be ordered. */
+export function validateOrder(b, products = []) {
+  b = b ?? {};
+  const m = /^([a-z0-9]{4,24})\/(\d{1,2})$/.exec(typeof b.item === 'string' ? b.item : '');
+  const p = m && products.find((x) => x.id === m[1] && x.enabled !== false && !x.checkoutUrl);
+  const n = m ? Number(m[2]) : -1;
+  if (!p || (p.options.length ? n < 1 || n > p.options.length : n !== 0)) return { error: 'item' };
+  const qty = typeof b.qty === 'string' && b.qty.trim() ? Number(b.qty) : b.qty;
+  if (!Number.isInteger(qty) || qty < 1 || qty > 20) return { error: 'qty' };
+  const name = text(b.name, 80);
+  if (!name) return { error: 'name' };
+  const c = contact(b);
+  if (c.error) return c;
+  return { value: { productId: p.id, product: p.name, option: n ? p.options[n - 1] : '', price: p.price, qty, name, ...c, note: para(b.note, 500) } };
+}
+
 /** The whole food menu is one document: { hours, sections: [{ id, name, items: [{ id, name, price, description, available }] }] }. */
 export function validateMenu(b) {
   b = b ?? {};
@@ -172,6 +204,13 @@ export function validateHelp(b) {
   return { value: { name, ...c, kind: b.kind, bestTime, message: para(b.message, 1000) } };
 }
 
+/** A plain https web address (no login in it, 300 characters at most): '' for none, the cleaned address, or null when it is not acceptable. */
+export function httpsUrl(v) {
+  const raw = typeof v === 'string' ? v.trim() : '';
+  if (!raw) return '';
+  try { const u = new URL(raw); return u.protocol !== 'https:' || u.username || u.password || raw.length > 300 || /[\s<>"']/.test(raw) ? null : u.href; } catch { return null; }
+}
+
 export const DEFAULT_SETTINGS = { helpEnabled: false, responderName: '', responderRole: '', responderEmail: '', donateUrl: '', donateLabel: '' };
 /** Site settings (admin). The help form can only be on when someone is named to answer. The donation link must be a plain https address. */
 export function validateSettings(b) {
@@ -180,11 +219,8 @@ export function validateSettings(b) {
   if (helpEnabled && !responderName) return { error: 'responder' };
   const responderEmail = text(b.responderEmail, 200).toLowerCase();
   if (responderEmail && !EMAIL.test(responderEmail)) return { error: 'responderEmail' };
-  const raw = typeof b.donateUrl === 'string' ? b.donateUrl.trim() : '';
-  let donateUrl = '';
-  if (raw) {
-    try { const u = new URL(raw); if (u.protocol !== 'https:' || u.username || u.password || raw.length > 300 || /[\s<>"']/.test(raw)) throw 0; donateUrl = u.href; } catch { return { error: 'donateUrl' }; }
-  }
+  const donateUrl = httpsUrl(b.donateUrl);
+  if (donateUrl === null) return { error: 'donateUrl' };
   return { value: { helpEnabled, responderName, responderRole: text(b.responderRole, 60), responderEmail, donateUrl, donateLabel: text(b.donateLabel, 40) } };
 }
 
@@ -338,12 +374,12 @@ const paragraphs = (body) => body.split(/\n\s*\n/).map((p) => p.trim()).filter(B
 /** Post news, newest first. opts: limit, teaser (first paragraph cut to 200 characters), empty. */
 /** <figure> for a news item's photo, using the -800 copy when it exists. The site's photos are 4:3 (1024x768 and 800x600).
  *  photos = Set of existing files (optional); base = URL folder (default /media/photos/). */
-function photoFigure(n, photos, base) {
+function photoFigure(n, photos, base, cls = 'vfw-news-photo') {
   if (!n.photo || (photos && !photos.has(n.photo))) return '';
   const dot = n.photo.lastIndexOf('.');
   const small = `${n.photo.slice(0, dot)}-800${n.photo.slice(dot)}`;
   const useSmall = Boolean(photos?.has(small));
-  return `<figure class="vfw-news-photo"><img src="${esc(base + (useSmall ? small : n.photo))}" alt="${esc(n.alt || n.title)}" loading="lazy" decoding="async" width="${useSmall ? 800 : 1024}" height="${useSmall ? 600 : 768}"></figure>`;
+  return `<figure class="${cls}"><img src="${esc(base + (useSmall ? small : n.photo))}" alt="${esc(n.alt || n.title || n.name)}" loading="lazy" decoding="async" width="${useSmall ? 800 : 1024}" height="${useSmall ? 600 : 768}"></figure>`;
 }
 export function newsHtml(news = [], { limit = 50, teaser = false, photos, photoBase = '/media/photos/', empty: none = 'No post news yet.' } = {}) {
   const list = news.filter((n) => n.enabled !== false).sort((a, b) => b.date.localeCompare(a.date)).slice(0, limit);
@@ -385,6 +421,7 @@ export function injectMarkers(html, state, today, year, { photos, photoBase, shi
     'volunteer-board': () => volunteerHtml(shifts),
     'help-form': () => helpFormHtml(settings),
     'donate-link': () => donateHtml(settings),
+    shop: () => shopHtml(state.products, { photos, photoBase }),
     data: () => dataScript(state, today),
   };
   return html.replace(MARKER, (m, name) => parts[name]?.() ?? m);
@@ -417,8 +454,8 @@ export function featuredHtml(events, today, { compact = 4, days = 120, empty: no
 // ---------- volunteer board, help form, donate link, bar TV (markers: volunteer-board, help-form, donate-link, tv-slides) ----------
 // Private data (sign-ups, help requests, the responder's email) never reaches these: the server passes only the public shapes (see docs/markers.md).
 const hp = '<div class="hp" aria-hidden="true"><label>Leave this empty <input name="website" type="text" tabindex="-1" autocomplete="off"></label></div>';
-const phoneEmail = (p, who) => `<div class="field"><label for="${p}-phone">Phone <span class="opt">(optional)</span></label><input id="${p}-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="30" aria-describedby="${p}-contact"></div>`
-  + `<div class="field"><label for="${p}-email">Email <span class="opt">(optional)</span></label><input id="${p}-email" name="email" type="email" autocomplete="email" maxlength="200" aria-describedby="${p}-contact"></div>`
+const phoneEmail = (p, who) => `<div class="field"><label for="${p}-phone">Phone <span class="opt">Optional</span></label><input id="${p}-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="30" aria-describedby="${p}-contact"></div>`
+  + `<div class="field"><label for="${p}-email">Email <span class="opt">Optional</span></label><input id="${p}-email" name="email" type="email" autocomplete="email" maxlength="200" aria-describedby="${p}-contact"></div>`
   + `<p class="hint" id="${p}-contact">A phone or an email, so ${who} can reach you.</p>`;
 const spotsLeft = (s) => (s.left <= 0 ? 'Full, thank you' : s.left === 1 ? '1 spot left' : `${s.left} of ${s.slots} spots left`);
 
@@ -449,9 +486,9 @@ export function helpFormHtml(settings = {}) {
     + '<form class="form vfw-helpform" id="help-form" method="post" action="/api/help-request" novalidate><input type="hidden" name="_page" value="/help">'
     + '<div class="field"><label for="help-name">Your name</label><input id="help-name" name="name" type="text" autocomplete="name" required maxlength="80"></div>'
     + phoneEmail('help', 'the post')
-    + `<fieldset class="field vfw-times"><legend>Best time to reach you <span class="opt">(optional)</span></legend><div class="vfw-chips">${times}</div></fieldset>`
+    + `<fieldset class="field vfw-times"><legend>Best time to reach you <span class="opt">Optional</span></legend><div class="vfw-chips">${times}</div></fieldset>`
     + `<fieldset class="field vfw-kinds"><legend>What can we help with?</legend>${kinds}</fieldset>`
-    + '<div class="field"><label for="help-msg">Tell us a little more <span class="opt">(optional)</span></label><textarea id="help-msg" name="message" rows="4" maxlength="1000" aria-describedby="help-msg-hint"></textarea><p class="hint" id="help-msg-hint">Who it\'s for and what\'s going on, in a few words.</p></div>'
+    + '<div class="field"><label for="help-msg">Tell us a little more <span class="opt">Optional</span></label><textarea id="help-msg" name="message" rows="4" maxlength="1000" aria-describedby="help-msg-hint"></textarea><p class="hint" id="help-msg-hint">Who it\'s for and what\'s going on, in a few words.</p></div>'
     + `${hp}<p><button class="btn" type="submit">Send my request</button></p>`
     + '<p class="hint">Only the post\'s help volunteer and the website admin can read this. Please don\'t include medical details or Social Security or VA claim numbers. Requests are deleted after 90 days; call the post to have yours removed sooner.</p></form></div>'
     + '<div class="panel"><h3>What happens next</h3><ol class="tl">'
@@ -463,7 +500,33 @@ export function helpFormHtml(settings = {}) {
 
 /** The Donate button, only when the admin has set an https link. */
 export const donateHtml = (settings = {}) => (settings.donateUrl
-  ? `<p class="btn-row"><a class="btn" href="${esc(settings.donateUrl)}" rel="noopener">${esc(settings.donateLabel || 'Donate online')}</a></p><p class="hint">Opens our payment service's secure page. The post never sees your card.</p>` : '');
+  ? `<p class="btn-row"><a class="btn" href="${esc(settings.donateUrl)}" rel="noopener noreferrer">${esc(settings.donateLabel || 'Donate online')}</a></p><p class="hint">Opens our payment service's secure page. The post never sees your card.</p>` : '');
+
+const SOON = `<div class="panel vfw-shop-soon"><h3>Coming soon</h3><p>Post merchandise will be listed here. Want something now? Call the post at <a href="tel:${tel}">${POST.phone}</a>.</p></div>`;
+/** The post shop (marker: shop): product cards, then the pickup order form when any product has no checkout link. Only enabled products; order data never comes through here. */
+export function shopHtml(products = [], { photos, photoBase = '/media/photos/' } = {}) {
+  const list = products.filter((p) => p.enabled !== false);
+  if (!list.length) return SOON;
+  const pickup = list.filter((p) => !p.checkoutUrl);
+  const card = (p) => `<li class="vfw-prod panel" id="p-${esc(p.id)}">${photoFigure(p, photos, photoBase, 'vfw-prod-photo') || '<div class="vfw-prod-photo vfw-prod-ph" aria-hidden="true"></div>'}`
+    + `<h3 class="vfw-prod-name">${esc(p.name)}</h3>${p.price ? `<p class="vfw-prod-price">${esc(p.price)}</p>` : ''}`
+    + `${p.options?.length ? `<p class="vfw-prod-opts">Options: ${esc(p.options.join(', '))}</p>` : ''}${p.description ? `<p class="vfw-prod-desc">${esc(p.description)}</p>` : ''}`
+    + `<p class="btn-row">${p.checkoutUrl ? `<a class="btn" href="${esc(p.checkoutUrl)}" rel="noopener noreferrer">Buy online</a>` : `<a class="btn btn-outline" href="#order" data-item="${esc(p.id)}">Order and pay at pickup</a>`}</p></li>`;
+  const choose = pickup.map((p) => (p.options?.length
+    ? `<optgroup label="${esc(p.name + (p.price ? ` · ${p.price}` : ''))}">${p.options.map((o, i) => `<option value="${esc(p.id)}/${i + 1}">${esc(o)}</option>`).join('')}</optgroup>`
+    : `<option value="${esc(p.id)}/0">${esc(p.name)}</option>`)).join('');
+  const form = pickup.length ? '<div class="panel vfw-order" id="order"><h3>Order and pay at pickup</h3><p>Send your order and we\'ll call or email you when it\'s ready to pick up. You pay at the post.</p>'
+    + '<form class="form vfw-orderform" id="order-form" method="post" action="/api/shop-order" novalidate><input type="hidden" name="_page" value="/shop">'
+    + `<div class="field"><label for="shop-item">What would you like?</label><select id="shop-item" name="item" required><option value="">Choose one</option>${choose}</select></div>`
+    + '<div class="field vfw-qty"><label for="shop-qty">How many?</label><input id="shop-qty" name="qty" type="number" min="1" max="20" value="1" inputmode="numeric" required></div>'
+    + '<div class="field"><label for="shop-name">Your name</label><input id="shop-name" name="name" type="text" autocomplete="name" required maxlength="80"></div>'
+    + phoneEmail('shop', 'the post')
+    + '<div class="field"><label for="shop-note">Pickup note <span class="opt">Optional</span></label><textarea id="shop-note" name="note" rows="3" maxlength="500" aria-describedby="shop-note-hint"></textarea><p class="hint" id="shop-note-hint">Like when you\'d like to pick it up.</p></div>'
+    + `${hp}<p><button class="btn" type="submit">Send my order</button></p>`
+    + '<p class="hint">We use your name and phone or email only for this order, and delete them after 12 months. Call the post to have yours removed sooner.</p></form></div>' : '';
+  return `<ul class="vfw-shop">${list.map(card).join('')}</ul>${list.some((p) => p.checkoutUrl) ? '<p class="hint">Buy online opens our payment service\'s secure page. The post never sees your card.</p>' : ''}`
+    + `<p class="hint">Items with the official VFW emblem are made by VFW-licensed vendors.</p>${form}`;
+}
 
 // Bar TV: slides the screen rotates through. Each is a div.tv-slide[data-secs]; a slide with nothing to show is left out; long lists are split in fives.
 const firstSentence = (t = '') => t.split(/(?<=[.!?])\s/)[0];

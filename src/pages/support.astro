@@ -20,6 +20,7 @@ const sections = [{ id: 'give', label: 'Ways to give' }, { id: 'drives', label: 
         <Fragment set:html="<!--vfw:donate-link--><!--/vfw:donate-link-->" />
         <p>Drop off food for the Warminster Food Bank in the boxes at the rear door.</p>
         <p>To give another way, call the post: <a href={POST.tel}>{POST.phone}</a>.</p>
+        <p>Looking for post merchandise? <a href={href('/shop')}>See the post shop</a>.</p>
         <h3>Through the VFW nationally</h3>
         <ul class="link-list">
           {SUPPORT.national.map((n) => <li><a href={n.url} rel="noopener"><span>{n.name}</span><small>{n.line}</small></a></li>)}
