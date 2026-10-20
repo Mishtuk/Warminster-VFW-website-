@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
+import FoodSnaps from '../components/FoodSnaps.astro';
 import { POST } from '../lib/site';
 import { seed } from '../lib/seed';
 
@@ -15,7 +16,7 @@ const rows = POST.hours.map(([d, h]) => {
 });
 ---
 <Base title="The Bar" description={`Bar hours, drink specials and the food menu at ${POST.name}, ${POST.city}, PA.`}>
-  <PageHead title="The Bar" lede="Hours, drink specials and food from the Loaded Belly kitchen." image="fb-wings" />
+  <PageHead title="The Bar" lede="Hours, drink specials and food from the Loaded Belly kitchen." image="food-1-burgers" />
 
   <section class="section band-paper">
     <div class="container bar-grid">
@@ -26,16 +27,19 @@ const rows = POST.hours.map(([d, h]) => {
         </ul>
         <p class="board-note">{POST.barRule} {POST.joinPrice}</p>
       </div>
-      <div>
-        <div class="section-head"><h2>Drink specials</h2></div>
-        <Fragment set:html={seed.specials} />
+      <div class="menu-card">
+        <h2>Drink specials</h2>
+        <p class="menu-note">At the bar this week</p>
+        <div style="margin-top:1.25rem"><Fragment set:html={seed.specials} /></div>
       </div>
     </div>
   </section>
 
   <section class="section band-stone">
     <div class="container">
-      <div class="section-head"><h2>Food menu</h2></div>
+      <div class="section-head"><h2>From the Loaded Belly kitchen</h2></div>
+      <FoodSnaps />
+      <div class="section-head" style="margin-top:clamp(2.5rem, 2rem + 3vw, 4rem)"><h2>Food menu</h2></div>
       <Fragment set:html={seed.menu} />
       <p class="hint" style="margin-top:1.5rem">Questions about the bar or the kitchen? <a href={POST.tel}>Call {POST.phone}</a>.</p>
     </div>

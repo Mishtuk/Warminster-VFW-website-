@@ -1,12 +1,12 @@
 ---
 /**
- * Home opening: a full-width background video of the post (poster until the cut lands) under a strong
- * dress-blue scrim. Over it: the post's name and motto, and the canteen board (a lobby directory with
- * today's bar hours). Video <source>s are only written when the files exist in public/media (no 404s).
+ * Home opening: a full-width background video of the post (poster until the cut lands) under a warm,
+ * candle-lit scrim. A plain greeting, today's bar hours, the motto and three ways in. On wide screens a
+ * snapshot from the bar is pinned beside the greeting. Video <source>s are only written when the files exist.
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { POST, href } from '../lib/site';
+import { POST, href, photo } from '../lib/site';
 import TodayHours from './TodayHours.astro';
 
 const has = (f: string) => fs.existsSync(path.join(process.cwd(), 'public/media', f));
@@ -15,6 +15,7 @@ const sources = [
   { file: 'hero-720.mp4', media: '(max-width: 700px)' },
   { file: 'hero.mp4' },
 ].filter((s) => has(s.file));
+const snap = has('photos/life-halloween.webp');
 ---
 
 <section class="welcome" aria-labelledby="welcome-title">
@@ -26,23 +27,23 @@ const sources = [
   </div>
 
   <div class="container welcome-grid">
-    <div class="welcome-head">
-      <h1 id="welcome-title">VFW Post 6493 &amp; Auxiliary</h1>
-      <p class="welcome-motto">{POST.motto}</p>
-      <p class="welcome-lede">The Warminster Memorial Post of the Veterans of Foreign Wars, at {POST.street}. Members and their guests are welcome at the bar.</p>
+    <div class="welcome-text">
+      <p class="chip-open"><TodayHours prefix="Bar open today" fallback="Members and their guests welcome" /></p>
+      <h1 id="welcome-title">Pull up a chair at VFW Post 6493</h1>
+      <p class="welcome-lede">The bar, the Loaded Belly kitchen and the hall of the Veterans of Foreign Wars in {POST.city}. Members and their guests are welcome.</p>
+      <p class="welcome-motto">{POST.motto}.</p>
+      <div class="btn-row">
+        <a class="btn btn-brass" href={href('/bar')}>Food and drink</a>
+        <a class="btn btn-ghost" href={href('/events')}>What's on</a>
+        <a class="btn btn-ghost" href={href('/hall#inquiry')}>Rent the Hall</a>
+      </div>
     </div>
-
-    <aside class="board welcome-board" aria-labelledby="board-title">
-      <h2 id="board-title" class="board-title">At the post</h2>
-      <ul class="board-list">
-        <li><a href={href('/bar')}><span class="b-name">The Bar</span><span class="b-info"><TodayHours fallback="Hours, specials and food" /></span></a></li>
-        <li><a href={href('/events')}><span class="b-name">Events</span><span class="b-info">The whole year, month by month</span></a></li>
-        <li><a href={href('/hall')}><span class="b-name">Rent the Hall</span><span class="b-info">Wifi, tables and chairs, full bar</span></a></li>
-        <li><a href={href('/about#membership')}><span class="b-name">Join the post</span><span class="b-info">Veterans and non-veterans</span></a></li>
-        <li><a href={POST.tel}><span class="b-name">Call the post</span><span class="b-info">{POST.phone}</span></a></li>
-      </ul>
-      <p class="board-note">{POST.street}, {POST.city}. <a class="link" href={POST.mapsUrl} rel="noopener">Directions</a></p>
-    </aside>
+    {snap && (
+      <figure class="snap welcome-snap" style="--tilt:2deg">
+        <img {...photo('life-halloween')} sizes="(min-width: 1100px) 30vw, 1px" alt="Members at the bar at the post" loading="lazy" />
+        <figcaption>At the bar, Halloween 2025</figcaption>
+      </figure>
+    )}
   </div>
 
   {sources.length > 0 && (
@@ -57,7 +58,6 @@ const sources = [
   (() => {
     const v = document.getElementById('hero-video');
     if (!v) return;
-    // Portrait phones get the 9:16 file, so give them its poster too (video poster has no media attribute).
     if (matchMedia('(max-width: 700px) and (orientation: portrait)').matches) v.poster = v.dataset.posterPortrait;
     const b = document.querySelector('.video-toggle');
     if (!b) return;
@@ -67,7 +67,7 @@ const sources = [
     b.addEventListener('click', () => (v.paused ? v.play() : v.pause()));
     v.addEventListener('play', sync);
     v.addEventListener('pause', sync);
-    // Reduced motion: hold on the first frame; the visitor can still press play.
+    // Reduced motion: hold still; the visitor can still press play.
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) { v.removeAttribute('autoplay'); v.pause(); sync(); return; }
     sync();
     v.play().catch(() => {
@@ -81,51 +81,50 @@ const sources = [
 <style>
   .welcome {
     position: relative; isolation: isolate; overflow: hidden;
-    background: var(--night); color: var(--on-dark); --focus: var(--brass);
-    padding-block: clamp(2.5rem, 1.5rem + 5vw, 6rem);
-    min-height: min(46rem, calc(100svh - var(--header-h) - 40px));
+    background: var(--night); color: var(--on-dark);
+    padding-block: clamp(2.5rem, 1.5rem + 5vw, 6rem) clamp(3.5rem, 2rem + 5vw, 6.5rem);
+    min-height: min(44rem, calc(100svh - var(--header-h) - 24px));
     display: grid; align-items: center;
   }
   .welcome-media, .welcome-media video { position: absolute; inset: 0; width: 100%; height: 100%; }
   .welcome-media { z-index: -1; }
   .welcome-media video { object-fit: cover; }
-  /* Strong scrim: >= 0.8 behind all text (on-dark >= 7:1, brass motto >= 4:1 over a white frame). */
+  /* Warm, candle-lit scrim: >= 0.8 behind all hero text (on-dark >= 7:1, brass >= 4:1 over a white frame). */
   .welcome-media::after {
     content: ''; position: absolute; inset: 0;
     background:
-      linear-gradient(90deg, rgb(19 26 36 / 0.9) 0, rgb(19 26 36 / 0.8) 55%, rgb(19 26 36 / 0.62) 100%),
-      linear-gradient(0deg, rgb(19 26 36 / 0.35), rgb(19 26 36 / 0.35));
+      linear-gradient(90deg, rgb(23 18 14 / 0.9) 0, rgb(23 18 14 / 0.76) 48%, rgb(23 18 14 / 0.3) 100%),
+      linear-gradient(0deg, rgb(23 18 14 / 0.35), rgb(23 18 14 / 0.35)),
+      radial-gradient(70% 60% at 85% 20%, rgb(214 160 90 / 0.18), transparent 70%);
   }
-  .welcome-media::before { /* the flag stripe closes the hero */
+  @media (max-width: 899px) { .welcome-media::after { background: linear-gradient(180deg, rgb(23 18 14 / 0.78), rgb(23 18 14 / 0.88)); } }
+  .welcome-media::before {
     content: ''; position: absolute; inset: auto 0 0; height: 6px; z-index: 1;
     background: linear-gradient(var(--red) 0 2px, var(--on-dark) 2px 4px, var(--red) 4px);
   }
 
-  .welcome-grid { display: grid; gap: 2rem; grid-template-columns: minmax(0, 1fr); align-items: center; }
-  @media (min-width: 960px) { .welcome-grid { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); column-gap: clamp(2rem, 1rem + 4vw, 5rem); } }
-
-  .welcome-head h1 {
-    font-size: clamp(2.7rem, 1.9rem + 3.8vw, 5rem); line-height: 1; max-width: 12ch; color: var(--on-dark);
-    text-shadow: 0 2px 18px rgb(19 26 36 / 0.6);
+  .welcome-grid { display: grid; gap: 2rem; align-items: center; }
+  @media (min-width: 1100px) { .welcome-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 24rem); column-gap: 4rem; } }
+  .welcome-text { max-width: 38rem; }
+  .welcome-text h1 {
+    margin-top: 1.1rem; font-size: clamp(2.6rem, 1.8rem + 3.6vw, 4.6rem); line-height: 1.04; color: var(--on-dark);
+    text-shadow: 0 2px 18px rgb(23 18 14 / 0.6);
   }
-  .welcome-motto {
-    margin-top: 1rem; font-family: var(--font-display); font-stretch: 80%; font-weight: 750;
-    font-size: var(--step-2); line-height: 1.15; color: var(--brass); text-shadow: 0 1px 12px rgb(19 26 36 / 0.7);
-  }
-  .welcome-lede { margin-top: 1rem; max-width: 36ch; font-size: var(--step-1); line-height: 1.5; color: var(--on-dark); }
+  .welcome-lede { margin-top: 1rem; font-size: var(--step-1); line-height: 1.5; color: var(--on-dark); max-width: 34ch; }
+  .welcome-motto { margin-top: 0.9rem; font-family: var(--font-display); font-style: italic; font-weight: 650; font-size: var(--step-1); color: var(--brass); }
+  .welcome .btn-row { margin-top: 1.75rem; }
 
-  /* The board hangs over the video: a touch translucent at the edge only, the felt stays solid. */
-  .welcome-board { box-shadow: inset 0 0 0 2px var(--night), inset 0 0 0 3px rgb(165 140 82 / 0.75), 0 18px 40px rgb(8 11 16 / 0.45); }
-  .board-note .link { min-height: 44px; margin-left: 0.25rem; }
+  .welcome-snap { display: none; }
+  @media (min-width: 1100px) { .welcome-snap { display: block; } }
 
   .video-toggle {
-    position: absolute; left: max(var(--gutter), env(safe-area-inset-left)); bottom: 18px; display: grid; place-items: center; width: 48px; height: 48px;
-    border: 2px solid var(--on-dark); border-radius: var(--radius); background: rgb(19 26 36 / 0.7); color: var(--on-dark); cursor: pointer;
+    position: absolute; right: max(var(--gutter), env(safe-area-inset-right)); bottom: 20px; display: grid; place-items: center; width: 48px; height: 48px;
+    border: 2px solid var(--on-dark); border-radius: var(--radius); background: rgb(23 18 14 / 0.7); color: var(--on-dark); cursor: pointer;
   }
   .video-toggle:hover { background: var(--on-dark); color: var(--night); }
   .video-toggle[hidden] { display: none; }
-  .welcome:has(.video-toggle:not([hidden])) { padding-bottom: calc(clamp(2.5rem, 1.5rem + 5vw, 6rem) + 48px); }
+  .welcome:has(.video-toggle:not([hidden])) { padding-bottom: calc(clamp(3.5rem, 2rem + 5vw, 6.5rem) + 40px); }
   .icon { width: 12px; height: 14px; border-inline: 4px solid currentColor; }
   [data-paused='true'] .icon { width: 0; height: 0; margin-left: 4px; border: 0; border-block: 8px solid transparent; border-left: 13px solid currentColor; }
-  @media print { .welcome-media, .video-toggle { display: none; } .welcome { background: none; color: #000; min-height: 0; } }
+  @media print { .welcome { background: none; color: #000; min-height: 0; } }
 </style>

@@ -16,7 +16,7 @@ const { eyebrow, title, lede, image, focus = 'center' } = Astro.props;
       <slot />
     </div>
     {image && (
-      <div class="page-head-media frame" aria-hidden="true">
+      <div class="page-head-media snap" aria-hidden="true">
         <img {...photo(image)} sizes="(min-width: 900px) 40vw, 100vw" alt="" fetchpriority="high" decoding="async" style={`object-position:${focus}`} />
       </div>
     )}

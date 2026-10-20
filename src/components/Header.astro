@@ -1,13 +1,14 @@
 ---
 /**
- * Masthead (dress blue, the official reverse lockup) + the nav rail (a step lighter, folder tabs cut from the page ground).
- * Desktop >= 1240px: masthead scrolls away, the rail sticks. Below that: the masthead sticks and holds the Menu.
- * Store-ready: the rail has room for an 8th tab ("Store") at >= 1240px; add it to NAV in site.ts when the store exists.
+ * Masthead (always dark and warm, official reverse lockup, today's bar hours, phone, theme toggle)
+ * + the tab rail on desktop. Below 1240px the masthead sticks and holds Call and the Menu.
+ * Theme: Base.astro sets data-theme before paint from localStorage; with no saved choice the CSS follows the system.
+ * Store-ready: the rail fits an 8th tab ("Store") at >= 1240px; add it to NAV in site.ts.
  */
 import { POST, NAV, EXTRA, href } from '../lib/site';
 import TodayHours from './TodayHours.astro';
 
-interface Props { overlay?: boolean } // kept for older callers; the header is never transparent now
+interface Props { overlay?: boolean } // kept for older callers
 const here = Astro.url.pathname.replace(/\/$/, '');
 const cur = (l: { path: string; match: readonly string[] }) =>
   l.path === '/' ? here === href('/').replace(/\/$/, '') : l.match.some((p) => here === href(p) || here.startsWith(href(p) + '/'));
@@ -18,7 +19,7 @@ const cur = (l: { path: string; match: readonly string[] }) =>
     <a class="brand" href={href('/')}>
       <picture>
         <source media="(max-width: 699px)" srcset={href('/brand/logo-mark-reverse.svg')} width="113" height="44" />
-        <img src={href('/brand/logo-reverse.svg')} alt="VFW Post 6493, home" width="188" height="96" />
+        <img src={href('/brand/logo-reverse.svg')} alt="VFW Post 6493, home" width="164" height="84" />
       </picture>
     </a>
 
@@ -26,6 +27,8 @@ const cur = (l: { path: string; match: readonly string[] }) =>
       <p class="mast-today"><TodayHours prefix="Bar open today" fallback="Bar hours are on The Bar page" /></p>
       <a class="mast-tel" href={POST.tel}><span class="sr-only">Call the post: </span>{POST.phone}</a>
     </div>
+
+    <button type="button" class="theme-toggle tt-mast" aria-label="Switch to dark mode"><span class="tt-icon" aria-hidden="true"></span><span class="tt-text">Dark</span></button>
 
     <a class="mast-call" href={POST.tel}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" /></svg>
@@ -55,6 +58,7 @@ const cur = (l: { path: string; match: readonly string[] }) =>
           <a class="btn btn-block" href={POST.tel}>Call {POST.phone}</a>
           <a class="link" href={POST.mapsUrl} rel="noopener">Directions to {POST.street}</a>
           <a class="link" href={POST.facebook} rel="noopener">Facebook group</a>
+          <button type="button" class="theme-toggle tt-sheet" aria-label="Switch to dark mode"><span class="tt-icon" aria-hidden="true"></span><span class="tt-text">Dark</span></button>
         </div>
       </div>
     </details>
@@ -72,12 +76,35 @@ const cur = (l: { path: string; match: readonly string[] }) =>
 </nav>
 
 <script is:inline>
+  // Theme toggle: label names the theme it switches to; the choice is remembered (storage may be blocked).
+  (() => {
+    const root = document.documentElement;
+    const mq = matchMedia('(prefers-color-scheme: dark)');
+    const now = () => root.dataset.theme || (mq.matches ? 'dark' : 'light');
+    const paint = () => {
+      const next = now() === 'dark' ? 'light' : 'dark';
+      for (const b of document.querySelectorAll('.theme-toggle')) {
+        b.dataset.next = next;
+        b.setAttribute('aria-label', `Switch to ${next} mode`);
+        b.querySelector('.tt-text').textContent = next === 'dark' ? 'Dark' : 'Light';
+      }
+    };
+    for (const b of document.querySelectorAll('.theme-toggle')) b.addEventListener('click', () => {
+      const t = now() === 'dark' ? 'light' : 'dark';
+      root.dataset.theme = t;
+      try { localStorage.setItem('theme', t); } catch (e) {}
+      paint();
+    });
+    mq.addEventListener('change', paint);
+    paint();
+  })();
+
   // Phone menu: focus moves in on open and stays inside; Escape or tapping a link closes it.
   (() => {
     const d = document.querySelector('.nav-mobile');
     if (!d) return;
     const sum = d.querySelector('summary');
-    const items = () => [sum, ...d.querySelectorAll('.sheet a')];
+    const items = () => [sum, ...d.querySelectorAll('.sheet a, .sheet button')];
     d.addEventListener('toggle', () => { if (d.open) d.querySelector('.sheet a').focus(); });
     d.addEventListener('click', (e) => { if (e.target.closest('.sheet a')) d.open = false; });
     addEventListener('keydown', (e) => {
@@ -92,48 +119,62 @@ const cur = (l: { path: string; match: readonly string[] }) =>
 </script>
 
 <style>
-  /* ---- Masthead ---- */
-  .masthead { position: sticky; top: 0; z-index: 50; background: var(--night); color: var(--on-dark); --focus: var(--brass); border-bottom: 1px solid rgb(165 140 82 / 0.45); padding-top: env(safe-area-inset-top); }
-  .mast-bar { display: flex; align-items: center; gap: 1rem 1.25rem; min-height: var(--header-h); padding-block: 0.5rem; }
+  .masthead {
+    position: sticky; top: 0; z-index: 50; background: var(--night); color: var(--on-dark);
+    border-bottom: 1px solid rgb(165 140 82 / 0.45); padding-top: env(safe-area-inset-top);
+  }
+  .mast-bar { display: flex; align-items: center; gap: 0.75rem 1.1rem; min-height: var(--header-h); padding-block: 0.5rem; }
   .brand { display: block; margin-right: auto; flex-shrink: 0; }
   .brand img { height: 44px; width: auto; }
-  @media (min-width: 700px) { .brand img { height: 72px; } }
+  @media (min-width: 700px) { .brand img { height: 64px; } }
   @media (min-width: 1240px) {
     .masthead { position: relative; }
-    .mast-bar { padding-block: 1rem; }
-    .brand img { height: 96px; }
+    .mast-bar { padding-block: 0.9rem; }
+    .brand img { height: 84px; }
   }
 
-  .mast-info { display: none; text-align: right; font-family: var(--font-ui); line-height: 1.3; }
+  .mast-info { display: none; text-align: right; line-height: 1.3; }
   .mast-today { color: var(--on-dark-2); font-size: var(--step--1); font-weight: 600; }
-  .mast-tel { display: inline-flex; align-items: center; min-height: 44px; font-family: var(--font-display); font-stretch: 80%; font-weight: 750; font-size: var(--step-2); text-decoration: none; }
+  .mast-tel { display: inline-flex; align-items: center; min-height: 44px; font-family: var(--font-display); font-weight: 700; font-size: var(--step-2); text-decoration: none; }
   .mast-tel:hover { text-decoration: underline 2px var(--brass); text-underline-offset: 6px; }
   @media (min-width: 900px) { .mast-info { display: block; } }
 
+  /* Theme toggle: icon + word, 48px */
+  .theme-toggle {
+    display: inline-flex; align-items: center; gap: 0.5rem; min-height: 48px; padding: 0 0.9rem;
+    border: 2px solid rgb(241 234 223 / 0.6); border-radius: var(--radius); background: transparent; color: var(--on-dark);
+    font-weight: 700; font-size: 1.0625rem;
+  }
+  .theme-toggle:hover { border-color: var(--brass); color: var(--brass); }
+  .tt-icon { width: 18px; height: 18px; border-radius: 50%; flex: none; }
+  .theme-toggle[data-next='dark'] .tt-icon { box-shadow: inset -6px -3px 0 0 currentColor; transform: rotate(-20deg); } /* moon */
+  .theme-toggle[data-next='light'] .tt-icon { background: currentColor; box-shadow: 0 0 0 3px var(--night), 0 0 0 5px currentColor; width: 10px; height: 10px; margin: 4px; } /* sun */
+  .tt-mast { display: none; }
+  @media (min-width: 700px) { .tt-mast { display: inline-flex; } }
+  .tt-sheet { justify-self: start; border-color: var(--ink); color: var(--ink); margin-top: 0.5rem; }
+  .tt-sheet[data-next='light'] .tt-icon { box-shadow: 0 0 0 3px var(--card), 0 0 0 5px currentColor; }
+
   .mast-call {
     display: inline-flex; align-items: center; gap: 0.45rem; min-height: 48px; padding: 0 0.9rem;
-    border: 2px solid var(--on-dark); border-radius: var(--radius); color: var(--on-dark); font-family: var(--font-ui); font-weight: 700; text-decoration: none;
+    border: 2px solid var(--on-dark); border-radius: var(--radius); color: var(--on-dark); font-weight: 700; text-decoration: none;
   }
   .mast-call svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
-  .mast-call:hover { background: var(--on-dark); color: var(--night); border-color: var(--on-dark); }
+  .mast-call:hover { background: var(--on-dark); color: var(--night); }
   @media (min-width: 900px) { .mast-call { display: none; } }
 
   ul { list-style: none; padding: 0; }
 
-  /* ---- Phone / tablet menu ---- */
   .nav-mobile summary {
     display: flex; align-items: center; gap: 0.6rem; min-height: 48px; padding: 0 0.9rem;
     background: var(--brass); color: var(--night); border-radius: var(--radius);
-    font-family: var(--font-ui); font-weight: 700; font-size: 1.0625rem; list-style: none; cursor: pointer;
+    font-weight: 700; font-size: 1.0625rem; list-style: none; cursor: pointer;
   }
   .nav-mobile summary::-webkit-details-marker { display: none; }
   .w-close { display: none; }
   details[open] .w-close { display: inline; }
   details[open] .w-open { display: none; }
   .burger { position: relative; display: block; width: 20px; height: 14px; }
-  .burger::before, .burger::after, .burger span {
-    content: ''; position: absolute; left: 0; right: 0; height: 2.5px; background: currentColor; transition: transform 0.25s var(--ease), opacity 0.2s;
-  }
+  .burger::before, .burger::after, .burger span { content: ''; position: absolute; left: 0; right: 0; height: 2.5px; background: currentColor; transition: transform 0.25s var(--ease), opacity 0.2s; }
   .burger::before { top: 0; }
   .burger span { top: 5.75px; }
   .burger::after { top: 11.5px; }
@@ -146,39 +187,34 @@ const cur = (l: { path: string; match: readonly string[] }) =>
     height: calc(100dvh - var(--header-h) - env(safe-area-inset-top));
     display: flex; flex-direction: column; gap: 1rem;
     padding: 0.5rem max(var(--gutter), env(safe-area-inset-right)) calc(1.5rem + env(safe-area-inset-bottom)) max(var(--gutter), env(safe-area-inset-left));
-    background: var(--card); color: var(--ink); --focus: var(--night); border-top: 4px solid var(--gold);
+    background: var(--card); color: var(--ink); --focus: var(--ink); border-top: 4px solid var(--gold);
     overflow-y: auto; overscroll-behavior: contain;
   }
   .sheet > * { width: 100%; max-width: 40rem; margin-inline: auto; }
   .sheet li + li { border-top: 1px solid var(--line); }
-  .sheet-main a {
-    display: flex; align-items: center; min-height: 60px;
-    font-family: var(--font-display); font-stretch: 80%; font-size: 1.75rem; font-weight: 750; text-decoration: none;
-  }
-  .sheet-more { border-top: 2px solid var(--ink); }
-  .sheet-more a { display: flex; align-items: center; min-height: 52px; font-family: var(--font-ui); font-size: 1.2rem; font-weight: 650; text-decoration: none; }
+  .sheet-main a { display: flex; align-items: center; min-height: 58px; font-family: var(--font-display); font-size: 1.6rem; font-weight: 700; text-decoration: none; }
+  .sheet-more { border-top: 3px double var(--gold); }
+  .sheet-more a { display: flex; align-items: center; min-height: 52px; font-size: 1.2rem; font-weight: 650; text-decoration: none; }
   .sheet a[aria-current='page'] { text-decoration: underline 3px var(--red); text-underline-offset: 8px; }
-  .sheet-info { display: grid; gap: 0.5rem; margin-top: auto; padding-top: 1rem; font-family: var(--font-ui); }
+  .sheet-info { display: grid; gap: 0.5rem; margin-top: auto; padding-top: 1rem; }
   .sheet-info p { color: var(--ink-2); font-weight: 600; }
   :global(html:has(.nav-mobile[open])), :global(html:has(.nav-mobile[open]) body) { overflow: hidden; }
 
-  /* ---- Rail: folder tabs; the current tab is cut from the page's own paper ---- */
   .rail { display: none; }
   @media (min-width: 1240px) {
     .nav-mobile, .mast-call { display: none; }
-    .rail { display: block; position: sticky; top: 0; z-index: 50; background: var(--night-2); }
+    .rail { display: block; position: sticky; top: 0; z-index: 50; background: var(--night-2); border-bottom: 1px solid rgb(165 140 82 / 0.35); }
     .rail-inner { display: flex; align-items: flex-end; min-height: var(--header-h); }
     .rail ul { display: flex; gap: 0.25rem; }
     .rail a {
       display: flex; align-items: center; min-height: 48px; padding: 0 1rem;
-      color: var(--on-dark); font-family: var(--font-ui); font-weight: 650; font-size: 1.0625rem; white-space: nowrap; text-decoration: none;
-      border-radius: 4px 4px 0 0;
+      color: var(--on-dark); font-weight: 650; font-size: 1.0625rem; white-space: nowrap; text-decoration: none; border-radius: 6px 6px 0 0;
     }
-    .rail a:hover { background: var(--night); text-decoration: underline 2px var(--brass); text-underline-offset: 6px; }
+    .rail a:hover { text-decoration: underline 2px var(--brass); text-underline-offset: 6px; }
     .rail a[aria-current='page'] { background: var(--paper); color: var(--ink); box-shadow: inset 0 3px 0 var(--red); }
     .rail a[aria-current='page']:hover { text-decoration: none; }
   }
-  @media (min-width: 700px) and (max-width: 1239px) { :global(:root) { --header-h: 90px; } }
+  @media (min-width: 700px) and (max-width: 1239px) { :global(:root) { --header-h: 82px; } }
   @media (min-width: 1240px) { :global(:root) { --header-h: 56px; } }
   @media print { .masthead, .rail { display: none; } }
 </style>

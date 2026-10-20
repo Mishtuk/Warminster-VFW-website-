@@ -1,0 +1,44 @@
+---
+/**
+ * Food and drink snapshots: every public/media/photos/food-*.webp (sorted by name) as pinned photos.
+ * Add a photo (1024x768 + -800 copy) and a caption below; it appears on home (first 4) and /bar (all).
+ * Captions describe what is in the picture only; no dish names or prices that are not on the menu.
+ */
+import fs from 'node:fs';
+import path from 'node:path';
+import { photo } from '../lib/site';
+
+interface Props { limit?: number; sizes?: string }
+const { limit = 99, sizes = '(min-width: 900px) 25vw, 50vw' } = Astro.props;
+const CAPTIONS: Record<string, string> = {
+  'food-1-burgers': 'Burgers and fries',
+  'food-2-wings': 'Wings with celery and dip',
+  'food-3-cheesesteak': 'Cheesesteak',
+  'food-4-hotdog': 'Hot dog and chips',
+  'food-5-burger': 'Burger and fries',
+  'food-6-fries': 'Fries with cheese sauce',
+};
+const dir = path.join(process.cwd(), 'public/media/photos');
+const food = fs.readdirSync(dir)
+  .filter((f) => /^food-.+\.webp$/.test(f) && !f.endsWith('-800.webp'))
+  .map((f) => f.replace('.webp', ''))
+  .sort()
+  .slice(0, limit);
+const tilts = ['-1.6deg', '1.2deg', '1deg', '-1.3deg', '-0.9deg', '1.5deg'];
+---
+<div class:list={['food-snaps', `n${food.length}`]}>
+  {food.map((n, i) => (
+    <figure class="snap" style={`--tilt:${tilts[i % tilts.length]}`}>
+      <img {...photo(n)} {sizes} alt={`${CAPTIONS[n] ?? 'Food'} from the post's kitchen`} loading="lazy" />
+      <figcaption>{CAPTIONS[n] ?? 'From the kitchen'}</figcaption>
+    </figure>
+  ))}
+</div>
+
+<style>
+  /* 1 photo: one big snapshot. 2+: a loose pinned cluster, two across. */
+  .food-snaps { display: grid; gap: 1.25rem; }
+  .food-snaps:not(.n1) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .food-snaps.n3 > :first-child { grid-column: 1 / -1; }
+  @media (min-width: 900px) { .food-snaps.n5, .food-snaps.n6 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+</style>

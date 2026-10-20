@@ -43,6 +43,9 @@ const fontCss = [
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!-- Theme before first paint: a saved choice wins; otherwise CSS follows the system setting. -->
+    <script is:inline>try{var t=localStorage.getItem('theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t}catch(e){}</script>
+    <meta name="color-scheme" content="light dark" />
     <title>{full}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
@@ -51,7 +54,7 @@ const fontCss = [
     <link rel="icon" href={`${base}/brand/favicon.ico`} sizes="48x48" />
     <link rel="apple-touch-icon" sizes="180x180" href={`${base}/brand/apple-touch-icon.png`} />
     <link rel="manifest" href={`${base}/manifest.webmanifest`} />
-    <meta name="theme-color" content="#131a24" />
+    <meta name="theme-color" content="#17120e" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={POST.name} />
     <meta property="og:title" content={full} />
