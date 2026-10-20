@@ -3,7 +3,7 @@
 // Dates are "YYYY-MM-DD" strings, times "HH:MM" (24h). "Today" is always America/New_York.
 
 import { POST } from './post.js';
-import { eventPhoto } from './event-photos.js';
+import { eventPhotos } from './event-photos.js';
 const CALL = `Call the post at ${POST.phone}.`;
 
 export const TZ = 'America/New_York';
@@ -474,12 +474,18 @@ const dateBox = (ymd, cls = '') => {
   return `<time class="vfw-datebox${cls ? ` ${cls}` : ''}" datetime="${ymd}"><span class="vfw-dn">${d.getUTCDate()}</span><span class="vfw-dm">${esc(f({ month: 'short' }))}</span><span class="vfw-dw">${esc(f({ weekday: 'short' }))}</span></time>`;
 };
 const whenBadge = (ymd, today) => (ymd === today ? '<span class="vfw-badge vfw-badge-now">Tonight</span>' : ymd <= addDays(today, 6) ? '<span class="vfw-badge">This week</span>' : '');
-// A post photo picked from the event's title or category. alt is empty for decorative thumbs.
+// Post photos picked from the event's title or category. alt is empty for decorative thumbs.
+// Three or more photos make a bundle: stacked imgs (the first is on; src/scripts/event-cycle.ts fades through the rest), so the box never changes size.
 const evImg = (o, base, cls, sizes, decorative = false) => {
-  const p = eventPhoto(o);
-  const src = `${base}${p.name}`;
-  return `<img class="${esc(cls)}" src="${esc(src)}-800.webp" srcset="${esc(src)}-800.webp 800w, ${esc(src)}.webp 1024w" sizes="${esc(sizes)}" alt="${decorative ? '' : esc(p.alt)}" width="800" height="600" loading="lazy" decoding="async">`;
+  const all = eventPhotos(o);
+  const list = all.length >= 3 ? all.slice(0, 4) : all.slice(0, 1);
+  return list.map((p, i) => {
+    const src = `${base}${p.name}`;
+    const still = decorative || i > 0; // only the first photo of a bundle speaks, so a screen reader hears one description
+    return `<img class="${esc(cls)}${i === 0 && list.length > 1 ? ' is-on' : ''}" src="${esc(src)}-800.webp" srcset="${esc(src)}-800.webp 800w, ${esc(src)}.webp 1024w" sizes="${esc(sizes)}" alt="${still ? '' : esc(p.alt)}"${i > 0 ? ' aria-hidden="true"' : ''} width="800" height="600" loading="lazy" decoding="async">`;
+  }).join('');
 };
+const cycleAttr = (o) => (eventPhotos(o).length >= 3 ? ' data-cycle' : '');
 /** The next event featured big, then the next few as compact date cards. opts: compact (4), days (120), empty, photoBase, eventsHref. */
 export function featuredHtml(events, today, { compact = 4, days = 120, empty: none = 'No upcoming events are listed right now.', photoBase = '/media/photos/', eventsHref = '/events' } = {}) {
   const list = expand(events, today, addDays(today, days));
@@ -489,12 +495,12 @@ export function featuredHtml(events, today, { compact = 4, days = 120, empty: no
   const top = special ?? list[0];
   const rest = list.filter((o) => o !== top);
   const time = (o) => (o.start ? `<span class="vfw-event-time">${esc(timeLabel(o.start, o.end))}</span>` : '');
-  const big = `<article class="vfw-feature vfw-cat-${slug(top.category)}"><figure class="vfw-feature-photo snap">${evImg(top, photoBase, 'vfw-feature-img', '(min-width: 800px) 45vw, 100vw')}${dateBox(top.date, 'vfw-datebox-pin')}</figure><div class="vfw-feature-body">`
+  const big = `<article class="vfw-feature vfw-cat-${slug(top.category)}"><figure class="vfw-feature-photo snap"${cycleAttr(top)}>${evImg(top, photoBase, 'vfw-feature-img', '(min-width: 800px) 40vw, 100vw')}${dateBox(top.date, 'vfw-datebox-pin')}</figure><div class="vfw-feature-body">`
     + `<p class="vfw-badges">${whenBadge(top.date, today)}<span class="vfw-event-cat">${esc(top.category)}</span></p>`
     + `<h3 class="vfw-feature-title">${esc(top.title)}</h3><p class="vfw-feature-time">${time(top)}</p>`
     + `${top.description ? `<p class="vfw-feature-desc">${esc(top.description.split(/(?<=[.!?])\s/)[0])}</p>` : ''}`
     + `<a class="vfw-feature-more btn btn-outline" href="${esc(eventsHref)}#${anchorOf(top)}">Details<span class="sr-only"> about ${esc(top.title)}</span><span aria-hidden="true"> ›</span></a></div></article>`;
-  const small = rest.slice(0, compact).map((o) => `<li class="vfw-card vfw-cat-${slug(o.category)}">${evImg(o, photoBase, 'vfw-card-thumb', '96px', true)}${dateBox(o.date)}<div>${whenBadge(o.date, today)}<strong class="vfw-card-title"><a href="${esc(eventsHref)}#${anchorOf(o)}">${esc(o.title)}</a></strong>${time(o)}</div></li>`).join('');
+  const small = rest.slice(0, compact).map((o) => `<li class="vfw-card vfw-cat-${slug(o.category)}"><span class="vfw-card-photo"${cycleAttr(o)}>${evImg(o, photoBase, 'vfw-card-thumb', '(min-width: 1100px) 12rem, (min-width: 800px) 8rem, 7rem', true)}</span>${dateBox(o.date)}<div>${whenBadge(o.date, today)}<strong class="vfw-card-title"><a href="${esc(eventsHref)}#${anchorOf(o)}">${esc(o.title)}</a></strong>${time(o)}</div></li>`).join('');
   return `<div class="vfw-featured">${big}${small ? `<ul class="vfw-cards">${small}</ul>` : ''}</div>`;
 }
 
