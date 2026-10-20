@@ -46,6 +46,31 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
   - SMTP for real inquiry email.
 - **Later:** a merch store using the logo (keep a Store tab in mind).
 
+## Launch security checklist (do these when hosting is chosen)
+- **Put proven login in front of `/admin` and `/api/admin/*`.** Use Cloudflare Access (Zero Trust, free for small teams) or Azure App Service Authentication, in addition to the site's own sign-in. The app's login then becomes a second layer, not the only one.
+- **Required production settings:**
+  - `NODE_ENV=production`
+  - `SESSION_SECRET` of 32 or more random characters
+  - `ADMIN_PASSWORD` of 12 or more characters
+  - no `ALLOW_DEFAULT_ADMIN`
+  - `TRUST_PROXY=1` only when the site sits behind a real proxy or CDN
+  - `POST_EMAIL` and `SMTP_URL` (an SMTP account limited to sending)
+- **HTTPS everywhere:** Cloudflare "Always Use HTTPS" (or the host's HTTPS-only switch). HSTS is sent automatically over HTTPS.
+- **Bots and abuse:** Cloudflare Bot Fight Mode and a rate-limit rule on `/api/` (the app also rate-limits by itself).
+- **Least privilege:**
+  - run node as a non-root user
+  - only that user can read `DATA_DIR`
+  - keep `DATA_DIR` and `.env` outside the web root (the server refuses to start otherwise)
+- **Watch:**
+  - the admin dashboard's Security log (sign-ins, lockouts, changes)
+  - GitHub's Security tab (secret scanning, Dependabot and CodeQL alerts)
+  - the Checks workflow, which runs tests, a dependency audit and CodeQL on every push and weekly
+- **Privacy:**
+  - hall inquiries are kept for `INQUIRY_RETENTION_DAYS` (365) and can be deleted in the admin
+  - don't store anything more sensitive on the server than that
+- **Repo:** public on purpose (GitHub Pages). It must never hold secrets; GitHub push protection blocks most of them.
+
+
 ## The post (facts; never invent others)
 - **Name:**
   - VFW Post 6493 & Auxiliary, Warminster.
