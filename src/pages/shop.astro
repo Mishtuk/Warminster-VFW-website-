@@ -1,16 +1,14 @@
 ---
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
-import Subnav from '../components/Subnav.astro';
 import InfoSection from '../components/info/InfoSection.astro';
-import { POST, PROGRAM_TABS } from '../lib/site';
+import { POST } from '../lib/site';
 import { shopHtml } from '../lib/state.js';
 // Static seed: the Coming soon panel. The server replaces the marker with the live products and the pickup order form.
 const seed = `<!--vfw:shop-->${shopHtml([])}<!--/vfw:shop-->`;
 ---
 <Base title="Post shop" description={`Post merchandise from ${POST.name}: buy online or order and pay at pickup.`}>
   <PageHead title="Post shop" lede="Buy online where you see the button, or order here and pay when you pick it up at the post." />
-  <Subnav items={PROGRAM_TABS} label="Programs and resources" />
 
   <InfoSection id="items" title="What's for sale" band="stone">
     <div id="shop-status" class="form-status" role="status" data-phone={POST.phone} hidden></div>

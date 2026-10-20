@@ -171,7 +171,7 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
   - read the hall inquiries inbox
 
 ## Look and feel
-- **Audience:** older visitors and veterans. Large type (body text 19–20px), high contrast, simple navigation with at most 7 tabs, large tap targets, and no hover-only menus.
+- **Audience:** older visitors and veterans. Large type (body text 19–20px), high contrast, simple navigation with at most 8 tabs (7 plus Post shop, the owner's call), large tap targets, and no hover-only menus.
 - **Look ("Canteen"):** a cozy neighbourhood bar and kitchen at a VFW post, not a corporate site. It is deliberately unlike the Riverside and Madison sites.
   - **Light theme:** menu paper with brown ink.
   - **Dark theme:** candle-lit brown-black. Both pass AA.
@@ -216,8 +216,9 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
 | The Bar | `/bar` |
 | Events | `/events` (full-year calendar and list), `/events/first-visit` (first-timer guide) |
 | Hall Rental | `/hall` |
-| Programs & Resources | `/programs`, `/resources`, `/youth` (contests and scholarships), `/support`, `/shop` (Post shop), `/volunteer`, `/help` (veteran help request) |
+| Programs & Resources | `/programs`, `/resources`, `/youth` (contests and scholarships), `/support`, `/volunteer`, `/help` (veteran help request) |
 | News | `/news` |
+| Post shop | `/shop` (added as an 8th tab at the owner's request) |
 | About | `/about`, `/history`, `/contact` |
 
 Staff only: `/admin` (noindex, blocked in robots.txt). Bar TV: `/tv` (linked nowhere, noindex, not in the sitemap, not counted in stats; open it full screen on the bar's TV).

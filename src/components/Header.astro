@@ -3,7 +3,7 @@
  * Masthead (always dark and warm, official reverse lockup, today's bar hours, phone)
  * + the tab rail on desktop. Below 1240px the masthead sticks and holds Call and the Menu.
  * Theme: Base.astro sets data-theme before paint from localStorage; with no saved choice the CSS follows the system.
- * Store-ready: the rail fits an 8th tab ("Store") at >= 1240px; add it to NAV in site.ts.
+ * The rail holds 8 tabs (Post shop is the 8th) on one row down to the phone-menu breakpoint.
  */
 import { POST, NAV, EXTRA, href } from '../lib/site';
 import TodayHours from './TodayHours.astro';
