@@ -8,4 +8,6 @@ export default defineConfig({
   base: BASE,
   output: 'static',
   build: { inlineStylesheets: 'always' },
+  // News photos from US government feeds are fetched at build time and self-hosted (the CSP only allows our own images).
+  image: { remotePatterns: [{ protocol: 'https' }] },
 });

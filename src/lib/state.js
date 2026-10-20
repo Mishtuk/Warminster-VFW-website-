@@ -63,14 +63,28 @@ export function validateSpecial(b) {
   return { value: { id: id(b.id), label, price: text(b.price, 40), description: para(b.description, 300), period: b.period, weekday, start, end, enabled: flag(b.enabled) } };
 }
 
-export function validateNews(b) {
+const PHOTO_EXT = ['webp', 'jpg', 'jpeg', 'png'];
+/** A news photo is a bare file name in media/photos (never a path). '' = none, null = not acceptable.
+ *  known = Set of the file names that really exist; without it only the shape is checked. */
+export function photoName(v, known) {
+  if (v === undefined || v === null || v === '') return '';
+  if (typeof v !== 'string' || v.length > 80 || v.includes('..')) return null;
+  const parts = v.split('.');
+  if (parts.length !== 2 || !parts[0] || !PHOTO_EXT.includes(parts[1].toLowerCase())) return null;
+  if (![...parts[0]].every((c) => /[A-Za-z0-9_-]/.test(c))) return null;
+  return known && !known.has(v) ? null : v;
+}
+
+export function validateNews(b, { photos } = {}) {
   b = b ?? {};
   const title = text(b.title, 120);
   if (!title) return { error: 'title' };
   if (!isDate(b.date)) return { error: 'date' };
   const body = para(b.body, 5000);
   if (!body) return { error: 'body' };
-  return { value: { id: id(b.id), title, date: b.date, body, enabled: flag(b.enabled) } };
+  const photo = photoName(b.photo, photos);
+  if (photo === null) return { error: 'photo' };
+  return { value: { id: id(b.id), title, date: b.date, body, photo, alt: text(b.alt, 150), enabled: flag(b.enabled) } };
 }
 
 /** The whole food menu is one document: { hours, sections: [{ id, name, items: [{ id, name, price, description, available }] }] }. */
@@ -248,13 +262,22 @@ export function menuHtml(menu, { empty: none = `The menu has not been posted yet
 
 const paragraphs = (body) => body.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean).map((p) => `<p>${esc(p).replace(/\n/g, '<br>')}</p>`).join('');
 /** Post news, newest first. opts: limit, teaser (first paragraph cut to 200 characters), empty. */
-export function newsHtml(news = [], { limit = 50, teaser = false, empty: none = 'No post news yet.' } = {}) {
+/** <figure> for a news item's photo, using the -800 copy when it exists. The site's photos are 4:3 (1024x768 and 800x600).
+ *  photos = Set of existing files (optional); base = URL folder (default /media/photos/). */
+function photoFigure(n, photos, base) {
+  if (!n.photo || (photos && !photos.has(n.photo))) return '';
+  const dot = n.photo.lastIndexOf('.');
+  const small = `${n.photo.slice(0, dot)}-800${n.photo.slice(dot)}`;
+  const useSmall = Boolean(photos?.has(small));
+  return `<figure class="vfw-news-photo"><img src="${esc(base + (useSmall ? small : n.photo))}" alt="${esc(n.alt || n.title)}" loading="lazy" decoding="async" width="${useSmall ? 800 : 1024}" height="${useSmall ? 600 : 768}"></figure>`;
+}
+export function newsHtml(news = [], { limit = 50, teaser = false, photos, photoBase = '/media/photos/', empty: none = 'No post news yet.' } = {}) {
   const list = news.filter((n) => n.enabled !== false).sort((a, b) => b.date.localeCompare(a.date)).slice(0, limit);
   if (!list.length) return empty(none);
   return list.map((n) => {
     const first = n.body.split(/\n\s*\n/)[0];
     const body = teaser ? `<p>${esc(first.length > 200 ? `${first.slice(0, 200).trimEnd()}...` : first)}</p>` : paragraphs(n.body);
-    return `<article class="vfw-news-item"><h3 class="vfw-news-title">${esc(n.title)}</h3><time class="vfw-news-date" datetime="${n.date}">${esc(longDay(n.date))}</time><div class="vfw-news-body">${body}</div></article>`;
+    return `<article class="vfw-news-item"><h3 class="vfw-news-title">${esc(n.title)}</h3><time class="vfw-news-date" datetime="${n.date}">${esc(longDay(n.date))}</time>${teaser ? '' : photoFigure(n, photos, photoBase)}<div class="vfw-news-body">${body}</div></article>`;
   }).join('');
 }
 
@@ -273,17 +296,42 @@ export const dataScript = (s, today) => `<script type="application/json" id="vfw
 // <!--vfw:name-->seed<!--/vfw:name--> and the whole region is replaced. The names are listed in docs/markers.md.
 const MARKER = /<!--vfw:([a-z-]+)-->(?:[\s\S]*?<!--\/vfw:\1-->)?/g;
 /** Fill every marker in a page. today = etDay(); year = ?year=N from the URL (calendar), default this year. */
-export function injectMarkers(html, state, today, year) {
+export function injectMarkers(html, state, today, year, { photos, photoBase } = {}) {
   const y = Number.isInteger(+year) && year >= 2000 && year <= 2100 ? +year : +today.slice(0, 4);
   const parts = {
     'events-upcoming': () => upcomingHtml(state.events, today),
     'events-regular': () => regularHtml(state.events),
+    'events-featured': () => featuredHtml(state.events, today),
     calendar: () => calendarHtml(state.events, y, today, { nav: true }),
     specials: () => specialsHtml(state.specials, today),
     menu: () => menuHtml(state.menu),
-    news: () => newsHtml(state.news),
+    news: () => newsHtml(state.news, { photos, photoBase }),
     'news-latest': () => newsHtml(state.news, { limit: 3, teaser: true }),
     data: () => dataScript(state, today),
   };
   return html.replace(MARKER, (m, name) => parts[name]?.() ?? m);
+}
+
+// ---------- home "What's on" (marker: events-featured) ----------
+const dateBox = (ymd) => {
+  const d = parseDay(ymd);
+  const f = (o) => d.toLocaleDateString('en-US', { ...o, timeZone: 'UTC' });
+  return `<time class="vfw-datebox" datetime="${ymd}"><span class="vfw-dn">${d.getUTCDate()}</span><span class="vfw-dm">${esc(f({ month: 'short' }))}</span><span class="vfw-dw">${esc(f({ weekday: 'short' }))}</span></time>`;
+};
+const whenBadge = (ymd, today) => (ymd === today ? '<span class="vfw-badge vfw-badge-now">Tonight</span>' : ymd <= addDays(today, 6) ? '<span class="vfw-badge">This week</span>' : '');
+/** The next event featured big, then the next few as compact date cards. opts: compact (4), days (120), empty. */
+export function featuredHtml(events, today, { compact = 4, days = 120, empty: none = 'No upcoming events are listed right now.' } = {}) {
+  const list = expand(events, today, addDays(today, days));
+  if (!list.length) return empty(none);
+  // Feature the next special (one-off) event within 30 days, so a routine weekly night doesn't take the spotlight; else the next event.
+  const special = list.find((o) => (!o.recurring || o.recurring === 'none') && o.date <= addDays(today, 30));
+  const top = special ?? list[0];
+  const rest = list.filter((o) => o !== top);
+  const time = (o) => (o.start ? `<span class="vfw-event-time">${esc(timeLabel(o.start, o.end))}</span>` : '');
+  const big = `<article class="vfw-feature vfw-cat-${slug(top.category)}">${dateBox(top.date)}<div class="vfw-feature-body">`
+    + `<p class="vfw-badges">${whenBadge(top.date, today)}<span class="vfw-event-cat">${esc(top.category)}</span></p>`
+    + `<h3 class="vfw-feature-title">${esc(top.title)}</h3><p class="vfw-feature-time">${time(top)}</p>`
+    + `${top.description ? `<p class="vfw-feature-desc">${esc(top.description.split(/(?<=[.!?])\s/)[0])}</p>` : ''}</div></article>`;
+  const small = rest.slice(0, compact).map((o) => `<li class="vfw-card vfw-cat-${slug(o.category)}">${dateBox(o.date)}<div>${whenBadge(o.date, today)}<strong class="vfw-card-title">${esc(o.title)}</strong>${time(o)}</div></li>`).join('');
+  return `<div class="vfw-featured">${big}${small ? `<ul class="vfw-cards">${small}</ul>` : ''}</div>`;
 }

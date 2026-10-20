@@ -1,6 +1,6 @@
-// Photos from different post events for the home hero carousel (all from the post's Facebook group).
-// Captions say only what the photo shows and when; no names, no amounts.
-export const HERO_PHOTOS = [
+// Bank of photos from different post events for the home hero carousel (sources: .claude/team/media-sources.md).
+// Each page load shows a random 9. Captions say only what the photo shows and when; no names, no amounts.
+export const HERO_BANK = [
   { name: 'hero-memorial-guard', alt: 'Honor guard standing with rifles at the Memorial Day ceremony', cap: 'Memorial Day honor guard, May 2026' },
   { name: 'hero-60th-couple', alt: 'A couple posing at the post anniversary dinner', cap: "The post's 60th anniversary dinner, September 2025" },
   { name: 'hero-linedance', alt: 'Line dancers on the hall floor under party lights', cap: 'Line dancing in the hall, 2026' },
@@ -10,4 +10,17 @@ export const HERO_PHOTOS = [
   { name: 'hero-60th-arch', alt: 'Red, white and blue balloon arch and stage', cap: 'Balloon arch at the 60th anniversary, September 2025' },
   { name: 'hero-memorial-flag', alt: 'A veteran raising the flag on the pole', cap: 'Raising the flag, Memorial Day, May 2026' },
   { name: 'hero-check', alt: 'Members of the post posing with a large check', cap: 'Members with a large check, October 2026' },
+  { name: 'hero-memorial-camel', alt: 'A camel wearing bunting in the Memorial Day parade', cap: 'A camel in the Memorial Day parade, May 2026' },
+  { name: 'hero-memorial-pair', alt: 'Two veterans in uniform at the Memorial Day ceremony', cap: 'Veterans at the Memorial Day ceremony, May 2026' },
+  { name: 'hero-60th-dessert', alt: 'Dessert table under a balloon arch', cap: 'Dessert table at the 60th anniversary, September 2025' },
+  { name: 'hero-60th-table', alt: 'The VFW information table with the motto banner', cap: 'The VFW table at the 60th anniversary, September 2025' },
+  { name: 'hero-60th-tables', alt: 'Round tables with red, white and blue chair sashes', cap: 'Tables set in the hall for the 60th anniversary' },
+  { name: 'hero-60th-crowd', alt: 'Guests seated at dinner in the hall', cap: 'Guests at the 60th anniversary dinner, September 2025' },
+  { name: 'hero-halloween-bunny', alt: 'A member in a bunny costume at the bar', cap: 'A bunny costume at the bar, October 2025' },
+  { name: 'hero-sweater-trio', alt: 'Three members in holiday sweaters', cap: 'Ugly-sweater party, December 2025' },
+  { name: 'hero-sweater-couple', alt: 'A couple with holiday photo props', cap: 'Holiday party photo booth, December 2025' },
+  { name: 'hero-sweater-pair', alt: 'Two women in festive outfits holding photo props', cap: 'Ugly-sweater party, December 2025' },
+  { name: 'hero-sweater-duo', alt: 'A couple in holiday sweaters with a red mask prop', cap: 'Holiday party, December 2025' },
+  { name: 'hero-linedance-2', alt: 'Dancers on the hall floor under red and blue lights', cap: 'Line dancing in the hall, 2026' },
+  { name: 'hero-linedance-3', alt: 'Line dancers circling the hall floor', cap: 'Line dancing in the hall, 2026' },
 ];

@@ -3,24 +3,32 @@
   "title": "Auxiliary Cash Bash on October 24",
   "date": "2026-10-15",
   "body": "The Auxiliary's second Cash Bash is Saturday, October 24, 2026. Tickets are $25. There are two $500 prizes, drawings every 10 minutes, $1 drafts and free food.\n\nThe first Cash Bash, in November 2025, sold out.",
-  "enabled": true
+  "enabled": true,
+  "photo": "hall-05.webp",
+  "alt": "The hall at the post, set with round tables"
  },
  {
   "title": "Renovation funding for the post",
   "date": "2026-10-01",
   "body": "In October 2026, Sen. Frank Farry secured renovation funding for the post's building. Call the post for details.",
-  "enabled": true
+  "enabled": true,
+  "photo": "hero-check.webp",
+  "alt": "Post members with Sen. Frank Farry and a $50,000 check made out to VFW Post 6493"
  },
  {
   "title": "New leaders for the post and Auxiliary",
   "date": "2026-06-01",
   "body": "In June 2026, Bill Zuk became Post Commander and Nichole Zuk became Auxiliary President. Evy Brennan stepped down as Auxiliary President.",
-  "enabled": true
+  "enabled": true,
+  "photo": "",
+  "alt": ""
  },
  {
   "title": "VFW 60th and Auxiliary 50th anniversary",
   "date": "2025-09-01",
   "body": "In September 2025 the post celebrated the VFW's 60th and the Auxiliary's 50th anniversary with a party at the post.",
-  "enabled": true
+  "enabled": true,
+  "photo": "hero-60th-arch.webp",
+  "alt": "Red, white and blue balloons and drapes for the anniversary party"
  }
 ]

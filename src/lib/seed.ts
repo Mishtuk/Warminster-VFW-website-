@@ -3,7 +3,7 @@ import events from '../content/events.json';
 import specials from '../content/specials.json';
 import menu from '../content/menu.json';
 import news from '../content/news.json';
-import { etDay, regularHtml, upcomingHtml, calendarHtml, specialsHtml, menuHtml, newsHtml, dataScript } from './state.js';
+import { etDay, featuredHtml, regularHtml, upcomingHtml, calendarHtml, specialsHtml, menuHtml, newsHtml, dataScript } from './state.js';
 import { POST } from './post.js';
 
 export const today = etDay();
@@ -13,6 +13,7 @@ const wrap = (name: string, html: string) => `<!--vfw:${name}-->${html}<!--/vfw:
 
 export const seed = {
   upcoming: wrap('events-upcoming', upcomingHtml(events, today, { empty })),
+  featured: wrap('events-featured', featuredHtml(events, today, { empty })),
   regular: wrap('events-regular', regularHtml(events)),
   calendar: wrap('calendar', calendarHtml(events, year, today)),
   specials: wrap('specials', specialsHtml(specials, today, { empty })),

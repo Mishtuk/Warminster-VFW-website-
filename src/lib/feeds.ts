@@ -1,5 +1,10 @@
 // Veteran-world headlines, read at build time. A dead feed never fails the build: each fetch has a 6 s timeout and errors are swallowed.
-export interface FeedItem { title: string; link: string; date: Date; source: string }
+import { getImage } from 'astro:assets';
+
+export interface FeedItem { title: string; link: string; date: Date; source: string; image?: { src: string; alt: string } }
+
+// US government sources (public domain). Military Times and others get no picture.
+const PUBLIC_DOMAIN = new Set(['VA News', 'VA Benefits News', 'VA Press Room', 'DVIDS']);
 
 // primary: VA feeds, shown first. others: only items that match VETERAN (title or description).
 const FEEDS = [
@@ -48,6 +53,24 @@ async function read(f: { source: string; url: string; primary: boolean }): Promi
   } catch { return []; }
 }
 
+/** Each item's own page names its photo (og:image). Downloaded and resized at build time; any failure just means no picture. */
+async function addImage(item: FeedItem): Promise<FeedItem> {
+  if (!PUBLIC_DOMAIN.has(item.source)) return item;
+  try {
+    const res = await fetch(item.link, { signal: AbortSignal.timeout(6000), headers: { 'user-agent': 'Mozilla/5.0 (compatible; VFWPost6493-site)' } });
+    if (!res.ok) return item;
+    const html = await res.text();
+    const m = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+    const src = m ? decode(m[1]) : '';
+    // Licensed stock photos (VA blog art often is) are not public domain: skip them.
+    if (/adobestock|shutterstock|istock|getty|depositphotos|stock/i.test(src)) return item;
+    if (!/^https:\/\//.test(src)) return item;
+    const alt = decode(html.match(/<meta[^>]+property=["']og:image:alt["'][^>]+content=["']([^"']+)["']/i)?.[1] ?? '') || item.title;
+    const img = await getImage({ src, width: 480, height: 270, format: 'webp', quality: 70, fit: 'cover' });
+    return { ...item, image: { src: img.src, alt } };
+  } catch { return item; }
+}
+
 /** ~8 latest items: VA feeds first (up to 6), the rest filled by veteran-related items from DVIDS and Military Times. Empty when every feed fails. */
 export async function latestVeteranNews(total = 8): Promise<FeedItem[]> {
   const got = await Promise.all(FEEDS.map(async (f) => ({ f, items: await read(f) })));
@@ -56,5 +79,6 @@ export async function latestVeteranNews(total = 8): Promise<FeedItem[]> {
   const uniq = (xs: FeedItem[]) => xs.filter((i) => !seen.has(i.link) && seen.add(i.link));
   const va = uniq(newest(got.filter((g) => g.f.primary).flatMap((g) => g.items))).slice(0, 6);
   const rest = uniq(newest(got.filter((g) => !g.f.primary).flatMap((g) => g.items)));
-  return newest([...va, ...rest.slice(0, total - va.length)]).slice(0, total);
+  const items = newest([...va, ...rest.slice(0, total - va.length)]).slice(0, total);
+  return Promise.all(items.map(addImage));
 }

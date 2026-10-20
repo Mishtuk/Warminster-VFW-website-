@@ -12,7 +12,9 @@ mkdirSync(emptySeed, { recursive: true });
 const tmp = mkdtempSync(join(tmpdir(), 'vfw-srv-'));
 const dist = join(tmp, 'dist');
 mkdirSync(join(dist, 'admin'), { recursive: true });
-writeFileSync(join(dist, 'index.html'), '<main><!--vfw:events-upcoming-->baked seed<!--/vfw:events-upcoming--><!--vfw:data--></main>');
+mkdirSync(join(dist, 'media', 'photos'), { recursive: true });
+for (const f of ['pic.webp', 'pic-800.webp', 'pic-full.webp']) writeFileSync(join(dist, 'media', 'photos', f), 'x');
+writeFileSync(join(dist, 'index.html'), '<main><!--vfw:events-upcoming-->baked seed<!--/vfw:events-upcoming--><!--vfw:data--><!--vfw:news--></main>');
 writeFileSync(join(dist, 'admin', 'index.html'), '<p>admin page</p>');
 let proc, base, origin;
 const ADMIN = { username: 'admin', password: 'admin' };
@@ -238,6 +240,20 @@ test('malformed and aborted requests do not take the server down', async () => {
   const s = connect(+port, '127.0.0.1'); s.on('error', () => {}); s.write('GET / HTTP/1.1' + CRLF); s.destroy(); // aborted mid-headers
   assert.equal((await call('GET', '/')).status, 200);
   assert.equal(proc.exitCode, null);
+});
+
+test('news photos: picker lists real files, only real files are accepted, and the page shows the figure', async () => {
+  const login = await call('POST', '/api/login', { username: 'admin', password: 'a-better-password' }, { Origin: origin });
+  const c = login.headers.get('set-cookie').split(';')[0];
+  const as = (m, p, b) => call(m, `/api/admin/${p}`, b, { Origin: origin, Cookie: c });
+  assert.deepEqual((await (await as('GET', 'photos')).json()).photos, [{ name: 'pic.webp', thumb: 'pic-800.webp' }]); // variants are not listed separately
+  const post = (photo) => as('PUT', 'news/new', { title: 'With picture', date: '2026-10-01', body: 'x', photo });
+  for (const bad of ['missing.webp', '../server.js', '..%2fserver.js', 'media/photos/pic.webp', 'pic.webp/../../x.webp']) assert.equal((await post(bad)).status, 400, bad);
+  const ok = await post('pic.webp');
+  assert.equal(ok.status, 200);
+  const html = await (await call('GET', '/')).text();
+  assert.ok(html.includes('<figure class="vfw-news-photo"><img src="/media/photos/pic-800.webp" alt="With picture"'));
+  await as('DELETE', `news/${(await ok.json()).item.id}`);
 });
 
 test('login lockout: 5 wrong tries lock the account', async () => {

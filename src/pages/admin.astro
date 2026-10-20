@@ -53,6 +53,13 @@ const NAV = [['dashboard', 'Dashboard'], ['events', 'Events'], ['specials', 'Dri
       .chart { width: 100%; height: auto; display: block; }
       .chart text { font-size: 11px; fill: #3b4048; }
       .gate { max-width: 28rem; margin: 3rem auto; padding: 0 1rem; }
+      fieldset.photos { border: 0; padding: 0; margin: 0 0 1rem; min-width: 0; }
+      fieldset.photos legend { font-weight: 600; margin-bottom: .3rem; }
+      .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr)); gap: .5rem; max-height: 22rem; overflow: auto; padding: 2px; }
+      label.pick { display: block; margin: 0; padding: .4rem; border: 2px solid var(--line); border-radius: 6px; background: #fff; font-size: .8rem; font-weight: 400; cursor: pointer; overflow-wrap: anywhere; }
+      label.pick:has(input:checked) { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+      label.pick img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; margin: .3rem 0; }
+      label.pick input { width: 24px; height: 24px; }
       .menu-section { border: 2px solid var(--line); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; background: #fafaf7; }
       .menu-item { border-top: 1px solid var(--line); padding-top: .75rem; margin-top: .75rem; }
       ol.top { padding-left: 1.4rem; margin: 0; }
@@ -158,14 +165,19 @@ const NAV = [['dashboard', 'Dashboard'], ['events', 'Events'], ['specials', 'Dri
           blank: { label: '', price: '', description: '', period: 'weekly', weekday: '5', start: '', end: '', enabled: true },
           line: (s) => s.label + (s.price ? ' · ' + s.price : ''), sub: (s) => [s.period === 'weekly' ? 'Every ' + DAYS[s.weekday] : s.period, s.start && 'from ' + dayLabel(s.start), s.end && 'until ' + dayLabel(s.end)].filter(Boolean).join(' · ') },
         news: { one: 'news item', add: 'Add a news item', fields: [
-          ['title', 'Headline', 'text'], ['date', 'Date', 'date'], ['body', 'News text (leave a blank line between paragraphs)', 'textarea'], ['enabled', 'Show on the website', 'check']],
-          blank: { title: '', date: '', body: '', enabled: true }, line: (n) => n.title, sub: (n) => dayLabel(n.date) },
+          ['title', 'Headline', 'text'], ['date', 'Date', 'date'], ['body', 'News text (leave a blank line between paragraphs)', 'textarea'], ['photo', 'Picture', 'photo'],
+          ['alt', 'Describe the picture for people who cannot see it (optional; the headline is used if you leave this empty)', 'text'], ['enabled', 'Show on the website', 'check']],
+          blank: { title: '', date: '', body: '', photo: '', alt: '', enabled: true }, line: (n) => n.title, sub: (n) => dayLabel(n.date) },
       };
       const TITLES = { events: 'Events', specials: 'Drink specials', news: 'News' };
 
       function field(f, v) {
         const [k, label, type, opts] = f;
         if (type === 'check') return h('label', { class: 'check' }, h('input', { type: 'checkbox', name: k, checked: !!v[k] }), label);
+        if (type === 'photo') {
+          const opt = (name, thumb, label) => h('label', { class: 'pick' }, h('input', { type: 'radio', name: 'photo', value: name, checked: (v.photo || '') === name }), thumb && h('img', { src: '/media/photos/' + thumb, alt: '', loading: 'lazy' }), h('span', {}, label));
+          return h('fieldset', { class: 'photos' }, h('legend', {}, label), h('div', { class: 'photo-grid' }, opt('', '', 'No photo'), (S.photos || []).map((p) => opt(p.name, p.thumb, p.name.replace(/[.][a-z]+$/, '')))));
+        }
         if (type === 'textarea') return h('label', {}, label, h('textarea', { name: k, value: v[k] ?? '' }));
         if (type === 'select') return h('label', { 'data-k': k }, label, h('select', { name: k }, opts.map(([val, text]) => h('option', { value: val, selected: String(v[k]) === val }, text))));
         return h('label', {}, label, h('input', { type, name: k, value: v[k] ?? '' }));
@@ -203,7 +215,7 @@ const NAV = [['dashboard', 'Dashboard'], ['events', 'Events'], ['specials', 'Dri
           form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const out = { id: v.id };
-            for (const f of c.fields) out[f[0]] = f[2] === 'check' ? form[f[0]].checked : form[f[0]].value;
+            for (const f of c.fields) out[f[0]] = f[2] === 'check' ? form[f[0]].checked : form[f[0]].value; // radio groups also give .value
             const m = await save(out);
             if (m) { err.textContent = m; err.hidden = false; }
           });
@@ -333,6 +345,8 @@ const NAV = [['dashboard', 'Dashboard'], ['events', 'Events'], ['specials', 'Dri
         const r = await api('GET', 'admin/state');
         if (!r.ok) return showLogin();
         S = r.data;
+        const ph = await api('GET', 'admin/photos');
+        S.photos = ph.ok ? ph.data.photos : [];
         $('#gate').hidden = true; $('#app').hidden = false;
         $('#default-warning').hidden = !S.defaultPassword;
         show();

@@ -1,7 +1,7 @@
 // The whole website server (`node server.js`): serves the static Astro build in dist/, fills admin-edited content into the HTML at
 // <!--vfw:*--> markers, answers /api/*, and runs the single admin sign-in. No framework; Node 22+ built-ins and nodemailer only.
 import { createServer } from 'node:http';
-import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { extname, join, normalize, sep } from 'node:path';
 import { createHash, randomBytes } from 'node:crypto';
 import { brotliCompressSync, constants as zc, gzipSync } from 'node:zlib';
@@ -29,6 +29,11 @@ const DIST = env.DIST_DIR || join(ROOT, 'dist');
 const DATA = env.DATA_DIR || (PROD ? '/home/data' : join(ROOT, '.data'));
 const log = (...a) => console.log(new Date().toISOString(), ...a);
 
+// News photos live in dist/media/photos. The folder is read when needed, so new files are picked up without a restart.
+// ponytail: one readdir per page view (about 100 names); cache by folder mtime if the folder ever gets large.
+const photoFiles = () => { try { return new Set(readdirSync(join(DIST, 'media', 'photos'))); } catch { return new Set(); } };
+const pickablePhotos = (set) => [...set].filter((f) => !f.includes('-800.') && !f.includes('-full.')).sort();
+
 const dirProblem = dataDirProblem(DATA, DIST, join(ROOT, '.env'));
 if (dirProblem) { console.error(`Refusing to start: ${dirProblem}`); process.exit(1); }
 
@@ -54,7 +59,8 @@ if (defaultInUse(db)) log('Warning: the default admin/admin password is in use (
     try {
       const seed = JSON.parse(readFileSync(f, 'utf8'));
       if (key === 'menu') { const v = check(seed); if (!v.error) { state.menu = v.value; changed = true; } continue; }
-      state[key] = seed.map((x) => check(x)).filter((v) => v.value).map((v) => v.value);
+      const photos = photoFiles();
+      state[key] = seed.map((x) => { const v = check(x, { photos }); return v.error === 'photo' ? check({ ...x, photo: '' }) : v; }).filter((v) => v.value).map((v) => v.value); // a missing seed photo is dropped, not the item
       changed = true;
     } catch (e) { log(`seed ${key}.json skipped: ${e.message}`); }
   }
@@ -142,7 +148,7 @@ async function serveStatic(nreq, nres, url) {
   if (type.startsWith('text/html')) {
     const isAdmin = p.startsWith('/admin');
     let html = readFileSync(file, 'utf8');
-    if (!isAdmin) { try { html = injectMarkers(html, getState(db), etDay(), url.searchParams.get('year')); } catch (e) { log('inject failed, serving the static page', e.message); } } // fail open: static HTML is a correct default
+    if (!isAdmin) { try { html = injectMarkers(html, getState(db), etDay(), url.searchParams.get('year'), { photos: photoFiles() }); } catch (e) { log('inject failed, serving the static page', e.message); } } // fail open: static HTML is a correct default
     headers['Cache-Control'] = isAdmin ? 'no-store' : 'no-cache';
     if (isAdmin) headers['X-Robots-Tag'] = 'noindex, nofollow';
     Object.assign(headers, baseHeaders(url, html)); // CSP hashes for this page's inline scripts
@@ -254,13 +260,14 @@ async function adminApi(req, url, user) {
 
   if (key === 'GET state') return json({ user, defaultPassword: defaultInUse(db), events: list('events'), specials: list('specials'), news: list('news'), menu: state.menu ?? emptyMenu, today: etDay(new Date()) });
   if (key === 'GET stats') return json(stats.summary(url.searchParams.get('range') ?? '30d'));
+  if (key === 'GET photos') { const all = photoFiles(); return json({ photos: pickablePhotos(all).map((name) => ({ name, thumb: all.has(name.replace('.', '-800.')) ? name.replace('.', '-800.') : name })) }); }
   if (key === 'GET security') return json({ events: audit.recent(50) });
 
   if (Object.hasOwn(FIELDS, section) && ['PUT', 'DELETE'].includes(req.method)) { // /api/admin/<events|specials|news>/<id or "new">
     const items = list(section);
     if (a1 !== 'new' && !items.some((x) => x.id === a1)) return bad('not_found', 404);
     if (req.method === 'DELETE') { state[section] = items.filter((x) => x.id !== a1); setState(db, state); note(`${section}_delete`, `id ${a1}`); return json({ ok: true, items: state[section] }); }
-    const v = FIELDS[section]({ ...body, id: a1 === 'new' ? undefined : a1 });
+    const v = FIELDS[section]({ ...body, id: a1 === 'new' ? undefined : a1 }, { photos: photoFiles() });
     if (v.error) return bad(v.error);
     state[section] = [...items.filter((x) => x.id !== v.value.id), v.value].sort(SORT[section]);
     setState(db, state);

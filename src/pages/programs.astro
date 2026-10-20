@@ -23,24 +23,30 @@ const sections = [...pillars.map((p) => ({ id: p.id, label: p.name })), { id: 't
   <Subnav items={tabs} label="Programs and resources" />
   <OnThisPage items={sections} />
 
-  {pillars.map((p) => (
-    <InfoSection id={p.id} title={p.name} summary={p.summary} panel>
-      <h3>At Post 6493</h3>
-      <ul>{p.items.map((t) => <li>{t}</li>)}</ul>
-      <h3>The national VFW program</h3>
-      <ul class="link-list">
-        <li><a href={p.link.url} rel="noopener"><span>{p.name} at the VFW</span><small>{p.link.note} (vfw.org)</small></a></li>
-      </ul>
-      <div class="faq">
-        <details>
-          <summary>More about the national programs</summary>
+  <InfoSection id="pillars" title="Three pillars" summary="What the post does locally, side by side, with the national VFW program under each.">
+    <div class="pillar-grid">
+      {pillars.map((p) => (
+        <article class="panel info-body pillar" id={p.id} aria-labelledby={`${p.id}-h`}>
+          <h3 id={`${p.id}-h`}>{p.name}</h3>
+          <p class="pillar-sum">{p.summary}</p>
+          <h4>At Post 6493</h4>
+          <ul>{p.items.map((t) => <li>{t}</li>)}</ul>
+          <h4>The national VFW program</h4>
           <ul class="link-list">
-            {p.national.map((n) => <li><a href={n.url} rel="noopener"><span>{n.name}</span><small>{n.line}</small></a></li>)}
+            <li><a href={p.link.url} rel="noopener"><span>{p.name} at the VFW</span><small>{p.link.note} (vfw.org)</small></a></li>
           </ul>
-        </details>
-      </div>
-    </InfoSection>
-  ))}
+          <div class="faq">
+            <details>
+              <summary>More national programs</summary>
+              <ul class="link-list">
+                {p.national.map((n) => <li><a href={n.url} rel="noopener"><span>{n.name}</span><small>{n.line}</small></a></li>)}
+              </ul>
+            </details>
+          </div>
+        </article>
+      ))}
+    </div>
+  </InfoSection>
 
   <InfoSection id="take-part" title="Take part" summary="Ask the post which programs it runs and how you can help.">
     <div class="info-two">
@@ -53,3 +59,14 @@ const sections = [...pillars.map((p) => ({ id: p.id, label: p.name })), { id: 't
     </div>
   </InfoSection>
 </Base>
+
+<style>
+  .pillar-grid { display: grid; gap: clamp(1rem, 0.6rem + 1.5vw, 1.5rem); }
+  @media (min-width: 760px) and (max-width: 1099px) { .pillar-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .pillar:last-child { grid-column: 1 / -1; } }
+  @media (min-width: 1100px) { .pillar-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; } }
+  .pillar { border-top: 6px double var(--gold); scroll-margin-top: calc(var(--header-h) + 0.5rem); }
+  .pillar h3 { font-size: var(--step-2); }
+  .pillar .pillar-sum { margin-top: 0.4rem; color: var(--ink-2); }
+  .pillar h4 { font-family: var(--font-ui); font-size: var(--step-0); font-weight: 700; color: var(--gold-ink); margin-top: 1.5rem; }
+  .pillar h4 + * { margin-top: 0.5rem; }
+</style>

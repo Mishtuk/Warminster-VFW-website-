@@ -108,3 +108,28 @@ test('calendar month lists show one-off events only; repeating nights stay marke
   assert.ok(march.includes('href="#regular"'));
   assert.equal((html.match(/href="#regular"/g) ?? []).length, 10); // March to December: the weekly night starts March 4
 });
+
+test('news photo validation: real file ok, unknown file refused, paths and traversal refused', () => {
+  const photos = new Set(['hero-check.webp', 'hero-check-800.webp', 'hall-05.webp']);
+  const n = (photo) => validateNews({ title: 't', date: '2026-10-01', body: 'b', photo, alt: 'A <b>pic</b>' }, { photos });
+  assert.equal(n('hero-check.webp').value.photo, 'hero-check.webp');
+  assert.equal(n('hero-check.webp').value.alt, 'A pic');
+  assert.equal(n('').value.photo, '');
+  assert.equal(n(undefined).value.photo, '');
+  assert.equal(n('nope.webp').error, 'photo');
+  for (const bad of ['../server.js', '../../etc/passwd', 'photos/hall-05.webp', '/media/photos/hall-05.webp', 'hall-05.webp/../x.webp', '..%2fx.webp', 'hall-05.webp.exe', 'hall-05.svg', 'a\b.webp', 5, {}, 'x'.repeat(90) + '.webp']) assert.equal(n(bad).error, 'photo', String(bad));
+  assert.equal(validateNews({ title: 't', date: '2026-10-01', body: 'b', photo: 'whatever.webp' }).value.photo, 'whatever.webp'); // shape only when no file list is given
+  assert.equal(validateNews({ title: 't', date: '2026-10-01', body: 'b', photo: '../x.webp' }).error, 'photo');
+});
+
+test('news photo renders as a figure with the -800 copy when it exists, alt falls back to the title', () => {
+  const photos = new Set(['a.webp', 'a-800.webp', 'b.webp']);
+  const news = [{ title: 'With small', date: '2026-02-01', body: 'x', photo: 'a.webp', alt: '', enabled: true }, { title: 'Only big', date: '2026-01-01', body: 'x', photo: 'b.webp', alt: 'Own "alt"', enabled: true },
+    { title: 'Gone', date: '2025-01-01', body: 'x', photo: 'deleted.webp', enabled: true }, { title: 'None', date: '2024-01-01', body: 'x', enabled: true }];
+  const h = newsHtml(news, { photos });
+  assert.ok(h.includes('<figure class="vfw-news-photo"><img src="/media/photos/a-800.webp" alt="With small" loading="lazy"'));
+  assert.ok(h.includes('width="800" height="600"'));
+  assert.ok(h.includes('src="/media/photos/b.webp" alt="Own &quot;alt&quot;"') && h.includes('width="1024" height="768"'));
+  assert.equal((h.match(/<figure/g) ?? []).length, 2); // deleted file and no photo: no figure
+  assert.ok(!newsHtml(news, { photos, teaser: true }).includes('<figure'));
+});

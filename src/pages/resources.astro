@@ -9,8 +9,8 @@ import { BENEFITS, DISCOUNTS, DISCOUNTS_CHECKED } from '../lib/resources.js';
 const tabs = [{ label: 'Programs', path: '/programs' }, { label: 'Resources', path: '/resources' }];
 const host = (u: string) => new URL(u).host.replace(/^www\./, '');
 const groups = [
-  { id: 'health', label: 'Health', summary: 'VA health care, counseling and mental health support.' },
   { id: 'benefits', label: 'Benefits and claims', summary: 'Apply for benefits and get free help with a VA claim.' },
+  { id: 'health', label: 'Health', summary: 'VA health care, counseling and mental health support.' },
   { id: 'money', label: 'Money and housing', summary: 'Financial grants through the VFW.' },
 ].map((g) => ({ ...g, items: BENEFITS.filter((b) => b.need === g.id) }));
 const sections = [...groups.map(({ id, label }) => ({ id, label })), { id: 'discounts', label: 'Discounts' }];
@@ -31,15 +31,21 @@ const sections = [...groups.map(({ id, label }) => ({ id, label })), { id: 'disc
 
   <OnThisPage items={sections} title="Go straight to" label="Resource groups" />
 
-  {groups.map((g) => (
-    <InfoSection id={g.id} title={g.label} summary={g.summary} panel>
-      <ul class="link-list res-list">
-        {g.items.map((b) => (
-          <li><a href={b.url} rel="noopener"><span>{b.name}</span><small>{b.line}</small><small class="res-host">{host(b.url)}</small></a></li>
-        ))}
-      </ul>
-    </InfoSection>
-  ))}
+  <InfoSection id="help" title="Help, by need" summary="Official sources for benefits, claims, health care and money help. Each link opens the source.">
+    <div class="help-grid">
+      {groups.map((g) => (
+        <article class="panel info-body help-card" id={g.id} aria-labelledby={`${g.id}-h`}>
+          <h3 id={`${g.id}-h`}>{g.label}</h3>
+          <p class="help-sum">{g.summary}</p>
+          <ul class="link-list res-list">
+            {g.items.map((b) => (
+              <li><a href={b.url} rel="noopener"><span>{b.name}</span><small>{b.line}</small><small class="res-host">{host(b.url)}</small></a></li>
+            ))}
+          </ul>
+        </article>
+      ))}
+    </div>
+  </InfoSection>
 
   <InfoSection id="discounts" title="Veteran discounts" summary={`Checked ${DISCOUNTS_CHECKED}. Offers change, so ask at checkout and check the source first.`} band="stone">
     <div class="disc-grid">
@@ -67,11 +73,25 @@ const sections = [...groups.map(({ id, label }) => ({ id, label })), { id: 'disc
   .crisis-box { padding: clamp(1.1rem, 1rem + 1vw, 1.75rem); }
   .crisis-box h2 { font-size: var(--step-2); }
   .crisis-box > * + * { margin-top: 0.6rem; }
+  @media (min-width: 760px) {
+    .crisis-box { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0.4rem 2rem; }
+    .crisis-box > * + * { margin-top: 0; }
+    .crisis-box > p:last-child { grid-column: 2; grid-row: 1 / span 2; }
+  }
+  .help-grid { display: grid; gap: clamp(1rem, 0.6rem + 1.5vw, 1.5rem); }
+  @media (min-width: 760px) {
+    .help-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: 'benefits health' 'benefits money'; align-items: start; }
+    #benefits { grid-area: benefits; align-self: stretch; } #health { grid-area: health; } #money { grid-area: money; }
+  }
+  .help-card { border-top: 6px double var(--gold); scroll-margin-top: calc(var(--header-h) + 0.5rem); }
+  .help-card h3 { font-size: var(--step-2); }
+  .help-card .help-sum { margin-top: 0.4rem; color: var(--ink-2); }
   .res-list a small + small { margin-top: 0.15rem; }
   .res-host { font-style: italic; }
   .res-tag { margin-block: 0.25rem; }
   .disc-grid { display: grid; gap: clamp(1rem, 0.6rem + 1.5vw, 1.5rem); }
-  @media (min-width: 900px) { .disc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } }
+  @media (min-width: 760px) { .disc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } }
+  @media (min-width: 1150px) { .disc-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
   .disc-foot { margin-top: 1.5rem; }
   .disc-foot a { font-weight: 700; }
 </style>

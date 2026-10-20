@@ -8,10 +8,6 @@ import { seed } from '../lib/seed';
 import { HALL_PHOTOS } from '../lib/hall-photos';
 const hallGallery = JSON.stringify(HALL_PHOTOS.map((p) => ({ src: photo(p.name).src, alt: p.alt, cap: p.cap })));
 
-const life = [
-  { name: 'life-60th-dinner', cap: "The post's 60th anniversary dinner, September 2025", alt: 'Members at dinner in the hall for the 60th anniversary' },
-  { name: 'life-linedance', cap: 'Line dancing at the post, 2026', alt: 'Line dancers on the hall floor under party lights' },
-];
 ---
 <Base title={`${POST.name}, ${POST.city}, PA`}>
   <Fragment slot="head">
@@ -19,6 +15,13 @@ const life = [
     <link rel="preload" as="image" imagesrcset={`${href('/media/hero-poster-m.jpg')} 960w, ${href('/media/hero-poster.jpg')} 1920w`} imagesizes="100vw" href={href('/media/hero-poster.jpg')} media="not all and (max-width: 700px) and (orientation: portrait)" fetchpriority="high" />
   </Fragment>
   <Hero />
+  <section class="section whats-on" aria-labelledby="on-title">
+    <div class="container">
+      <h2 id="on-title" class="bars">What's on</h2>
+      <div class="on-wrap"><Fragment set:html={seed.featured} /></div>
+      <p class="section-foot"><a class="btn" href={href('/events')}>See the full calendar</a></p>
+    </div>
+  </section>
   <VisitBlock />
 
   <!-- Food and drink: photos first, then the week's specials on a printed menu card -->
@@ -58,25 +61,6 @@ const life = [
           <a class="btn" href={href('/hall#inquiry')}>Rent the Hall</a>
           <a class="btn btn-outline" href={POST.tel}>Call {POST.phone}</a>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- What's on, beside snapshots of the post's own nights -->
-  <section class="section band-paper" aria-labelledby="on-title">
-    <div class="container on-grid">
-      <div class="panel">
-        <h2 id="on-title" class="bars">What's on</h2>
-        <div style="margin-top:1.25rem"><Fragment set:html={seed.upcoming} /></div>
-        <p class="section-foot"><a class="link" href={href('/events')}>See the whole calendar</a></p>
-      </div>
-      <div class="life">
-        {life.map((l, i) => (
-          <figure class="snap" style={`--tilt:${i ? '1.4deg' : '-1.2deg'}`}>
-            <img {...photo(l.name)} sizes="(min-width: 900px) 35vw, 100vw" alt={l.alt} loading="lazy" decoding="async" fetchpriority="low" />
-            <figcaption>{l.cap}</figcaption>
-          </figure>
-        ))}
       </div>
     </div>
   </section>
@@ -131,4 +115,31 @@ const life = [
 
   .life { display: grid; gap: 1.75rem; }
   @media (min-width: 560px) and (max-width: 899px) { .life { grid-template-columns: 1fr 1fr; } }
+</style>
+
+<style is:global>
+  /* Home "What's on": filled by the events-featured marker, so these classes are global. */
+  .whats-on .on-wrap { margin-top: 1.25rem; }
+  .vfw-featured { display: grid; gap: 1.25rem; }
+  .vfw-feature, .vfw-card { display: flex; gap: 1.25rem; align-items: center; background: var(--card); color: var(--ink); border: 1px solid var(--line); border-left: 6px solid var(--navy); border-radius: var(--radius); padding: 1.25rem; }
+  .vfw-feature { gap: 1.75rem; padding: 1.5rem; }
+  .vfw-datebox { flex: none; display: grid; justify-items: center; align-content: center; min-width: 4.5rem; padding: 0.5rem 0.6rem; background: var(--night); color: var(--on-dark); border-bottom: 4px solid var(--brass); border-radius: var(--radius); line-height: 1.1; }
+  .vfw-dn { font-family: var(--font-display); font-weight: 700; font-size: 2rem; }
+  .vfw-dm, .vfw-dw { font-size: var(--step--1); font-weight: 600; }
+  .vfw-feature .vfw-datebox { min-width: 6.5rem; padding: 0.9rem 1rem; }
+  .vfw-feature .vfw-dn { font-size: 3.5rem; }
+  .vfw-feature-title { font-size: var(--step-3); line-height: 1.15; margin-top: 0.4rem; }
+  .vfw-feature-time { margin-top: 0.35rem; font-size: var(--step-1); font-weight: 700; color: var(--red-ink); }
+  .vfw-feature-desc { margin-top: 0.5rem; color: var(--ink-2); max-width: 60ch; }
+  .vfw-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+  .vfw-badge { padding: 0.1rem 0.7rem; border-radius: var(--radius); background: var(--night); color: var(--brass); font-size: var(--step--1); font-weight: 700; }
+  .vfw-badge-now { background: #7d2528; color: #f4eee3; }
+  .vfw-cards { display: grid; gap: 1rem; list-style: none; padding: 0; margin: 0; }
+  @media (min-width: 800px) { .vfw-cards { grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); } }
+  .vfw-card { align-items: flex-start; padding: 1rem; }
+  .vfw-card > div { display: grid; gap: 0.2rem; }
+  .vfw-card-title { font-family: var(--font-display); font-size: var(--step-1); line-height: 1.2; }
+  .vfw-card .vfw-event-time { color: var(--ink-2); font-weight: 600; }
+  .vfw-cat-holiday.vfw-feature, .vfw-cat-holiday.vfw-card { border-left-color: var(--red); }
+  @media (max-width: 559px) { .vfw-feature { flex-direction: column; align-items: flex-start; } }
 </style>

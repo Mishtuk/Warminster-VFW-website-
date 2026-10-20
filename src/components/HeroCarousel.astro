@@ -1,44 +1,64 @@
 ---
 /**
- * Hero photo stack: pinned snapshots from different post events. Every 5.5 s the top one slides away and the next settles in.
- * Auto-cycling stops on hover or focus, when the tab is hidden, on the Pause button, and always under reduced motion.
- * Only the first photo loads with the page; the rest load after it. Clicking a photo opens the viewer with the whole set (data-gallery="hero").
+ * Hero photo stack: pinned snapshots from different post events. Every page load shows a random 9 from a bank of 22.
+ * An inline script picks them and builds the stack before first paint and starts loading photo 1 straight away (low priority, so the poster stays the LCP).
+ * Photos 2 to 9 load in the background after the page has loaded. Every 5.5 s the top one slides away and the next settles in;
+ * auto-cycling stops on hover or focus, when the tab is hidden, on the Pause button, and always under reduced motion.
+ * Clicking a photo opens the viewer with the whole set (data-gallery="hero").
  */
 import { photo, href } from '../lib/site';
-import { HERO_PHOTOS } from '../lib/hero-photos';
+import { HERO_BANK } from '../lib/hero-photos';
 
-const tilts = ['-1.4deg', '1.2deg', '-0.8deg', '1.6deg', '-1.1deg', '0.9deg', '-1.5deg', '1.3deg', '-0.7deg'];
-const list = JSON.stringify(HERO_PHOTOS.map((p) => ({
-  src: href(`/media/photos/${p.name}-full.webp`), thumb: photo(p.name).src, alt: p.alt, cap: p.cap,
-})));
+const bank = HERO_BANK.map((p) => ({
+  thumb: photo(p.name).src,
+  small: photo(p.name).srcset.split(' ')[0],
+  full: href(`/media/photos/${p.name}-full.webp`),
+  alt: p.alt, cap: p.cap,
+}));
+const first = bank[0];
 ---
 <div class="car" data-gallery="hero" role="group" aria-roledescription="carousel" aria-label="Photos from events at the post">
   <ol class="car-stack">
-    {HERO_PHOTOS.map((p, i) => {
-      const ph = photo(p.name);
-      return (
-        <li class="car-slide" data-pos={i}>
-          <figure class="snap" style={`--tilt:${tilts[i % tilts.length]}`}>
-            <img
-              data-src={ph.srcset.split(' ')[0]}
-              sizes="(min-width: 1100px) 24rem, 80vw" width={ph.width} height={ph.height}
-              alt={p.alt} decoding="async" loading="lazy" fetchpriority="low"
-            />
-            {i === 0 && <noscript><img src={ph.srcset.split(' ')[0]} width={ph.width} height={ph.height} alt={p.alt} /></noscript>}
-            <figcaption>{p.cap}</figcaption>
-          </figure>
-        </li>
-      );
-    })}
+    <noscript>
+      <li class="car-slide" data-pos="0">
+        <figure class="snap" style="--tilt:-1.4deg"><img src={first.small} width="1024" height="768" alt={first.alt} /><figcaption>{first.cap}</figcaption></figure>
+      </li>
+    </noscript>
   </ol>
   <div class="car-ctrl">
     <button type="button" class="car-btn car-prev" aria-label="Previous photo"><span aria-hidden="true">&#8592;</span></button>
     <button type="button" class="car-btn car-play" aria-label="Pause the photo slideshow"><span class="car-ico" aria-hidden="true"></span></button>
     <button type="button" class="car-btn car-next" aria-label="Next photo"><span aria-hidden="true">&#8594;</span></button>
-    <span class="car-count">1 of {HERO_PHOTOS.length}</span>
+    <span class="car-count">1 of 9</span>
   </div>
   <p class="sr-only car-live" aria-live="off"></p>
-  <script type="application/json" data-gallery-list="hero" set:html={list}></script>
+  <script type="application/json" id="car-bank" set:html={JSON.stringify(bank)}></script>
+  <!-- Runs while the page is parsed, before first paint: pick 9 at random, build the stack, start photo 1. -->
+  <script is:inline>
+    (function () {
+      var root = document.querySelector('.car');
+      var raw = document.getElementById('car-bank');
+      if (!root || !raw) return;
+      var bank = JSON.parse(raw.textContent);
+      for (var i = bank.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = bank[i]; bank[i] = bank[j]; bank[j] = t; }
+      var pick = bank.slice(0, 9);
+      var tilts = ['-1.4deg', '1.2deg', '-0.8deg', '1.6deg', '-1.1deg', '0.9deg', '-1.5deg', '1.3deg', '-0.7deg'];
+      var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+      var html = pick.map(function (p, i) {
+        var img = i === 0
+          ? '<img src="' + esc(p.small) + '" fetchpriority="low" decoding="async" '
+          : '<img data-src="' + esc(p.small) + '" decoding="async" ';
+        return '<li class="car-slide" data-pos="' + i + '"><figure class="snap" style="--tilt:' + tilts[i] + '">' + img + 'width="1024" height="768" alt="' + esc(p.alt) + '" /><figcaption>' + esc(p.cap) + '</figcaption></figure></li>';
+      }).join('');
+      root.querySelector('.car-stack').innerHTML = html;
+      var list = document.createElement('script');
+      list.type = 'application/json';
+      list.setAttribute('data-gallery-list', 'hero');
+      list.textContent = JSON.stringify(pick.map(function (p) { return { src: p.full, thumb: p.thumb, alt: p.alt, cap: p.cap }; }));
+      root.appendChild(list);
+      root.querySelector('.car-count').textContent = '1 of ' + pick.length;
+    })();
+  </script>
 </div>
 
 <script>
@@ -46,64 +66,58 @@ const list = JSON.stringify(HERO_PHOTOS.map((p) => ({
   if (root) {
     const slides = [...root.querySelectorAll<HTMLElement>('.car-slide')];
     const n = slides.length;
-    const live = root.querySelector('.car-live') as HTMLElement;
-    const count = root.querySelector('.car-count') as HTMLElement;
-    const play = root.querySelector('.car-play') as HTMLButtonElement;
-    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let cur = 0, timer = 0, userPaused = reduced, hovering = false;
+    if (n) {
+      const live = root.querySelector('.car-live') as HTMLElement;
+      const count = root.querySelector('.car-count') as HTMLElement;
+      const play = root.querySelector('.car-play') as HTMLButtonElement;
+      const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let cur = 0, timer = 0, userPaused = reduced, hovering = false;
 
-    const place = (announce: boolean) => {
-      slides.forEach((s, i) => {
-        const pos = (i - cur + n) % n;
-        s.dataset.pos = String(pos === n - 1 ? 'out' : pos);
-        s.toggleAttribute('inert', pos !== 0);
-      });
-      const cap = slides[cur].querySelector('figcaption')?.textContent ?? '';
-      count.textContent = `${cur + 1} of ${n}`;
-      live.setAttribute('aria-live', announce ? 'polite' : 'off');
-      live.textContent = announce ? `Photo ${cur + 1} of ${n}: ${cap}` : '';
-    };
-    const go = (to: number, announce = false) => { cur = (to + n) % n; place(announce); };
-    const sync = () => {
-      clearTimeout(timer);
-      play.setAttribute('aria-label', userPaused ? 'Play the photo slideshow' : 'Pause the photo slideshow');
-      play.dataset.paused = String(userPaused);
-      if (!userPaused && !hovering && !document.hidden) timer = window.setTimeout(() => { go(cur + 1); sync(); }, 5500);
-    };
+      const place = (announce: boolean) => {
+        slides.forEach((s, i) => {
+          const pos = (i - cur + n) % n;
+          s.dataset.pos = String(pos === n - 1 ? 'out' : pos);
+          s.toggleAttribute('inert', pos !== 0);
+        });
+        const cap = slides[cur].querySelector('figcaption')?.textContent ?? '';
+        count.textContent = `${cur + 1} of ${n}`;
+        live.setAttribute('aria-live', announce ? 'polite' : 'off');
+        live.textContent = announce ? `Photo ${cur + 1} of ${n}: ${cap}` : '';
+      };
+      const go = (to: number, announce = false) => { cur = (to + n) % n; place(announce); };
+      const sync = () => {
+        clearTimeout(timer);
+        play.setAttribute('aria-label', userPaused ? 'Play the photo slideshow' : 'Pause the photo slideshow');
+        play.dataset.paused = String(userPaused);
+        if (!userPaused && !hovering && !document.hidden) timer = window.setTimeout(() => { go(cur + 1); sync(); }, 5500);
+      };
 
-    // Photos load once the page (and its poster) has finished, so they never compete with it.
-    const loadRest = () => {
-      for (const img of root.querySelectorAll<HTMLImageElement>('img[data-src]')) {
-        if (!img.getAttribute('src')) img.setAttribute('src', img.dataset.src || '');
-      }
-    };
-    // Photos 2 to 9: after the page has loaded and the browser is idle (or on first touch), so they never compete with the poster.
-    let started = false;
-    const later = () => {
-      if (started) return;
-      started = true;
-      const ric = (window as any).requestIdleCallback as undefined | ((cb: () => void, o: { timeout: number }) => void);
-      if (ric) ric(loadRest, { timeout: 4000 }); else setTimeout(loadRest, 1500);
-    };
-    for (const ev of ['pointerdown', 'keydown', 'scroll']) addEventListener(ev, later, { once: true, passive: true });
-    if (document.readyState === 'complete') setTimeout(later, 1500); else addEventListener('load', () => setTimeout(later, 1500), { once: true });
+      // Photos 2 to 9 load in the background right after the page has loaded.
+      const loadRest = () => {
+        for (const img of root.querySelectorAll<HTMLImageElement>('img[data-src]')) {
+          if (!img.getAttribute('src')) img.setAttribute('src', img.dataset.src || '');
+        }
+      };
+      if (document.readyState === 'complete') setTimeout(loadRest, 200); else addEventListener('load', () => setTimeout(loadRest, 200), { once: true });
 
-    root.querySelector('.car-prev')!.addEventListener('click', () => { go(cur - 1, true); sync(); });
-    root.querySelector('.car-next')!.addEventListener('click', () => { go(cur + 1, true); sync(); });
-    play.addEventListener('click', () => { userPaused = !userPaused; sync(); });
-    root.addEventListener('mouseenter', () => { hovering = true; sync(); });
-    root.addEventListener('mouseleave', () => { hovering = false; sync(); });
-    root.addEventListener('focusin', () => { hovering = true; sync(); });
-    root.addEventListener('focusout', () => { hovering = false; sync(); });
-    document.addEventListener('visibilitychange', sync);
+      root.querySelector('.car-prev')!.addEventListener('click', () => { go(cur - 1, true); sync(); });
+      root.querySelector('.car-next')!.addEventListener('click', () => { go(cur + 1, true); sync(); });
+      play.addEventListener('click', () => { userPaused = !userPaused; sync(); });
+      root.addEventListener('mouseenter', () => { hovering = true; sync(); });
+      root.addEventListener('mouseleave', () => { hovering = false; sync(); });
+      root.addEventListener('focusin', () => { hovering = true; sync(); });
+      root.addEventListener('focusout', () => { hovering = false; sync(); });
+      document.addEventListener('visibilitychange', sync);
 
-    if (reduced) { play.hidden = true; root.classList.add('is-still'); }
-    place(false);
-    sync();
+      if (reduced) { play.hidden = true; root.classList.add('is-still'); }
+      place(false);
+      sync();
+    }
   }
 </script>
 
-<style>
+<style is:global>
+  /* Global on purpose: the slides are created by the inline script, so they carry no scoped attribute. All selectors start with .car. */
   .car { width: min(100%, 22rem); margin-inline: auto; }
   .car-stack { position: relative; list-style: none; padding: 0; margin: 0; aspect-ratio: 1 / 0.98; }
   .car-slide {
