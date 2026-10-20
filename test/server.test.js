@@ -221,6 +221,25 @@ test('security log: sign-in failure, edits and deletes are recorded; passwords n
   await call('POST', '/api/logout', null, { Origin: origin, Cookie: c });
 });
 
+test('malformed and aborted requests do not take the server down', async () => {
+  const { connect } = await import('node:net');
+  const port = new URL(origin).port;
+  const CRLF = String.fromCharCode(13, 10);
+  const raw = (data, end = true) => new Promise((ok) => {
+    const s = connect(+port, '127.0.0.1', () => { s.write(data); if (end) s.end(); });
+    let got = '';
+    s.on('data', (d) => (got += d));
+    s.on('close', () => ok(got));
+    s.on('error', () => ok(got));
+  });
+  assert.match(await raw('GARBAGE NOT HTTP' + CRLF + CRLF), /^HTTP\/1\.1 400/);
+  assert.match(await raw('GET /' + String.fromCharCode(0) + ' HTTP/1.1' + CRLF + 'Host: x' + CRLF + CRLF), /400|404/);
+  await raw(`POST /api/hall-inquiry HTTP/1.1${CRLF}Host: x${CRLF}Content-Length: 500${CRLF}Content-Type: application/json${CRLF}${CRLF}{"name":`); // body cut short, socket closed
+  const s = connect(+port, '127.0.0.1'); s.on('error', () => {}); s.write('GET / HTTP/1.1' + CRLF); s.destroy(); // aborted mid-headers
+  assert.equal((await call('GET', '/')).status, 200);
+  assert.equal(proc.exitCode, null);
+});
+
 test('login lockout: 5 wrong tries lock the account', async () => {
   let last;
   for (let i = 0; i < 6; i++) last = await call('POST', '/api/login', { username: 'admin', password: `nope${i}` }, { Origin: origin });

@@ -331,6 +331,23 @@ const server = createServer(async (nreq, nres) => {
 server.headersTimeout = 10e3; // slow-connection guards
 server.requestTimeout = 30e3;
 server.listen(PORT, () => log(`VFW Post 6493 site on ${PUBLIC_URL} (port ${server.address().port}, data in ${DATA}${PROD ? '' : ', development'})`));
-const stop = () => { server.close(() => { db.close(); process.exit(0); }); setTimeout(() => process.exit(0), 5000).unref(); };
-process.on('SIGTERM', stop);
-process.on('SIGINT', stop);
+// Never die silently: a bad request is answered with 400, uncaught errors are logged and the process exits (the host restarts it),
+// unhandled rejections are logged and the server keeps running.
+server.on('clientError', (err, socket) => {
+  log('clientError', clean(err.code ?? err.message, 100));
+  if (socket.writable) socket.end('HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');
+  else socket.destroy();
+});
+process.on('uncaughtException', (e) => { log('uncaughtException, exiting', clean(e?.stack ?? e, 2000)); process.exit(1); });
+process.on('unhandledRejection', (e) => log('unhandledRejection', clean(e?.stack ?? e, 2000)));
+let stopping = false;
+const stop = (sig) => {
+  if (stopping) return;
+  stopping = true;
+  log(`${sig} received, shutting down`);
+  server.close(() => { try { db.close(); } catch {} log('stopped'); process.exit(0); });
+  server.closeIdleConnections?.();
+  setTimeout(() => process.exit(0), 5000).unref();
+};
+process.on('SIGTERM', () => stop('SIGTERM'));
+process.on('SIGINT', () => stop('SIGINT'));
