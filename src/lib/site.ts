@@ -28,11 +28,12 @@ export const NAV = [
 ] as const;
 
 /** Subnav shared by About, Join the post, History and Contact. */
-export const ABOUT_TABS = [{ label: 'About', path: '/about' }, { label: 'Join the post', path: '/join' }, { label: 'History', path: '/history' }, { label: 'Contact', path: '/contact' }];
+export const ABOUT_TABS = [{ label: 'About', path: '/about' }, { label: 'Join the post', path: '/join' }, { label: 'History', path: '/history' }, { label: 'Wall of Honor', path: '/honor' }, { label: 'Contact', path: '/contact' }];
 
 export const EXTRA = [
   { label: 'Join the post', path: '/join' },
   { label: 'History', path: '/history' },
+  { label: 'Wall of Honor', path: '/honor' },
   { label: 'Contact', path: '/contact' },
   { label: 'Your first visit', path: '/events/first-visit' },
   { label: 'Volunteer', path: '/volunteer' },

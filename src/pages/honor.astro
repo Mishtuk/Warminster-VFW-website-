@@ -1,0 +1,80 @@
+---
+/*
+ * Wall of Honor. It stays "Coming soon" until families give consent for a name to be shown.
+ * Staff edit src/content/honor.json by hand for now (there is no admin editing).
+ * Entry shape: { id, name, branch, era, served, photo, note, consent: true }
+ * Only entries with consent === true render. The rules live in src/lib/honor.js.
+ */
+import { existsSync } from 'node:fs';
+import { join, sep } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Subnav from '../components/Subnav.astro';
+import InfoSection from '../components/info/InfoSection.astro';
+import { POST, ABOUT_TABS } from '../lib/site';
+import { honorList } from '../lib/honor.js';
+import entries from '../content/honor.json';
+
+const veterans = honorList(entries).map((v) => {
+  if (!v.photo) return { ...v, img: null };
+  const dot = v.photo.lastIndexOf('.');
+  const small = `${v.photo.slice(0, dot)}-800${v.photo.slice(dot)}`;
+  const dir = pathToFileURL(join(process.cwd(), 'public/media/photos') + sep);
+  if (existsSync(new URL(small, dir))) return { ...v, img: { src: small, w: 800, h: 600 } };
+  if (existsSync(new URL(v.photo, dir))) return { ...v, img: { src: v.photo, w: 1024, h: 768 } };
+  return { ...v, img: null };
+});
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+<Base title="Wall of Honor" description={`Members of ${POST.name} in ${POST.city}, PA who served, shown with their families' permission.`}>
+  <PageHead title="Wall of Honor" lede="Honoring the veterans of our post, with their families' permission." image="hero-memorial-flag" />
+  <Subnav items={ABOUT_TABS} label="About" />
+
+  <InfoSection id="wall" title="Our veterans" summary={veterans.length ? 'Each name is shown with permission from the veteran or the family.' : 'Coming soon.'} band={veterans.length ? undefined : 'stone'}>
+    {veterans.length === 0 ? (
+      <div class="panel info-body honor-soon">
+        <h3>Coming soon</h3>
+        <p>The post is gathering names with families' permission. We will not show anyone until we have it.</p>
+        <p>To add a veteran, call the post.</p>
+        <p><a class="btn" href={POST.tel}>Call the post {POST.phone}</a></p>
+      </div>
+    ) : (
+      <>
+        <ul class="honor-grid">
+          {veterans.map((v) => (
+            <li class="honor-card">
+              {v.img && <img src={`${base}/media/photos/${v.img.src}`} alt={`Photo of ${v.name}`} width={v.img.w} height={v.img.h} loading="lazy" decoding="async" />}
+              <h3>{v.name}</h3>
+              <p class="honor-branch"><span class="star" aria-hidden="true"></span><span class="honor-pill">{v.branch}</span></p>
+              {v.era && <p class="honor-era">{v.era}</p>}
+              {v.served && <p class="honor-served">{v.served}</p>}
+              {v.note && <p class="honor-note">{v.note}</p>}
+            </li>
+          ))}
+        </ul>
+        <p class="honor-add">To add a veteran, call the post. <a class="btn" href={POST.tel}>Call the post {POST.phone}</a></p>
+      </>
+    )}
+  </InfoSection>
+</Base>
+
+<style>
+  .honor-grid { list-style: none; padding: 0; display: grid; gap: clamp(1rem, 0.6rem + 1.5vw, 1.5rem); }
+  @media (min-width: 700px) { .honor-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (min-width: 1000px) { .honor-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .honor-card {
+    position: relative; text-align: center; color: var(--on-dark);
+    background: linear-gradient(180deg, #2a1f17, #1d1611); border-radius: 4px; padding: 2rem 1.5rem;
+    box-shadow: inset 0 0 0 8px #2a1f17, inset 0 0 0 10px var(--gold), inset 0 0 0 13px #2a1f17, inset 0 0 0 14px rgb(165 140 82 / 0.55), var(--shadow);
+  }
+  .honor-card img { display: block; width: 100%; height: auto; margin: 0 0 1.25rem; border-radius: 2px; border: 1px solid rgb(165 140 82 / 0.55); }
+  .honor-card h3 { font-family: var(--font-display); font-size: var(--step-2); font-weight: 700; line-height: 1.15; color: var(--on-dark); }
+  .honor-card p { color: var(--on-dark-2); margin-top: 0.6rem; }
+  .honor-branch { display: flex; align-items: center; justify-content: center; gap: 0.6rem; }
+  .honor-branch .star { color: var(--gold); font-size: 1rem; }
+  .honor-pill { color: var(--brass); font-weight: 650; border: 1px solid var(--gold); border-radius: 999px; padding: 0.2rem 0.9rem; }
+  .honor-era { color: var(--on-dark); font-weight: 650; }
+  .honor-add { margin-top: 2rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1.25rem; font-size: var(--step-1); }
+  .honor-soon { max-width: 46rem; }
+</style>
