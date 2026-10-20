@@ -64,6 +64,31 @@ const first = bank[0];
 <script>
   const root = document.querySelector<HTMLElement>('.car');
   if (root) {
+    // Phones: the stack leaves the hero and becomes a compact strip right after it.
+    const mq = matchMedia('(max-width: 699px)');
+    const anchor = document.createComment('car');
+    root.before(anchor);
+    let strip: HTMLElement | null = null;
+    const relocate = () => {
+      if (mq.matches) {
+        if (!strip) {
+          strip = document.createElement('section');
+          strip.className = 'car-strip';
+          strip.setAttribute('aria-label', 'Photos from events at the post');
+          const c = document.createElement('div');
+          c.className = 'container';
+          strip.appendChild(c);
+          document.querySelector('.welcome')?.after(strip);
+        }
+        strip.firstElementChild!.appendChild(root);
+      } else {
+        anchor.after(root);
+        strip?.remove();
+        strip = null;
+      }
+    };
+    relocate();
+    mq.addEventListener('change', relocate);
     const slides = [...root.querySelectorAll<HTMLElement>('.car-slide')];
     const n = slides.length;
     if (n) {
@@ -108,6 +133,13 @@ const first = bank[0];
       root.addEventListener('focusin', () => { hovering = true; sync(); });
       root.addEventListener('focusout', () => { hovering = false; sync(); });
       document.addEventListener('visibilitychange', sync);
+      // Swipe on phones
+      let x0 = 0, y0 = 0;
+      root.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+      root.addEventListener('touchend', (e) => {
+        const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+        if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) { go(cur + (dx < 0 ? 1 : -1), true); sync(); }
+      }, { passive: true });
 
       if (reduced) { play.hidden = true; root.classList.add('is-still'); }
       place(false);
@@ -145,4 +177,9 @@ const first = bank[0];
   .car-ico { width: 12px; height: 14px; border-inline: 4px solid currentColor; }
   .car-play[data-paused='true'] .car-ico { width: 0; height: 0; margin-left: 4px; border: 0; border-block: 8px solid transparent; border-left: 13px solid currentColor; }
   .car-count { margin-left: auto; font-weight: 700; font-size: var(--step--1); }
+
+  /* Phones: hidden in the hero until the script has moved it into the strip below */
+  @media (max-width: 699px) { .welcome .car { display: none; } }
+  .car-strip { overflow: hidden; background: var(--night); color: var(--on-dark); padding-block: 1.5rem 1.25rem; border-bottom: 6px solid var(--red); }
+  .car-strip .car { width: min(100%, 13rem); }
 </style>

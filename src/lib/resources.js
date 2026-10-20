@@ -68,7 +68,7 @@ export const NATIONAL_TIMELINE = [
 
 export const DISCOUNTS_CHECKED = 'October 2026';
 
-// What Post 6493 itself does (research-facebook.md section 4), sorted into the three pillars.
+// What Post 6493 itself does (from the post's Facebook group), sorted into the three pillars.
 export const POST_DOES = {
   service: [
     'The post gives $1,000 every year to the Warminster Food Bank. Food collection boxes are at the rear door.',

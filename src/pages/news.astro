@@ -13,7 +13,7 @@ import news from '../content/news.json';
 const photos = new Set(readdirSync(join(process.cwd(), 'public', 'media', 'photos')));
 const postNews = `<!--vfw:news-->${newsHtml(news, { photos, photoBase: href('/media/photos/'), empty: 'No post news yet. Check back soon.' })}<!--/vfw:news-->`;
 import { latestVeteranNews, FALLBACK_LINKS } from '../lib/feeds';
-// image: optional self-hosted thumbnail from feeds.ts (VA, DVIDS); see team redesign.md §10.
+// image: optional self-hosted thumbnail from feeds.ts (VA, DVIDS).
 const items = (await latestVeteranNews(8)) as (Awaited<ReturnType<typeof latestVeteranNews>>[number] & { image?: { src: string; alt?: string } })[];
 const fmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/New_York' });
 // Badge text when a story has no picture: "VA News", "VA Press Room" -> "VA"; others keep their name.

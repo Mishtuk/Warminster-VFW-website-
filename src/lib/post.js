@@ -11,14 +11,14 @@ export const POST = {
   motto: 'No One Does More for Veterans',
   facebook: 'https://www.facebook.com/groups/845409237204566/',
   membership: 'Membership is open to veterans and non-veterans. Ask for details.',
-  // Bar (canteen) hours from the post's flyer, 2026 (research-facebook.md section 1)
+  // Bar (canteen) hours from the post's flyer, 2026
   hours: [['Monday to Thursday', '5 PM to 10 PM'], ['Friday', '4 PM to 12 AM'], ['Saturday', '6 PM to 12 AM'], ['Sunday', '1 PM to 7 PM']],
   email: 'vfwpost6493@gmail.com',
   hallEmail: 'VFW6493HallRental@gmail.com',
   barRule: 'The bar is for members and guests. Membership cards are checked at the door.',
   joinPrice: 'Home Association (social) membership at the post is $35 a year, due December 31.',
   officeHours: 'Thursday and Friday, 8 AM to 12 PM',
-  // Kitchen hours from the Aug 2026 flyer (research-facebook.md section 2): call to confirm
+  // Kitchen hours from the Aug 2026 flyer: call to confirm
   kitchen: [['Monday', '6:30 PM to 8 PM'], ['Tuesday to Thursday', '5 PM to 8 PM'], ['Friday', '5:30 PM to 8:30 PM']],
   meetings: 'The 2nd Monday of each month: Home Association 6 PM, Auxiliary 6:45 PM, VFW 7 PM.',
   publicNights: ['Thursday bingo', 'Monday line dancing', 'Friday band dances', 'Cornhole'],
@@ -36,7 +36,7 @@ export const POST = {
     ['Your food and entertainment', 'Renter supplied; staff not included.'],
     ['Setup and cleaning', 'Venue assisted.'],
   ],
-  // Business listing name (research-web.md section 4)
+  // Business listing name
   officialName: 'Veterans of Foreign Wars Warminster Memorial Post 6493',
 };
 POST.address = `${POST.street}, ${POST.city}, ${POST.region} ${POST.zip}`;
