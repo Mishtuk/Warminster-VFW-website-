@@ -20,7 +20,7 @@ Two machines work on this repo at the same time. Live coordination happens on th
 
 ### Now working on
 - **Desktop:** hero photo bank to 150+ (src/lib/hero-photos.ts, public/media/photos/hero-*, src/components/HeroCarousel.astro).
-- **Laptop:** home "What's going on at the post" refresh with event photos (the featuredHtml block in src/lib/state.js, the whats-on section and its is:global style block in src/pages/index.astro, new src/lib/event-photos.ts; reuses existing public/media/photos, no new hero-* files).
+- **Laptop:** home "What's going on at the post" refresh with event photos (the featuredHtml block in src/lib/state.js, the whats-on section and its is:global style block in src/pages/index.astro, new src/lib/event-photos.js; reuses existing public/media/photos, no new hero-* files).
 
 ## Status (handoff, 2026-10-20)
 **The site is feature-complete on the preview. The next steps are the owner's choices.**
