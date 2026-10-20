@@ -20,7 +20,6 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Task issues:** work is handed out as GitHub issues labeled `laptop` or `desktop`, each a full brief with a "Done when" checklist. Check `gh issue list -l <your machine> --state open` at the start of a session and about every 15 minutes while idle. Take the lowest number, comment "Started", claim it below, and close it with the commit hash when done.
 
 ### Now working on
-- **Laptop:** #7 Join the post page (new src/pages/join.astro; src/pages/about.astro join section; the About tabs and footer EXTRA list in src/lib/site.ts or Footer.astro; join links in VisitBlock.astro, events/first-visit.astro and contact.astro; sitemap.xml.ts).
 
 ## Status (handoff, 2026-10-20)
 **The site is feature-complete on the preview. The next steps are the owner's choices.**
@@ -33,6 +32,7 @@ Two machines work on this repo at the same time. Live coordination happens on th
   - Then "What's going on at the post": the next special event within 30 days, else the next event, plus 4 compact cards (`featuredHtml` in `state.js`, marker `events-featured`). Each event gets a real post photo by title, else by category (`src/lib/event-photos.js`); add a title rule there when a new kind of event gets its own photo.
   - Then New here?, food snapshots with the specials menu card, the hall band (2 photos that open a 14-photo gallery, `src/lib/hall-photos.ts`), the namesakes plaque and post news.
 - **Info pages:**
+  - Join the post `/join` (under the About tabs, `ABOUT_TABS` in `site.ts`): who can join, three paths (VFW, Auxiliary, Home Association) with official links or Call the post, how to join, renewing and meetings. Facts are from vfw.org and vfwauxiliary.org (sources in a code comment). The Home Association price shows Call the post until `homePrice` in `join.astro` is set to `POST.joinPrice` (the $35 in post.js has no source in research.md).
   - All of them use one layout (`src/components/info/`: InfoSection, OnThisPage, KeyFacts), with multi-column layouts on desktop.
   - Resources are grouped by need, with the crisis line first.
   - Programs shows the 3 pillars side by side.
