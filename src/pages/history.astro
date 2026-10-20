@@ -10,27 +10,27 @@ const tabs = [{ label: 'About', path: '/about' }, { label: 'History', path: '/hi
   <PageHead title="History" lede="From the VFW's start in 1899 to Post 6493 today." />
   <Subnav items={tabs} label="About" />
 
-  <section class="section band-paper">
-    <div class="container prose">
-      <h2>The VFW</h2>
+  <section class="section">
+    <div class="container"><div class="panel prose">
+      <h2 class="bars">The VFW</h2>
       <p>The Veterans of Foreign Wars began on September 29, 1899, when veterans of the Spanish-American War formed a group to look after one another and their families. Here is how it grew.</p>
       <ol class="timeline">
         {NATIONAL_TIMELINE.map(([y, t, u]) => (
           <li><span class="year">{y}</span>{t} <a href={u} rel="noopener">Source</a></li>
         ))}
       </ol>
-    </div>
+    </div></div>
   </section>
 
-  <section class="section band-stone">
-    <div class="container prose">
-      <h2>Post 6493</h2>
+  <section class="section">
+    <div class="container"><div class="panel prose">
+      <h2 class="bars">Post 6493</h2>
       <p>The post's official name is {POST.officialName}. It carries the names of two local men: Harry C. Wilson II, who died in Vietnam and is buried in Union Cemetery, and Douglas A. Post, who died during the Vietnam era and is buried in Whitemarsh Cemetery.</p>
-      <p>Each Memorial Day the post gathers at its flagpole at 7:30 AM, then visits both graves. The post also joins the township ceremony and parade, which ends at the post.</p>
+      <p>Each Memorial Day the post gathers at its flagpole at 7:30 AM, then visits both graves.</p>
       <p>In September 2025 the post celebrated the VFW's 60th and the Auxiliary's 50th anniversary. In November 2025 the Auxiliary honored 93-year-old Ruth Mann for 50 years of membership.</p>
       <p>In March 2022, State Senator Maria Collett presented the post with a $50,000 Keystone Communities Program grant for a new roof and parking-lot resurfacing. <a href="https://pasenate.com/?p=129750" rel="noopener">Source: PA Senate</a>.</p>
       <p>Warminster's annual Memorial Day parade ends at the post. <a href="https://www.buckscountyherald.com/community/events/warminster-township-honors-sacrifice-of-nations-service-members/article_195fd6e6-1884-4ebd-ba19-f199eb01fed2.html" rel="noopener">Source: Bucks County Herald, 2026</a>.</p>
       <p>Have a story or a photo from the post's past? <a href={POST.tel}>Call {POST.phone}</a> and tell us.</p>
-    </div>
+    </div></div>
   </section>
 </Base>

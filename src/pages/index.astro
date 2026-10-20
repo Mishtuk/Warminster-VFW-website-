@@ -1,56 +1,70 @@
 ---
 import Base from '../layouts/Base.astro';
 import Hero from '../components/Hero.astro';
-import Membership from '../components/Membership.astro';
 import { POST, href, photo } from '../lib/site';
 import { seed } from '../lib/seed';
 ---
-<Base title={`${POST.name}, ${POST.city}, PA`} overlay>
+<Base title={`${POST.name}, ${POST.city}, PA`}>
   <Hero />
 
-  <section class="section band-paper">
-    <div class="container">
-      <div class="section-head"><h2>This week at the bar</h2></div>
-      <Fragment set:html={seed.specials} />
-      <p class="section-foot"><a class="link link-arrow" href={href('/bar')}>See specials and menu</a></p>
+  <section class="section band-paper home-week" aria-label="This week">
+    <div class="container split">
+      <div>
+        <div class="section-head"><h2>This week at the bar</h2></div>
+        <Fragment set:html={seed.specials} />
+        <p class="section-foot"><a class="link" href={href('/bar')}>See specials and the food menu</a></p>
+      </div>
+      <div>
+        <div class="section-head"><h2>Coming up</h2></div>
+        <Fragment set:html={seed.upcoming} />
+        <p class="section-foot"><a class="link" href={href('/events')}>See the calendar</a></p>
+      </div>
     </div>
   </section>
 
-  <section class="section band-stone">
-    <div class="container split-wide">
-      <div>
-        <h2>Coming up</h2>
-        <div style="margin-top:1.5rem"><Fragment set:html={seed.upcoming} /></div>
-      </div>
-      <div class="card card-rule">
-        <h3>Every event is on the calendar</h3>
-        <p style="margin-top:0.6rem">See the full year, month by month.</p>
-        <p style="margin-top:1.25rem"><a class="btn btn-outline" href={href('/events')}>See the calendar</a></p>
+  <section class="section band-stone" aria-labelledby="tribute-title">
+    <div class="container">
+      <div class="plaque">
+        <h2 id="tribute-title">The post's namesakes</h2>
+        <ul class="namesakes">
+          <li><strong>Harry C. Wilson II</strong><span>Died in Vietnam. Buried at Union Cemetery.</span></li>
+          <li><strong>Douglas A. Post</strong><span>Died during the Vietnam era. Buried at Whitemarsh Cemetery.</span></li>
+        </ul>
+        <p style="margin-top:1.75rem">Every Memorial Day the post gathers at its flagpole, then visits both graves.</p>
+        <ul class="branches" aria-label="Branches of service">
+          <li>Army</li><li>Marine Corps</li><li>Navy</li><li>Air Force</li><li>Space Force</li><li>Coast Guard</li>
+        </ul>
+        <p class="remembrance"><span class="star" aria-hidden="true"></span>POW/MIA. You are not forgotten.</p>
       </div>
     </div>
   </section>
 
   <section class="section band-paper">
     <div class="container split">
-      <div class="media" style="aspect-ratio:4/3"><img {...photo('hall-07')} sizes="(min-width: 900px) 45vw, 100vw" alt="Inside the hall at the post" loading="lazy" /></div>
-      <div class="stack">
-        <h2>Rent our hall</h2>
-        <ul class="facts">
+      <div class="media" style="aspect-ratio:4/3"><img {...photo('hall-07')} sizes="(min-width: 800px) 45vw, 100vw" alt="Inside the hall, set with round tables" loading="lazy" /></div>
+      <div>
+        <h2 class="bars" style="font-size:var(--step-3)">Rent our hall</h2>
+        <p style="margin-top:1rem">{POST.hallBlurb}</p>
+        <ul class="facts" style="margin-top:1.25rem">
           {POST.hallFacts.slice(0, 4).map(([t, d]) => <li><strong>{t}</strong><span>{d}</span></li>)}
         </ul>
-        <p><a class="btn" href={href('/hall')}>Rent the Hall</a></p>
+        <p style="margin-top:1.5rem"><a class="btn" href={href('/hall')}>Rent the Hall</a></p>
       </div>
     </div>
   </section>
 
-  <section class="section band-stone">
-    <div class="container">
+  <section class="section band-paper">
+    <div class="container-narrow">
       <div class="section-head"><h2>From the post</h2></div>
       <Fragment set:html={seed.newsLatest} />
-      <p class="section-foot"><a class="link link-arrow" href={href('/news')}>All news</a></p>
+      <p class="section-foot"><a class="link" href={href('/news')}>All post news</a></p>
     </div>
   </section>
 
-  <Membership />
   <Fragment set:html={seed.data} />
 </Base>
+
+<style>
+  /* Home shows the first three specials; the full list is on /bar. */
+  .home-week :global(.vfw-special:nth-child(n + 4)) { display: none; }
+</style>

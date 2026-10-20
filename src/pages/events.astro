@@ -10,18 +10,18 @@ const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
   <PageHead title="Events and calendar" lede={`Everything on the calendar at the post for ${year}.`} />
   <Subnav items={months} label="Jump to a month" />
 
-  <section class="section band-paper">
+  <section class="section">
     <div class="container">
-      <div class="section-head"><h2>Upcoming</h2></div>
+      <div class="section-head"><h2 class="bars">Upcoming</h2></div>
       <Fragment set:html={seed.upcoming} />
     </div>
   </section>
 
   <section class="section band-stone">
     <div class="container">
-      <div class="section-head"><h2>Full year</h2></div>
-      <div class="cal-key" aria-hidden="true"><span class="k-event">Event day</span><span class="k-today">Today</span></div>
-      <p class="no-print" style="margin-bottom:1.5rem"><button class="btn btn-outline" type="button" onclick="print()">Print this calendar</button></p>
+      <div class="section-head"><h2 class="bars">Full year</h2></div>
+      <div class="cal-key" aria-hidden="true"><span class="k-event">Event day</span><span class="k-today">Today</span><span class="k-cat vfw-cat-bar">Bar</span><span class="k-cat vfw-cat-post">Post</span><span class="k-cat vfw-cat-auxiliary">Auxiliary</span><span class="k-cat vfw-cat-community">Community</span><span class="k-cat vfw-cat-holiday">Holiday</span></div>
+      <p class="no-print" style="margin-bottom:1.5rem"><button class="btn btn-outline no-print" type="button" onclick="print()">Print this calendar</button></p>
       <Fragment set:html={seed.calendar} />
     </div>
   </section>

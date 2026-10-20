@@ -1,0 +1,26 @@
+---
+/**
+ * Today's bar hours, picked in the visitor's browser from POST.hours (e.g. "Monday to Thursday").
+ * Without JS it shows the fallback text. Used by the masthead, the home board and /bar.
+ */
+import { POST } from '../lib/site';
+interface Props { prefix?: string; fallback?: string }
+const { prefix = 'Open today', fallback = 'See bar hours' } = Astro.props;
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const week: (string | null)[] = Array(7).fill(null);
+for (const [d, h] of POST.hours) {
+  const [a, b = a] = d.split(' to ');
+  let i = DAYS.indexOf(a);
+  const j = DAYS.indexOf(b);
+  if (i < 0 || j < 0) continue;
+  for (;;) { week[i] = h; if (i === j) break; i = (i + 1) % 7; }
+}
+---
+<span class="today-hours" data-week={JSON.stringify(week)} data-prefix={prefix}>{fallback}</span>
+
+<script>
+  for (const el of document.querySelectorAll<HTMLElement>('.today-hours')) {
+    const h = JSON.parse(el.dataset.week || '[]')[new Date().getDay()];
+    if (h) el.textContent = `${el.dataset.prefix} ${h}`;
+  }
+</script>

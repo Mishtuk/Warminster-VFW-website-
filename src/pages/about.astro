@@ -10,34 +10,28 @@ const tabs = [{ label: 'About', path: '/about' }, { label: 'History', path: '/hi
   <PageHead title="About the post" lede={POST.motto} />
   <Subnav items={tabs} label="About" />
 
-  <section class="section band-paper">
-    <div class="container prose">
-      <h2>Who we are</h2>
+  <section class="section">
+    <div class="container"><div class="panel prose">
+      <h2 class="bars">Who we are</h2>
       <p>{POST.name} is a Veterans of Foreign Wars post and auxiliary in {POST.city}, Pennsylvania. Our Facebook group describes us with one line: "{POST.motto}."</p>
       <p>The post is at {POST.address}. Call us at <a href={POST.tel}>{POST.phone}</a>.</p>
       <p>The post has a bar, hosts events, and rents its hall for private parties. See <a href={href('/bar')}>The Bar</a>, <a href={href('/events')}>Events</a> and <a href={href('/hall')}>Hall Rental</a>. You can also read about the <a href={href('/history')}>history</a> of the VFW and the post, or find us on the <a href={POST.facebook} rel="noopener">Facebook group</a>.</p>
-    </div>
+    </div></div>
   </section>
 
-  <section class="section band-stone">
-    <div class="container prose">
-      <h2>Leaders</h2>
+  <section class="section">
+    <div class="container"><div class="panel prose">
+      <h2 class="bars">Leaders</h2>
       <p>Post Commander: {POST.commander}. Auxiliary President: {POST.auxPresident}. Both took office in June 2026.</p>
       <h3>Past leaders</h3>
-      <ul>
-        {POST.pastCommanders.map(([n, d]) => <li>{n}: {d}</li>)}
-        <li>{POST.pastAuxPresident}: Auxiliary President until June 2026</li>
-      </ul>
+      <ol class="timeline">
+        {POST.pastCommanders.map(([n, d]) => <li><span class="year">{n}</span>{d}</li>)}
+        <li><span class="year">{POST.pastAuxPresident}</span>Auxiliary President until June 2026</li>
+      </ol>
       <p>The post's official name is {POST.officialName}. {POST.joinPrice} {POST.barRule}</p>
-    </div>
+    </div></div>
   </section>
 
   <Membership />
 
-  <section class="section band-stone">
-    <div class="container" style="text-align:center">
-      <ul class="branches" aria-label="Branches of service" style="justify-content:center"><li>Army</li><li>Marine Corps</li><li>Navy</li><li>Air Force</li><li>Coast Guard</li></ul>
-      <p class="remembrance" style="justify-content:center;margin-top:1.5rem"><span class="star" aria-hidden="true">&#9733;</span>POW/MIA: You Are Not Forgotten.</p>
-    </div>
-  </section>
 </Base>

@@ -10,14 +10,14 @@ const fmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'n
 <Base title="News" description={`News from ${POST.name} and the latest veteran news.`}>
   <PageHead title="News" lede="News from the post, and the latest news for veterans." />
 
-  <section class="section band-paper">
+  <section class="section">
     <div class="container news-layout">
-      <div>
-        <h2>From the post</h2>
+      <div class="panel">
+        <h2 class="bars">From the post</h2>
         <div style="margin-top:1.5rem"><Fragment set:html={seed.news} /></div>
       </div>
       <aside>
-        <h2>Veteran news</h2>
+        <h2 class="bars">Veteran news</h2>
         {items.length > 0 && (
           <ul class="link-list" style="margin-top:1rem">
             {items.map((i) => (

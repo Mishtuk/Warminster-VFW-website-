@@ -3,20 +3,33 @@ import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
 import { POST } from '../lib/site';
 import { seed } from '../lib/seed';
-const lede = 'Drink specials and food at the post.';
+
+// Canteen hours board: the visitor's weekday row is marked by the small script below.
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const rows = POST.hours.map(([d, h]) => {
+  const [a, b = a] = d.split(' to ');
+  const i = DAYS.indexOf(a), j = DAYS.indexOf(b);
+  const days: number[] = [];
+  if (i >= 0 && j >= 0) for (let k = i; ; k = (k + 1) % 7) { days.push(k); if (k === j) break; }
+  return { d, h, days: days.join(' ') };
+});
 ---
-<Base title="The Bar" description={`Drink specials and the food menu at ${POST.name}, ${POST.city}, PA.`}>
-  <PageHead title="The Bar" {lede} />
+<Base title="The Bar" description={`Bar hours, drink specials and the food menu at ${POST.name}, ${POST.city}, PA.`}>
+  <PageHead title="The Bar" lede="Hours, drink specials and food from the Loaded Belly kitchen." image="fb-wings" />
 
   <section class="section band-paper">
-    <div class="container">
-      <div class="section-head"><h2>Bar hours</h2></div>
-      <ul class="facts">
-        {POST.hours.map(([d, h]) => <li><strong>{d}</strong><span>{h}</span></li>)}
-      </ul>
-      <p style="margin-top:1.25rem">{POST.barRule} {POST.joinPrice}</p>
-      <div class="section-head" style="margin-top:3rem"><h2>Drink specials</h2></div>
-      <Fragment set:html={seed.specials} />
+    <div class="container bar-grid">
+      <div class="board">
+        <h2 class="board-title">Bar hours</h2>
+        <ul class="board-list">
+          {rows.map((r) => <li class="board-row" data-days={r.days}><span class="b-name">{r.d}</span><span class="b-info">{r.h}</span></li>)}
+        </ul>
+        <p class="board-note">{POST.barRule} {POST.joinPrice}</p>
+      </div>
+      <div>
+        <div class="section-head"><h2>Drink specials</h2></div>
+        <Fragment set:html={seed.specials} />
+      </div>
     </div>
   </section>
 
@@ -24,7 +37,22 @@ const lede = 'Drink specials and food at the post.';
     <div class="container">
       <div class="section-head"><h2>Food menu</h2></div>
       <Fragment set:html={seed.menu} />
-      <p class="hint" style="margin-top:1.5rem">Questions about hours or the menu? <a href={POST.tel}>Call {POST.phone}</a>.</p>
+      <p class="hint" style="margin-top:1.5rem">Questions about the bar or the kitchen? <a href={POST.tel}>Call {POST.phone}</a>.</p>
     </div>
   </section>
 </Base>
+
+<script is:inline>
+  for (const li of document.querySelectorAll('.board-row[data-days]')) {
+    if (li.dataset.days.split(' ').includes(String(new Date().getDay()))) {
+      li.classList.add('is-today');
+      li.querySelector('.b-name').insertAdjacentHTML('beforeend', ' <span class="sr-only">(today)</span>');
+    }
+  }
+</script>
+
+<style>
+  .bar-grid { display: grid; gap: clamp(2.5rem, 2rem + 3vw, 4.5rem); }
+  @media (min-width: 960px) { .bar-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: start; } }
+  .board-row { min-height: 56px; }
+</style>

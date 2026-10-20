@@ -1,64 +1,75 @@
 ---
+/**
+ * Home opening: a full-width background video of the post (poster until the cut lands) under a strong
+ * dress-blue scrim. Over it: the post's name and motto, and the canteen board (a lobby directory with
+ * today's bar hours). Video <source>s are only written when the files exist in public/media (no 404s).
+ */
+import fs from 'node:fs';
+import path from 'node:path';
 import { POST, href } from '../lib/site';
+import TodayHours from './TodayHours.astro';
+
+const has = (f: string) => fs.existsSync(path.join(process.cwd(), 'public/media', f));
+const sources = [
+  { file: 'hero-portrait.mp4', media: '(max-width: 700px) and (orientation: portrait)' },
+  { file: 'hero-720.mp4', media: '(max-width: 700px)' },
+  { file: 'hero.mp4' },
+].filter((s) => has(s.file));
 ---
 
-<section class="hero on-dark" aria-labelledby="hero-title">
-  <div class="hero-media" aria-hidden="true">
-    <video id="hero-video" autoplay muted loop playsinline preload="metadata" poster={href('/media/hero-poster.jpg')} data-poster-portrait={href('/media/hero-poster-portrait.jpg')}>
-      <source media="(max-width: 700px) and (orientation: portrait)" src={href('/media/hero-portrait.mp4')} type="video/mp4" />
-      <source media="(max-width: 700px)" src={href('/media/hero-720.mp4')} type="video/mp4" />
-      <source src={href('/media/hero.mp4')} type="video/mp4" />
+<section class="welcome" aria-labelledby="welcome-title">
+  <div class="welcome-media" aria-hidden="true">
+    <video id="hero-video" autoplay muted loop playsinline preload="metadata"
+      poster={href('/media/hero-poster.jpg')} data-poster-portrait={href('/media/hero-poster-portrait.jpg')}>
+      {sources.map((s) => <source media={s.media} src={href(`/media/${s.file}`)} type="video/mp4" />)}
     </video>
-    <script is:inline>
-      // Portrait phones get the 9:16 file, so give them its poster too (video poster has no media attribute).
-      // The video plays under reduced motion too; the zoom stays off and the pause button is always there.
-      const v0 = document.getElementById('hero-video');
-      if (matchMedia('(max-width: 700px) and (orientation: portrait)').matches) v0.poster = v0.dataset.posterPortrait;
-    </script>
   </div>
 
-  <div class="container hero-content">
-    <p class="eyebrow fade-up">{POST.city}, {POST.region}</p>
-    <h1 id="hero-title" class="hero-title fade-up" style="--i:1">VFW Post 6493 &amp; Auxiliary</h1>
-    <p class="hero-sub motto fade-up" style="--i:2">{POST.motto}</p>
-    <div class="btn-row fade-up" style="--i:3">
-      <a class="btn btn-brass" href={href('/bar')}>The Bar</a>
-      <a class="btn btn-ghost" href={href('/events')}>Events</a>
-      <a class="btn btn-ghost" href={href('/hall')}>Rent the Hall</a>
+  <div class="container welcome-grid">
+    <div class="welcome-head">
+      <h1 id="welcome-title">VFW Post 6493 &amp; Auxiliary</h1>
+      <p class="welcome-motto">{POST.motto}</p>
+      <p class="welcome-lede">The Warminster Memorial Post of the Veterans of Foreign Wars, at {POST.street}. Members and their guests are welcome at the bar.</p>
     </div>
+
+    <aside class="board welcome-board" aria-labelledby="board-title">
+      <h2 id="board-title" class="board-title">At the post</h2>
+      <ul class="board-list">
+        <li><a href={href('/bar')}><span class="b-name">The Bar</span><span class="b-info"><TodayHours fallback="Hours, specials and food" /></span></a></li>
+        <li><a href={href('/events')}><span class="b-name">Events</span><span class="b-info">The whole year, month by month</span></a></li>
+        <li><a href={href('/hall')}><span class="b-name">Rent the Hall</span><span class="b-info">Wifi, tables and chairs, full bar</span></a></li>
+        <li><a href={href('/about#membership')}><span class="b-name">Join the post</span><span class="b-info">Veterans and non-veterans</span></a></li>
+        <li><a href={POST.tel}><span class="b-name">Call the post</span><span class="b-info">{POST.phone}</span></a></li>
+      </ul>
+      <p class="board-note">{POST.street}, {POST.city}. <a class="link" href={POST.mapsUrl} rel="noopener">Directions</a></p>
+    </aside>
   </div>
 
-  <div class="hero-strip">
-    <div class="container strip-inner">
-      <p class="strip-times">
-        <a class="strip-bar" href={href('/bar')}>Bar hours and specials</a>
-        <a class="strip-tel" href={POST.tel}>{POST.phone}</a>
-      </p>
-      <a class="strip-addr" href={POST.mapsUrl} rel="noopener">{POST.address}</a>
-      <button class="video-toggle" type="button" hidden>
-        <span class="icon" aria-hidden="true"></span>
-        <span class="sr-only">Pause background video</span>
-      </button>
-    </div>
-  </div>
+  {sources.length > 0 && (
+    <button class="video-toggle" type="button" hidden>
+      <span class="icon" aria-hidden="true"></span>
+      <span class="sr-only">Pause the background video</span>
+    </button>
+  )}
 </section>
 
 <script is:inline>
   (() => {
     const v = document.getElementById('hero-video');
+    if (!v) return;
+    // Portrait phones get the 9:16 file, so give them its poster too (video poster has no media attribute).
+    if (matchMedia('(max-width: 700px) and (orientation: portrait)').matches) v.poster = v.dataset.posterPortrait;
     const b = document.querySelector('.video-toggle');
-    if (!v || !b) return;
+    if (!b) return;
     const label = b.querySelector('.sr-only');
-    const sync = () => {
-      b.dataset.paused = String(v.paused);
-      label.textContent = v.paused ? 'Play background video' : 'Pause background video';
-    };
+    const sync = () => { b.dataset.paused = String(v.paused); label.textContent = v.paused ? 'Play the background video' : 'Pause the background video'; };
     b.hidden = false;
     b.addEventListener('click', () => (v.paused ? v.play() : v.pause()));
     v.addEventListener('play', sync);
     v.addEventListener('pause', sync);
+    // Reduced motion: hold on the first frame; the visitor can still press play.
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { v.removeAttribute('autoplay'); v.pause(); sync(); return; }
     sync();
-    // iPhone Low Power Mode / Android Data Saver block autoplay: start on the visitor's first tap instead.
     v.play().catch(() => {
       const go = () => v.play().catch(() => {});
       addEventListener('touchend', go, { once: true, passive: true });
@@ -68,48 +79,53 @@ import { POST, href } from '../lib/site';
 </script>
 
 <style>
-  .hero {
+  .welcome {
     position: relative; isolation: isolate; overflow: hidden;
-    display: grid; grid-template-rows: 1fr auto; grid-template-columns: minmax(0, 1fr);
-    min-height: clamp(600px, 100svh, 900px);
-    background: var(--night); color: var(--on-dark);
+    background: var(--night); color: var(--on-dark); --focus: var(--brass);
+    padding-block: clamp(2.5rem, 1.5rem + 5vw, 6rem);
+    min-height: min(46rem, calc(100svh - var(--header-h) - 40px));
+    display: grid; align-items: center;
   }
-  .hero-media, .hero-media video { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .hero-media { z-index: -1; }
-  .hero-media video { object-fit: cover; }
-  .hero-media::after {
+  .welcome-media, .welcome-media video { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .welcome-media { z-index: -1; }
+  .welcome-media video { object-fit: cover; }
+  /* Strong scrim: >= 0.8 behind all text (on-dark >= 7:1, brass motto >= 4:1 over a white frame). */
+  .welcome-media::after {
     content: ''; position: absolute; inset: 0;
     background:
-      linear-gradient(90deg, rgb(18 25 33 / 0.72) 0, rgb(18 25 33 / 0.25) 70%),
-      linear-gradient(180deg, rgb(18 25 33 / 0.55) 0, transparent 30%, rgb(18 25 33 / 0.85) 100%);
+      linear-gradient(90deg, rgb(19 26 36 / 0.9) 0, rgb(19 26 36 / 0.8) 55%, rgb(19 26 36 / 0.62) 100%),
+      linear-gradient(0deg, rgb(19 26 36 / 0.35), rgb(19 26 36 / 0.35));
   }
-  .hero-content { align-self: end; padding-top: calc(var(--header-h) + 2.5rem); padding-bottom: clamp(2rem, 1rem + 4vw, 4rem); }
-  .hero .eyebrow { color: var(--brass); }
-  .hero-title {
-    margin-top: 1rem; max-width: 14ch; color: var(--on-dark);
-    font-size: clamp(2.6rem, 1.8rem + 3.4vw, 4.75rem); line-height: 1.05;
+  .welcome-media::before { /* the flag stripe closes the hero */
+    content: ''; position: absolute; inset: auto 0 0; height: 6px; z-index: 1;
+    background: linear-gradient(var(--red) 0 2px, var(--on-dark) 2px 4px, var(--red) 4px);
   }
-  .hero-sub { margin-top: 1.1rem; font-size: var(--step-2); color: var(--brass); }
-  .hero .btn-row { margin-top: 2rem; }
 
-  .hero-strip { position: relative; border-top: 1px solid rgb(194 171 114 / 0.3); background: rgb(18 25 33 / 0.6); }
-  .strip-inner { display: flex; align-items: center; gap: 1rem 2rem; min-height: 76px; padding-block: 0.9rem; }
-  .strip-times { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 1.25rem; margin-right: auto; }
-  .strip-bar { display: inline-flex; align-items: center; min-height: 44px; color: var(--on-dark); text-decoration: underline; text-decoration-color: var(--brass); text-underline-offset: 5px; }
-  .strip-tel { font-family: var(--font-display); font-weight: 700; font-size: var(--step-1); color: var(--on-dark); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
-  .strip-addr { display: none; color: var(--on-dark); text-decoration: underline; text-decoration-color: var(--brass); text-underline-offset: 5px; }
+  .welcome-grid { display: grid; gap: 2rem; grid-template-columns: minmax(0, 1fr); align-items: center; }
+  @media (min-width: 960px) { .welcome-grid { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); column-gap: clamp(2rem, 1rem + 4vw, 5rem); } }
+
+  .welcome-head h1 {
+    font-size: clamp(2.7rem, 1.9rem + 3.8vw, 5rem); line-height: 1; max-width: 12ch; color: var(--on-dark);
+    text-shadow: 0 2px 18px rgb(19 26 36 / 0.6);
+  }
+  .welcome-motto {
+    margin-top: 1rem; font-family: var(--font-display); font-stretch: 80%; font-weight: 750;
+    font-size: var(--step-2); line-height: 1.15; color: var(--brass); text-shadow: 0 1px 12px rgb(19 26 36 / 0.7);
+  }
+  .welcome-lede { margin-top: 1rem; max-width: 36ch; font-size: var(--step-1); line-height: 1.5; color: var(--on-dark); }
+
+  /* The board hangs over the video: a touch translucent at the edge only, the felt stays solid. */
+  .welcome-board { box-shadow: inset 0 0 0 2px var(--night), inset 0 0 0 3px rgb(165 140 82 / 0.75), 0 18px 40px rgb(8 11 16 / 0.45); }
+  .board-note .link { min-height: 44px; margin-left: 0.25rem; }
+
   .video-toggle {
-    flex-shrink: 0; display: grid; place-items: center; width: 48px; height: 48px;
-    border: 2px solid var(--on-dark); border-radius: var(--radius); background: transparent; color: var(--on-dark); cursor: pointer;
+    position: absolute; left: max(var(--gutter), env(safe-area-inset-left)); bottom: 18px; display: grid; place-items: center; width: 48px; height: 48px;
+    border: 2px solid var(--on-dark); border-radius: var(--radius); background: rgb(19 26 36 / 0.7); color: var(--on-dark); cursor: pointer;
   }
   .video-toggle:hover { background: var(--on-dark); color: var(--night); }
   .video-toggle[hidden] { display: none; }
+  .welcome:has(.video-toggle:not([hidden])) { padding-bottom: calc(clamp(2.5rem, 1.5rem + 5vw, 6rem) + 48px); }
   .icon { width: 12px; height: 14px; border-inline: 4px solid currentColor; }
   [data-paused='true'] .icon { width: 0; height: 0; margin-left: 4px; border: 0; border-block: 8px solid transparent; border-left: 13px solid currentColor; }
-  @media (min-width: 900px) { .strip-addr { display: inline; } }
-  @media (prefers-reduced-motion: no-preference) {
-    .hero-media video { animation: settle 16s var(--ease) both; }
-    @keyframes settle { from { transform: scale(1.06); } to { transform: none; } }
-  }
-  @media (max-width: 699px) { .hero { min-height: max(560px, calc(100svh - var(--bar-h))); } }
+  @media print { .welcome-media, .video-toggle { display: none; } .welcome { background: none; color: #000; min-height: 0; } }
 </style>

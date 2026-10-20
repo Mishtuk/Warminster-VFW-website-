@@ -5,41 +5,39 @@ import Subnav from '../components/Subnav.astro';
 import { POST, href } from '../lib/site';
 import { POST_DOES } from '../lib/resources.js';
 const tabs = [{ label: 'Programs', path: '/programs' }, { label: 'Resources', path: '/resources' }];
+const pillars = [
+  { name: 'Community service', items: POST_DOES.service },
+  { name: 'Veteran outreach', items: POST_DOES.outreach },
+  { name: 'Youth and education', items: POST_DOES.youth },
+];
 ---
 <Base title="Programs" description={`VFW programs for community service, veteran outreach and youth and education, and how to reach ${POST.name}.`}>
   <PageHead title="Programs" lede="What Post 6493 does for veterans, families and neighbors, and the national VFW programs behind it." />
   <Subnav items={tabs} label="Programs and resources" />
 
-  <section class="section band-paper">
+  <section class="section">
     <div class="container">
-      <div class="section-head"><h2>What Post 6493 does</h2></div>
-      <div class="cards-grid">
-        <div class="card card-rule"><h3>Community service</h3><ul class="stack" style="padding-left:1.2rem;margin-top:0.75rem">{POST_DOES.service.map((t) => <li>{t}</li>)}</ul></div>
-        <div class="card card-rule"><h3>Veteran outreach</h3><ul class="stack" style="padding-left:1.2rem;margin-top:0.75rem">{POST_DOES.outreach.map((t) => <li>{t}</li>)}</ul></div>
-        <div class="card card-rule"><h3>Youth and education</h3><ul class="stack" style="padding-left:1.2rem;margin-top:0.75rem">{POST_DOES.youth.map((t) => <li>{t}</li>)}</ul></div>
+      <div class="panel">
+      {pillars.map((p, i) => (
+        <section class="split pillar" style={i ? 'border-top:1px solid var(--line);padding-top:2.5rem;margin-top:2.5rem' : ''} aria-labelledby={`pillar-${i}`}>
+          <h2 class="bars" id={`pillar-${i}`}>{p.name}</h2>
+          <ul class="stack" style="padding-left:1.2rem">{p.items.map((t) => <li>{t}</li>)}</ul>
+        </section>
+      ))}
       </div>
     </div>
   </section>
 
-  <section class="section band-stone">
-    <div class="container prose">
-      <h2>National VFW programs</h2>
+  <section class="section">
+    <div class="container"><div class="panel prose">
+      <h2 class="bars">National VFW programs</h2>
       <p>Behind the post's work are national VFW programs. Ask the post which ones it takes part in.</p>
       <ul class="link-list">
         <li><a href="https://www.vfw.org/community/community-initiatives" rel="noopener"><span>Community service</span><small>Buddy Poppy, Still Serving, troop support (vfw.org)</small></a></li>
         <li><a href="https://www.vfw.org/assistance" rel="noopener"><span>Veteran outreach</span><small>Free VA claims help, financial assistance, mental wellness (vfw.org)</small></a></li>
         <li><a href="https://www.vfw.org/community/youth-and-education" rel="noopener"><span>Youth and education</span><small>Voice of Democracy, Patriot's Pen, Scout and Teacher of the Year (vfw.org)</small></a></li>
       </ul>
-      <p>More help is on the <a href={href('/resources')}>Resources page</a>.</p>
-    </div>
-  </section>
-
-  <section class="section band-stone">
-    <div class="container-narrow">
-      <div class="callout">
-        <h2 style="font-size:var(--step-2)">What does Post 6493 do?</h2>
-        <p style="margin-top:0.6rem">To learn which programs the post runs and how to take part, call the post at <a href={POST.tel}><strong>{POST.phone}</strong></a>.</p>
-      </div>
-    </div>
+      <p>More help is on the <a href={href('/resources')}>Resources page</a>. To learn which programs the post runs and how to take part, call <a href={POST.tel}><strong>{POST.phone}</strong></a>.</p>
+    </div></div>
   </section>
 </Base>
