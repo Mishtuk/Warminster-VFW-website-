@@ -1,4 +1,4 @@
-// Photos from different post events for the home hero carousel (sources: .claude/team/media-sources.md).
+// Photos from different post events for the home hero carousel (all from the post's Facebook group).
 // Captions say only what the photo shows and when; no names, no amounts.
 export const HERO_PHOTOS = [
   { name: 'hero-memorial-guard', alt: 'Honor guard standing with rifles at the Memorial Day ceremony', cap: 'Memorial Day honor guard, May 2026' },
