@@ -20,6 +20,7 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Task issues:** work is handed out as GitHub issues labeled `laptop` or `desktop`, each a full brief with a "Done when" checklist. Check `gh issue list -l <your machine> --state open` at the start of a session and about every 15 minutes while idle. Take the lowest number, comment "Started", claim it below, and close it with the commit hash when done.
 
 ### Now working on
+- **Laptop:** #7 Join the post page (new src/pages/join.astro; src/pages/about.astro join section; the About tabs and footer EXTRA list in src/lib/site.ts or Footer.astro; join links in VisitBlock.astro, events/first-visit.astro and contact.astro; sitemap.xml.ts).
 - **Desktop:** beer tap refresh: badges closer to each brand, a bar backdrop behind the tower, a more fluid pour (src/components/BeerTaps.astro, src/content/taps.json, the .taps block in global.css, src/scripts/pour.ts, and the taps validator, marker and admin fields only in state.js and admin.astro).
 
 ## Status (handoff, 2026-10-20)
