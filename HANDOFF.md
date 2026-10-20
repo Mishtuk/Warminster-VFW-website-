@@ -45,7 +45,9 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
 - **Tests:** `npm test` passes 55/55. Home mobile Lighthouse performance is about 92; accessibility is 100.
 
 ### In progress
-- **Hero video quality:** see "Hero video" below.
+- **Hero video quality:** the current hero is cut from SD (640x360) Facebook clips, which stay soft even after upscaling.
+  - Newer group videos exist in HD (1080p). The next cut uses mostly HD shots (flags on the graves, the post bar on Memorial Day, the hall at a watch party) with at most 2 of the best SD shots.
+  - Same outputs and encode targets as today: `hero.av1.mp4`, `hero.mp4`, `hero-720.mp4`, `hero-portrait.mp4` and the posters. The editing scripts are local only.
 
 ### Waiting on the owner
 - Hosting and domain (see the launch security checklist below).
