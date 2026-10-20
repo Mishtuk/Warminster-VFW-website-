@@ -680,10 +680,16 @@ a.card:hover h3 { text-decoration: underline 2px var(--gold); text-underline-off
 .vfw-shop-soon { max-width: 44rem; }
 .vfw-shop-soon p { margin-top: 0.5rem; color: var(--ink-2); }
 
-/* Food snapshots: the stamp is pressed onto the photo itself, heavier, with a thin paper fill so the ink stays readable over the food. */
-.snap-stamped { padding-bottom: 8px; }
+/* Food snapshots: the stamp is pressed onto the photo itself: one snug line in a tight box, tilted up, in a different spot and
+   angle on each photo. A thin paper fill keeps the ink readable over the food; cqi sizing keeps long labels on one line. */
+.snap-stamped { padding-bottom: 8px; container-type: inline-size; }
 .snap-stamped figcaption {
-  position: absolute; left: 1.1rem; bottom: 1.2rem; margin: 0; max-width: calc(100% - 2.2rem);
-  padding: 0.25em 0.55em 0.2em; border-width: 4px; font-weight: 900; font-size: var(--step-0); letter-spacing: 0.05em;
-  background: rgb(251 247 239 / 0.9); box-shadow: inset 0 0 0 2px rgb(251 247 239 / 0.9);
+  position: absolute; margin: 0; max-width: none; white-space: nowrap;
+  padding: 0.08em 0.3em 0.02em; border-width: 3px; font-weight: 900; font-size: clamp(0.8rem, 6.4cqi, 1.2rem); letter-spacing: 0.05em; line-height: 1.1;
+  background: rgb(251 247 239 / 0.88); transform-origin: left bottom;
 }
+.snap-stamped:nth-child(4n+1) figcaption { left: 9%; bottom: 13%; transform: rotate(-6deg); }
+.snap-stamped:nth-child(4n+2) figcaption { right: 8%; top: 12%; transform-origin: right top; transform: rotate(-4deg); }
+.snap-stamped:nth-child(4n+3) figcaption { left: 8%; top: 14%; transform: rotate(-8deg); }
+.snap-stamped:nth-child(4n+4) figcaption { right: 9%; bottom: 12%; transform-origin: right bottom; transform: rotate(-3deg); }
+@container (max-width: 15rem) { .snap-stamped figcaption { white-space: normal; max-width: 78%; } }
