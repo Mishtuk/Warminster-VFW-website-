@@ -11,10 +11,21 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
   - `source/fb/` holds the Facebook group photos, videos and flyers.
 
 ## Status
-**2026-10-19: build in progress.**
-- Research is done: web research, with Facebook still running.
-- The plan is set. The design system, logo, Astro site, Node admin server and hero video are being built.
-- Update this section as each part lands.
+**2026-10-20:**
+- **Live on the preview:**
+  - the full site: 11 pages, with the admin panel in `server.js`
+  - real content from the Facebook group: bar hours, specials, kitchen menu, recurring and dated events, officers, programs and post news
+  - the official VFW Post 6493 logo
+  - VA-first veteran news
+- **Tests and audits:** `npm test` passes 30/30. Lighthouse accessibility is 100, with no horizontal scroll at 360px.
+- **Next: hero video and Facebook photos.**
+  - Chrome is allowed to auto-download from facebook.com, but its download folder must point at `V:\WarminsterVFW\source\fb` (nothing goes on the C: drive).
+  - Then save photos and videos from the group's whole history, cut `public/media/hero*.mp4`, and add photos to pages.
+  - The home hero currently uses a hall photo as its poster.
+- **Later:**
+  - a merch store using the logo (keep a Store tab in mind)
+  - hosting and domain
+  - SMTP for real inquiry email
 
 ## The post (facts; never invent others)
 - **Name:**
@@ -30,11 +41,20 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
 - **Hall rental listing:** https://www.hallrentalreviews.com/venue/vfw-post-6493.
   - "Our Hall is always available for rent. You can supply your own food and entertainment. We have free wifi; tables and chairs are furnished and we have complete bar facilities."
   - Food is renter-supplied (no staff included), there is a full-service bar, and setup and cleaning are venue assisted.
-- **Unknown, so the site says "Call the post":**
-  - charter date
-  - building history
-  - bar hours
-  - prices not posted by the post
+- **Bar hours** (from the post's 2026 flyer):
+  - Monday to Thursday: 5 PM to 10 PM
+  - Friday: 4 PM to 12 AM
+  - Saturday: 6 PM to 12 AM
+  - Sunday: 1 PM to 7 PM
+  - The bar is for members and guests, and membership cards are checked.
+- **Emails:**
+  - post: vfwpost6493@gmail.com
+  - hall rental: VFW6493HallRental@gmail.com
+- **Leaders:** Commander Bill Zuk and Auxiliary President Nichole Zuk (from June 2026). Past commanders are listed in `src/lib/post.js`.
+- **Namesakes:** Harry C. Wilson II and Douglas A. Post. The VFW post's 60th and the Auxiliary's 50th anniversaries were in September 2025.
+- **Kitchen:** run by an outside caterer (The Loaded Belly as of October 2026). See `src/content/menu.json`.
+- **All facts live in `src/lib/post.js`** (with the seed content in `src/content/*.json`). The sources are the Facebook group and `docs/research.md`.
+- **Unknown, so the site says "Call the post":** charter date, building history, hall prices and capacity.
 - **Do not publish** members' personal phone numbers or emails found in press articles.
 
 ## What the site must cover
@@ -62,7 +82,13 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
 ## Look and feel
 - **Audience:** older visitors and veterans. Large type (body text 19–20px), high contrast, simple navigation with at most 7 tabs, large tap targets, and no hover-only menus.
 - **Colours:** dark and neutral, with nothing loud. Military homage stays tasteful: stars, a brass rule, flag-stripe accents, and a POW/MIA remembrance note.
-- **Logo:** an original post emblem in the spirit of VFW emblems. It is **not** the trademarked VFW Cross of Malta seal.
+- **Logo:** the post's official VFW design, rebuilt as outlined vectors in `public/brand/`:
+  - red "VFW" with gold bars, "NO ONE DOES MORE FOR VETERANS." and "Post 6493"
+  - `logo.svg`: full colour
+  - `logo-reverse.svg`: for dark backgrounds (used in the footer)
+  - `logo-mark(-reverse).svg`: small sizes (the header)
+  - `logo-1c.svg` and `logo-mono.svg`: one colour, for merch
+  - Red is `#952f32` and gold is `#a58c52`. The VFW marks are VFW National trademarks, so check their licensing rules before selling merch.
 - **Hero:** a muted, looping background video made from the post's own Facebook photos and videos, with a pause button and a poster image, as on the Riverside site.
 - **Photos:** real photos only, from the post's Facebook group and the hall-rental listing. No stock or AI images.
 - **Quality bar:** the user's Riverside site (`V:\RiversideWebsite`, https://mishtuk.github.io/Riverside-Website/), with the same stack and patterns.
@@ -93,6 +119,6 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
 Staff only: `/admin` (noindex, blocked in robots.txt).
 
 ## Open questions for the post
-- Bar hours, kitchen hours and menu prices, if they aren't on Facebook.
-- The charter year and the story of the post's namesakes.
+- The charter year, and who Harry C. Wilson II and Douglas A. Post were.
+- Hall rental prices and capacity.
 - Hosting and domain.
