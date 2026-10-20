@@ -20,7 +20,6 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Task issues:** work is handed out as GitHub issues labeled `laptop` or `desktop`, each a full brief with a "Done when" checklist. Check `gh issue list -l <your machine> --state open` at the start of a session and about every 15 minutes while idle. Take the lowest number, comment "Started", claim it below, and close it with the commit hash when done.
 
 ### Now working on
-- **Laptop:** #8 Wall of Honor (new src/pages/honor.astro, src/content/honor.json, src/lib/honor.js, test/honor.test.js; ABOUT_TABS and EXTRA in src/lib/site.ts; sitemap.xml.ts).
 
 ## Status (handoff, 2026-10-20)
 **The site is feature-complete on the preview. The next steps are the owner's choices.**
@@ -34,6 +33,7 @@ Two machines work on this repo at the same time. Live coordination happens on th
   - Then New here?, food snapshots with the specials menu card, the hall band (2 photos that open a 14-photo gallery, `src/lib/hall-photos.ts`), the namesakes plaque and post news.
 - **Info pages:**
   - Join the post `/join` (under the About tabs, `ABOUT_TABS` in `site.ts`): who can join, three paths (VFW, Auxiliary, Home Association) with official links or Call the post, how to join, renewing and meetings. Facts are from vfw.org and vfwauxiliary.org (sources in a code comment). The Home Association price shows Call the post until `homePrice` in `join.astro` is set to `POST.joinPrice` (the $35 in post.js has no source in research.md).
+  - Wall of Honor `/honor` (About tabs and footer): shows Coming soon until `src/content/honor.json` has entries. Staff edit that file by hand for now (no admin view). Entry shape: `{ id, name, branch, era, served, photo, note, consent: true }`. Only `consent: true` with a known branch renders (`src/lib/honor.js`, tested). Never add a name without the family's permission.
   - All of them use one layout (`src/components/info/`: InfoSection, OnThisPage, KeyFacts), with multi-column layouts on desktop.
   - Resources are grouped by need, with the crisis line first.
   - Programs shows the 3 pillars side by side.
