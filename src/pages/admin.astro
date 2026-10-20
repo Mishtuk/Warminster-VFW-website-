@@ -382,9 +382,10 @@
           ['accent', 'Accent colour', 'color', null, null, { half: true }],
           ['shape', 'Badge shape', 'select', [['oval', 'Oval'], ['circle', 'Circle'], ['shield', 'Shield'], ['banner', 'Banner'], ['crest', 'Crest']], null, { half: true }],
           ['sub', 'Small label under the name', 'text', null, null, { optional: true, hint: 'Up to 16 characters, like Light or Lager.' }],
+          ['logo', 'Brand logo', 'select', [['', 'None (use the name)'], ['blue-moon', 'Blue Moon'], ['budweiser', 'Budweiser'], ['coors-light', 'Coors Light'], ['guinness', 'Guinness'], ['miller-lite', 'Miller Lite'], ['modelo', 'Modelo'], ['yuengling', 'Yuengling']], null, { optional: true, hint: 'Shows the real logo on the tap handle. Bud Light and Michelob Ultra have none.' }],
           ['preview', 'How the badge will look', 'preview'], ['enabled', 'Show on the website', 'check']],
-          blank: { name: '', bg: '#c8102e', fg: '#ffffff', accent: '#ffffff', shape: 'oval', sub: '', enabled: true },
-          pre: (v) => ({ ...v, accent: v.accent || v.fg, shape: v.shape || 'oval', sub: v.sub || '' }),
+          blank: { name: '', bg: '#c8102e', fg: '#ffffff', accent: '#ffffff', shape: 'oval', sub: '', logo: '', enabled: true },
+          pre: (v) => ({ ...v, accent: v.accent || v.fg, shape: v.shape || 'oval', sub: v.sub || '', logo: v.logo || '' }),
           line: (x) => x.name, chips: (x) => h('span', { class: 'chip', style: `background:${x.bg};color:${x.fg}` }, x.name), sub: (x) => `Badge ${x.bg}, text ${x.fg}` },
       };
       const thumbOf = (n) => '/media/photos/' + (S.photos.find((p) => p.name === n)?.thumb || n);
@@ -440,7 +441,7 @@
         if (type === 'check') return h('label', { class: 'check wide' }, h('input', { type: 'checkbox', name: k, checked: !!v[k] }), label);
         if (type === 'photo') return photoField(f, v, form);
         if (type === 'preview') {
-          const chip = h('span', { class: 'chip' }), upd = () => { const e = form.elements; chip.textContent = e.name.value || 'Beer name'; chip.style.background = e.bg.value; chip.style.color = e.fg.value; chip.style.borderColor = e.accent.value; chip.style.borderStyle = 'solid'; chip.style.borderWidth = '2px'; chip.style.borderRadius = { circle: '999px', oval: '999px', shield: '4px 4px 50% 50%', banner: '2px', crest: '14px 14px 50% 50%' }[e.shape.value]; if (e.sub.value) chip.textContent += ' · ' + e.sub.value; };
+          const chip = h('span', { class: 'chip' }), upd = () => { const e = form.elements; chip.textContent = e.name.value || 'Beer name'; if (e.logo.value) chip.prepend(h('img', { src: '/brand/taps/' + e.logo.value + '.webp', alt: '', style: 'height:1.6em;width:auto;vertical-align:middle;margin-right:.4em;background:#fff;border-radius:3px' })); chip.style.background = e.bg.value; chip.style.color = e.fg.value; chip.style.borderColor = e.accent.value; chip.style.borderStyle = 'solid'; chip.style.borderWidth = '2px'; chip.style.borderRadius = { circle: '999px', oval: '999px', shield: '4px 4px 50% 50%', banner: '2px', crest: '14px 14px 50% 50%' }[e.shape.value]; if (e.sub.value) chip.append(' · ' + e.sub.value); };
           form.addEventListener('input', upd); queueMicrotask(upd);
           return h('div', { class: 'fld wide' }, h('label', {}, label), chip);
         }

@@ -90,7 +90,19 @@ export function validateNews(b, { photos } = {}) {
 
 const HEX = /^#[0-9a-f]{6}$/i;
 export const TAP_SHAPES = ['oval', 'circle', 'shield', 'banner', 'crest'];
-/** A beer tap on the home page (admin): name up to 40 characters, badge colour bg and text colour fg as strict #rrggbb; optional shape (default oval), accent (#rrggbb, default fg), sub-label up to 16 characters. */
+/** The real brand logos in public/brand/taps/<slug>.webp (the single source of truth): label for the admin, pixel size for the img attributes. */
+export const LOGOS = {
+  yuengling: { label: 'Yuengling', w: 360, h: 205 },
+  'coors-light': { label: 'Coors Light', w: 360, h: 108 },
+  budweiser: { label: 'Budweiser', w: 360, h: 114 },
+  'blue-moon': { label: 'Blue Moon', w: 297, h: 240 },
+  guinness: { label: 'Guinness', w: 284, h: 240 },
+  'miller-lite': { label: 'Miller Lite', w: 173, h: 240 },
+  modelo: { label: 'Modelo', w: 360, h: 145 },
+};
+/** The logo img inside a tap badge ('' when none or unknown); base = the URL folder in front of /brand (default: site root). */
+export const tapLogoImg = (slug, base = '') => (Object.hasOwn(LOGOS, slug) ? `<img class="tap-logo" src="${base}/brand/taps/${slug}.webp" alt="" width="${LOGOS[slug].w}" height="${LOGOS[slug].h}" decoding="async">` : '');
+/** A beer tap on the home page (admin): name up to 40 characters, badge colour bg and text colour fg as strict #rrggbb; optional shape (default oval), accent (#rrggbb, default fg), sub-label up to 16 characters; optional logo (a LOGOS slug, '' for none). */
 export function validateTap(b) {
   b = b ?? {};
   const name = text(b.name, 40);
@@ -99,13 +111,15 @@ export function validateTap(b) {
   const shape = b.shape == null || b.shape === '' ? 'oval' : b.shape;
   if (!TAP_SHAPES.includes(shape)) return { error: 'shape' };
   if (b.accent != null && b.accent !== '' && (typeof b.accent !== 'string' || !HEX.test(b.accent))) return { error: 'accent' };
+  const logo = b.logo == null ? '' : b.logo;
+  if (logo !== '' && (typeof logo !== 'string' || !Object.hasOwn(LOGOS, logo))) return { error: 'logo' };
   const fg = b.fg.toLowerCase(), accent = b.accent ? b.accent.toLowerCase() : fg;
-  return { value: { id: id(b.id), name, bg: b.bg.toLowerCase(), fg, shape, accent, sub: typeof b.sub === 'string' ? text(b.sub, 16) : '', enabled: flag(b.enabled) } };
+  return { value: { id: id(b.id), name, bg: b.bg.toLowerCase(), fg, shape, accent, sub: typeof b.sub === 'string' ? text(b.sub, 16) : '', logo, enabled: flag(b.enabled) } };
 }
 /** The beer taps (marker: taps): the ul.tap-row inside div.taps[data-pour]. Hidden taps are skipped; none enabled gives '' so the tower hides. */
-export function tapsHtml(taps = []) {
+export function tapsHtml(taps = [], base = '') {
   const list = taps.filter((t) => t.enabled !== false && HEX.test(t.bg) && HEX.test(t.fg));
-  return list.length ? `<ul class="tap-row">${list.map((t) => `<li class="tap" data-shape="${TAP_SHAPES.includes(t.shape) ? t.shape : 'oval'}" style="--tap-bg:${t.bg};--tap-fg:${t.fg};--tap-accent:${HEX.test(t.accent) ? t.accent : t.fg}"><button type="button" class="tap-handle" aria-label="Pour a ${esc(t.name)}"><span class="tap-badge"><span class="tap-name">${esc(t.name)}</span>${t.sub ? `<span class="tap-sub">${esc(t.sub)}</span>` : ''}</span></button><span class="tap-nozzle" aria-hidden="true"></span></li>`).join('')}</ul>` : '';
+  return list.length ? `<ul class="tap-row">${list.map((t) => `<li class="tap" data-shape="${TAP_SHAPES.includes(t.shape) ? t.shape : 'oval'}"${Object.hasOwn(LOGOS, t.logo) ? ` data-logo="${t.logo}"` : ''} style="--tap-bg:${t.bg};--tap-fg:${t.fg};--tap-accent:${HEX.test(t.accent) ? t.accent : t.fg}"><button type="button" class="tap-handle" aria-label="Pour a ${esc(t.name)}"><span class="tap-badge">${tapLogoImg(t.logo, base)}<span class="tap-name">${esc(t.name)}</span>${t.sub ? `<span class="tap-sub">${esc(t.sub)}</span>` : ''}</span></button><span class="tap-nozzle" aria-hidden="true"></span></li>`).join('')}</ul>` : '';
 }
 
 /** A shop product (admin). options = choices like sizes, an array or one per line. checkoutUrl = optional https payment link. */

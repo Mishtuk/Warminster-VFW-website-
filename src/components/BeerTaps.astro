@@ -4,21 +4,24 @@
  * Marker: the seed is wrapped as <!--vfw:taps-->...<!--/vfw:taps--> inside div.taps, the same convention as docs/markers.md.
  * Contract (the server renderer reproduces it):
  *   <div class="taps" data-pour aria-label="Beer taps"><!--vfw:taps--><ul class="tap-row">
- *     <li class="tap" data-shape="SHAPE" style="--tap-bg:BG;--tap-fg:FG;--tap-accent:ACCENT"><button type="button" class="tap-handle" aria-label="Pour a NAME">
- *       <span class="tap-badge"><span class="tap-name">NAME</span>[<span class="tap-sub">SUB</span>]</span></button><span class="tap-nozzle" aria-hidden="true"></span></li>
+ *     <li class="tap" data-shape="SHAPE"[ data-logo="SLUG"] style="--tap-bg:BG;--tap-fg:FG;--tap-accent:ACCENT"><button type="button" class="tap-handle" aria-label="Pour a NAME">
+ *       <span class="tap-badge">[<img class="tap-logo" src="BASE/brand/taps/SLUG.webp" alt="" width="W" height="H" decoding="async">]<span class="tap-name">NAME</span>[<span class="tap-sub">SUB</span>]</span></button><span class="tap-nozzle" aria-hidden="true"></span></li>
  *   SHAPE is oval|circle|shield|banner|crest (default oval); ACCENT defaults to FG; tap-sub only when SUB is set. See .claude/team/taps-contract.md.
  *   </ul><!--/vfw:taps--></div>
  * Styles live in global.css (.taps, .tap-*), so injected markup is styled too. Seed: src/content/taps.json.
  */
 import taps from '../content/taps.json';
+import { tapLogoImg, LOGOS } from '../lib/state.js';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
 const esc = (s: string) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 const HEX = /^#[0-9a-f]{6}$/i;
 const color = (s: string | undefined, d = '#333333') => (s && HEX.test(s) ? s : d);
 const SHAPES = ['oval', 'circle', 'shield', 'banner', 'crest'];
-type Tap = { name: string; bg: string; fg: string; shape?: string; accent?: string; sub?: string };
+type Tap = { name: string; bg: string; fg: string; shape?: string; accent?: string; sub?: string; logo?: string };
 const seed = `<!--vfw:taps--><ul class="tap-row">${(taps as Tap[]).map((t) =>
-  `<li class="tap" data-shape="${SHAPES.includes(t.shape ?? '') ? t.shape : 'oval'}" style="--tap-bg:${color(t.bg)};--tap-fg:${color(t.fg)};--tap-accent:${color(t.accent, color(t.fg))}"><button type="button" class="tap-handle" aria-label="Pour a ${esc(t.name)}"><span class="tap-badge"><span class="tap-name">${esc(t.name)}</span>${t.sub?.trim() ? `<span class="tap-sub">${esc(t.sub.trim())}</span>` : ''}</span></button><span class="tap-nozzle" aria-hidden="true"></span></li>`
+  `<li class="tap" data-shape="${SHAPES.includes(t.shape ?? '') ? t.shape : 'oval'}"${Object.hasOwn(LOGOS, t.logo ?? '') ? ` data-logo="${t.logo}"` : ''} style="--tap-bg:${color(t.bg)};--tap-fg:${color(t.fg)};--tap-accent:${color(t.accent, color(t.fg))}"><button type="button" class="tap-handle" aria-label="Pour a ${esc(t.name)}"><span class="tap-badge">${tapLogoImg(t.logo ?? '', base)}<span class="tap-name">${esc(t.name)}</span>${t.sub?.trim() ? `<span class="tap-sub">${esc(t.sub.trim())}</span>` : ''}</span></button><span class="tap-nozzle" aria-hidden="true"></span></li>`
 ).join('')}</ul><!--/vfw:taps-->`;
 ---
 <div class="taps" data-pour aria-label="Beer taps"><Fragment set:html={seed} /></div>

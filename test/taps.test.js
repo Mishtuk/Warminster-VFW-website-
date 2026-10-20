@@ -11,7 +11,7 @@ const ok = { name: 'Yuengling', bg: '#C8102E', fg: '#ffffff' };
 
 test('validateTap: one assert per error code, colours strict', () => {
   const v = validateTap(ok).value;
-  assert.deepEqual(v, { id: v.id, name: 'Yuengling', bg: '#c8102e', fg: '#ffffff', shape: 'oval', accent: '#ffffff', sub: '', enabled: true });
+  assert.deepEqual(v, { id: v.id, name: 'Yuengling', bg: '#c8102e', fg: '#ffffff', shape: 'oval', accent: '#ffffff', sub: '', logo: '', enabled: true });
   assert.equal(validateTap({ ...ok, name: ' ' }).error, 'name');
   assert.equal(validateTap({ ...ok, name: 'x'.repeat(41) }).value.name.length, 40); // text() trims to 40
   for (const c of ['red', '#fff', '#12345g', 'red;background:url(x)', '#ffffff"onload="x', '#1234567', undefined, 5]) {
@@ -89,4 +89,18 @@ test('admin taps: seeded, auth and origin, validation, create, reorder, hide, li
   assert.equal((await admin('DELETE', `taps/${a.id}`)).status, 404);
   const ev = (await (await admin('GET', 'security')).json()).events.map((e) => e.what ?? e.event ?? e.type);
   for (const k of ['taps_create', 'taps_update', 'taps_delete', 'taps_reorder']) assert.ok(ev.includes(k), k);
+});
+
+test('tap logos: unknown slug refused, img escaped and sized, none when empty, base honoured', () => {
+  const v = validateTap({ ...ok, logo: 'coors-light' }).value;
+  assert.equal(v.logo, 'coors-light');
+  assert.equal(validateTap(ok).value.logo, '');
+  assert.equal(validateTap({ ...ok, logo: '' }).value.logo, '');
+  for (const l of ['bud-light', 'Yuengling', '../x', 'yuengling.webp', 'yuengling"onload="x', '__proto__', 'constructor', 5]) assert.equal(validateTap({ ...ok, logo: l }).error, 'logo', String(l));
+  const withLogo = tapsHtml([{ id: 'a', name: 'Lite', bg: '#112233', fg: '#ffffff', logo: 'coors-light' }]);
+  assert.ok(withLogo.includes('<li class="tap" data-shape="oval" data-logo="coors-light" style='));
+  assert.ok(withLogo.includes('<span class="tap-badge"><img class="tap-logo" src="/brand/taps/coors-light.webp" alt="" width="360" height="108" decoding="async"><span class="tap-name">Lite</span>'));
+  assert.ok(tapsHtml([{ id: 'a', name: 'Lite', bg: '#112233', fg: '#ffffff', logo: 'blue-moon' }], '/site').includes('src="/site/brand/taps/blue-moon.webp" alt="" width="297" height="240"'));
+  const hostile = tapsHtml([{ id: 'a', name: 'X', bg: '#112233', fg: '#ffffff', logo: 'x"><script>' }, { id: 'b', name: 'Y', bg: '#112233', fg: '#ffffff' }]);
+  assert.ok(!hostile.includes('<img') && !hostile.includes('data-logo') && !hostile.includes('<script'));
 });
