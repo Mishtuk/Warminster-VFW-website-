@@ -66,3 +66,27 @@ export const NATIONAL_TIMELINE = [
 ];
 
 export const DISCOUNTS_CHECKED = 'October 2026';
+
+// What Post 6493 itself does (research-facebook.md section 4), sorted into the three pillars.
+export const POST_DOES = {
+  service: [
+    'The post gives $1,000 every year to the Warminster Food Bank. Food collection boxes are at the rear door.',
+    'Christmas toy drives with the Knights of the Inferno (Apollo Chapter), in 2023 and 2024, and a Brad Fox Foundation trivia night for Toys for Tots.',
+    'The Auxiliary prepared 50 Easter baskets for F.E.A.S.T. in spring 2025.',
+    'Worn flags can be dropped in the blue receptacle at the rear door, left side. In June 2026 the post held a flag retirement ceremony with Scout Troop 139.',
+    'Post named #1 in the nation for community service by VFW National HQ (posted in the Facebook group, December 2023).',
+    'Won the Pennsylvania "Working Together Excellence Award" at the Gettysburg convention (about June 2025).',
+  ],
+  outreach: [
+    "Flags placed on veterans' graves at Sunset Memorial Park every Armed Forces Day.",
+    'Buddy Poppy sales, with the money going to veterans in need.',
+    "Auxiliary volunteers at the Delaware Valley Veterans Home. The Auxiliary's hospital program received the Citation of Excellence, Outstanding Hospital of the Year, from the PA Auxiliary.",
+    'Memorial Day ceremony each year, and a free veterans and military brunch (June 2024).',
+    "A Veteran Muster (October 2025), and veterans service hours with elected officials' offices at the post (May 2025).",
+  ],
+  youth: [
+    "Voice of Democracy (grades 9 to 12) and Patriot's Pen (grades 6 to 8). The deadline is October 31.",
+    'The post sponsors youth teams: Hatboro Little League, Warrington-Warwick Softball, Centennial, Hatboro and Warwick baseball, and Warminster Spartans Youth Wrestling.',
+    'Cub Scout Pack 139 holds events at the post, including its spring craft fair, and the post works with Scout Troop 139.',
+  ],
+};

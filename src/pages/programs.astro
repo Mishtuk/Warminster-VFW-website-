@@ -3,18 +3,33 @@ import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
 import Subnav from '../components/Subnav.astro';
 import { POST, href, photo } from '../lib/site';
-import { PROGRAMS } from '../lib/resources.js';
+import { PROGRAMS, POST_DOES } from '../lib/resources.js';
 const tabs = [{ label: 'Programs', path: '/programs' }, { label: 'Resources', path: '/resources' }];
 const host = (u: string) => new URL(u).host.replace(/^www\./, '');
 ---
 <Base title="Programs" description={`VFW programs for community service, veteran outreach and youth and education, and how to reach ${POST.name}.`}>
-  <PageHead title="Programs" lede="The VFW serves veterans, families and neighbors. These are the national VFW programs. Ask the post which ones it takes part in." />
+  <PageHead title="Programs" lede="What Post 6493 does for veterans, families and neighbors, and the national VFW programs behind it." />
   <Subnav items={tabs} label="Programs and resources" />
+
+  <section class="section band-paper">
+    <div class="container">
+      <div class="section-head"><h2>What Post 6493 does</h2></div>
+      <div class="cards-grid">
+        <div class="card card-rule"><h3>Community service</h3><ul class="stack" style="padding-left:1.2rem;margin-top:0.75rem">{POST_DOES.service.map((t) => <li>{t}</li>)}</ul></div>
+        <div class="card card-rule"><h3>Veteran outreach</h3><ul class="stack" style="padding-left:1.2rem;margin-top:0.75rem">{POST_DOES.outreach.map((t) => <li>{t}</li>)}</ul></div>
+        <div class="card card-rule"><h3>Youth and education</h3><ul class="stack" style="padding-left:1.2rem;margin-top:0.75rem">{POST_DOES.youth.map((t) => <li>{t}</li>)}</ul></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section band-stone">
+    <div class="container"><div class="section-head"><h2>National VFW programs</h2><p>These are national VFW programs. Ask the post which ones it takes part in.</p></div></div>
+  </section>
 
   <section class="section band-paper">
     <div class="container split">
       <div class="stack">
-        <h2>Community service</h2>
+        <h3 style="font-size:var(--step-3)">Community service</h3>
         <p>VFW posts give back where they live. These are national VFW community programs.</p>
         <ul class="link-list">
           {PROGRAMS.service.map((p) => <li><a href={p.url} rel="noopener"><span>{p.name}</span><small>{p.line} ({host(p.url)})</small></a></li>)}
@@ -26,7 +41,7 @@ const host = (u: string) => new URL(u).host.replace(/^www\./, '');
 
   <section class="section band-stone">
     <div class="container prose">
-      <h2>Veteran outreach</h2>
+      <h3>Veteran outreach</h3>
       <p>Free help is available for veterans and their families, including help with VA claims. These are VFW national services.</p>
       <ul class="link-list">
         {PROGRAMS.outreach.map((p) => <li><a href={p.url} rel="noopener"><span>{p.name}</span><small>{p.line} ({host(p.url)})</small></a></li>)}
@@ -37,7 +52,7 @@ const host = (u: string) => new URL(u).host.replace(/^www\./, '');
 
   <section class="section band-paper">
     <div class="container">
-      <div class="section-head"><h2>Youth and education</h2><p>National VFW programs for students, scouts and teachers.</p></div>
+      <div class="section-head"><h3 style="font-size:var(--step-3)">Youth and education</h3><p>National VFW programs for students, scouts and teachers.</p></div>
       <div class="cards-grid">
         {PROGRAMS.youth.map((p) => (
           <a class="card card-rule" href={p.url} rel="noopener">

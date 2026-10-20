@@ -3,14 +3,19 @@ import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
 import { POST } from '../lib/site';
 import { seed } from '../lib/seed';
-const lede = POST.hours ? `Drink specials and food at the post. ${POST.hours}` : 'Drink specials and food at the post. For hours, call the post.';
+const lede = 'Drink specials and food at the post.';
 ---
 <Base title="The Bar" description={`Drink specials and the food menu at ${POST.name}, ${POST.city}, PA.`}>
   <PageHead title="The Bar" {lede} />
 
   <section class="section band-paper">
     <div class="container">
-      <div class="section-head"><h2>Drink specials</h2></div>
+      <div class="section-head"><h2>Bar hours</h2></div>
+      <ul class="facts">
+        {POST.hours.map(([d, h]) => <li><strong>{d}</strong><span>{h}</span></li>)}
+      </ul>
+      <p style="margin-top:1.25rem">{POST.barRule} {POST.joinPrice}</p>
+      <div class="section-head" style="margin-top:3rem"><h2>Drink specials</h2></div>
       <Fragment set:html={seed.specials} />
     </div>
   </section>

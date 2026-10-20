@@ -31,7 +31,7 @@ import { POST, href } from '../lib/site';
   <div class="hero-strip">
     <div class="container strip-inner">
       <p class="strip-times">
-        <span>{POST.hours ? `Hours: ${POST.hours}` : 'Hours: call the post'}</span>
+        <a class="strip-bar" href={href('/bar')}>Bar hours and specials</a>
         <a class="strip-tel" href={POST.tel}>{POST.phone}</a>
       </p>
       <a class="strip-addr" href={POST.mapsUrl} rel="noopener">{POST.address}</a>
@@ -95,6 +95,7 @@ import { POST, href } from '../lib/site';
   .hero-strip { position: relative; border-top: 1px solid rgb(194 171 114 / 0.3); background: rgb(18 25 33 / 0.6); }
   .strip-inner { display: flex; align-items: center; gap: 1rem 2rem; min-height: 76px; padding-block: 0.9rem; }
   .strip-times { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 1.25rem; margin-right: auto; }
+  .strip-bar { display: inline-flex; align-items: center; min-height: 44px; color: var(--on-dark); text-decoration: underline; text-decoration-color: var(--brass); text-underline-offset: 5px; }
   .strip-tel { font-family: var(--font-display); font-weight: 700; font-size: var(--step-1); color: var(--on-dark); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
   .strip-addr { display: none; color: var(--on-dark); text-decoration: underline; text-decoration-color: var(--brass); text-underline-offset: 5px; }
   .video-toggle {

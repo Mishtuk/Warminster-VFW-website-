@@ -11,7 +11,16 @@ export const POST = {
   motto: 'No One Does More for Veterans',
   facebook: 'https://www.facebook.com/groups/845409237204566/',
   membership: 'Membership is open to veterans and non-veterans. Ask for details.',
-  hours: null, // not published anywhere we could verify: pages show "call the post"
+  // Bar (canteen) hours from the post's flyer, 2026 (research-facebook.md section 1)
+  hours: [['Monday to Thursday', '5 PM to 10 PM'], ['Friday', '4 PM to 12 AM'], ['Saturday', '6 PM to 12 AM'], ['Sunday', '1 PM to 7 PM']],
+  email: 'vfwpost6493@gmail.com',
+  hallEmail: 'VFW6493HallRental@gmail.com',
+  barRule: 'The bar is for members and guests. Membership cards are checked at the door.',
+  joinPrice: 'Joining starts at $35 a year, for veterans and non-veterans.',
+  commander: 'Bill Zuk',
+  auxPresident: 'Nichole Zuk',
+  pastCommanders: [['Harry DeLorenzo', 'Commander for three years to July 2024, and again from October 2024'], ['John Otte', 'July to October 2024']],
+  pastAuxPresident: 'Evy (Evelyn) Dobson Brennan',
   // Hall rental (hallrentalreviews.com/venue/vfw-post-6493)
   hallBlurb: 'Our Hall is always available for rent. You can supply your own food and entertainment. We have free wifi; tables and chairs are furnished and we have complete bar facilities.',
   hallSource: 'https://hallrentalreviews.com/venue/vfw-post-6493',
@@ -23,9 +32,12 @@ export const POST = {
     ['Setup and cleaning', 'Venue assisted.'],
   ],
   // Business listing name (research-web.md section 4)
-  listingName: 'Douglas A. Post - Harry C. Wilson II Memorial Post',
+  officialName: 'Veterans of Foreign Wars Warminster Memorial Post 6493',
 };
 POST.address = `${POST.street}, ${POST.city}, ${POST.region} ${POST.zip}`;
 POST.tel = `tel:+1${POST.phone.replace(/\D/g, '')}`;
 POST.mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(POST.address)}`;
 POST.callText = `Call the post ${POST.phone}`;
+POST.hoursText = POST.hours.map(([d, h]) => `${d} ${h}`).join('. ');
+POST.hallMail = `mailto:${POST.hallEmail}`;
+POST.mail = `mailto:${POST.email}`;

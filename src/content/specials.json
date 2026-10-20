@@ -1,1 +1,112 @@
-[]
+[
+ {
+  "label": "Happy Hour (Friday)",
+  "price": "Drafts from $2.50",
+  "description": "Fridays 4 PM to 6 PM.",
+  "period": "weekly",
+  "weekday": 5,
+  "start": "",
+  "end": "",
+  "enabled": true
+ },
+ {
+  "label": "Happy Hour (Monday)",
+  "price": "Drafts from $2.50",
+  "description": "Mondays 5 PM to 7 PM.",
+  "period": "weekly",
+  "weekday": 1,
+  "start": "",
+  "end": "",
+  "enabled": true
+ },
+ {
+  "label": "Happy Hour (Wednesday)",
+  "price": "Drafts from $2.50",
+  "description": "Wednesdays 5 PM to 7 PM.",
+  "period": "weekly",
+  "weekday": 3,
+  "start": "",
+  "end": "",
+  "enabled": true
+ },
+ {
+  "label": "Happy Hour (Thursday)",
+  "price": "Drafts from $2.50",
+  "description": "Thursdays 5 PM to 7 PM.",
+  "period": "weekly",
+  "weekday": 4,
+  "start": "",
+  "end": "",
+  "enabled": true
+ },
+ {
+  "label": "Game day: 5 domestic bottles",
+  "price": "$12",
+  "description": "5 domestic bottled beers during Sixers, Flyers, Phillies, Eagles and Union games.",
+  "period": "seasonal",
+  "weekday": null,
+  "start": "",
+  "end": "",
+  "enabled": true
+ },
+ {
+  "label": "Game day beer buckets",
+  "price": "Drafts $2",
+  "description": "Beer bucket specials begin at gametime.",
+  "period": "seasonal",
+  "weekday": null,
+  "start": "",
+  "end": "",
+  "enabled": true
+ },
+ {
+  "label": "Monday kitchen special",
+  "price": "$10",
+  "description": "Boneless wings (8) with fries. Week of Aug 24, 2026.",
+  "period": "weekly",
+  "weekday": 1,
+  "start": "2026-08-24",
+  "end": "2026-08-28",
+  "enabled": true
+ },
+ {
+  "label": "Tuesday kitchen special",
+  "price": "$10",
+  "description": "Chicken cheesesteak. Week of Aug 24, 2026.",
+  "period": "weekly",
+  "weekday": 2,
+  "start": "2026-08-24",
+  "end": "2026-08-28",
+  "enabled": true
+ },
+ {
+  "label": "Wednesday kitchen special",
+  "price": "$8",
+  "description": "Chicken Caesar wrap. Week of Aug 24, 2026.",
+  "period": "weekly",
+  "weekday": 3,
+  "start": "2026-08-24",
+  "end": "2026-08-28",
+  "enabled": true
+ },
+ {
+  "label": "Thursday kitchen special",
+  "price": "$7",
+  "description": "Fried ham and cheese sandwich. Week of Aug 24, 2026.",
+  "period": "weekly",
+  "weekday": 4,
+  "start": "2026-08-24",
+  "end": "2026-08-28",
+  "enabled": true
+ },
+ {
+  "label": "Friday kitchen special",
+  "price": "$12",
+  "description": "Meatloaf with mashed potatoes and veggies. Week of Aug 24, 2026.",
+  "period": "weekly",
+  "weekday": 5,
+  "start": "2026-08-24",
+  "end": "2026-08-28",
+  "enabled": true
+ }
+]

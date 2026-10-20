@@ -19,6 +19,19 @@ const tabs = [{ label: 'About', path: '/about' }, { label: 'History', path: '/hi
     </div>
   </section>
 
+  <section class="section band-stone">
+    <div class="container prose">
+      <h2>Leaders</h2>
+      <p>Post Commander: {POST.commander}. Auxiliary President: {POST.auxPresident}. Both took office in June 2026.</p>
+      <h3>Past leaders</h3>
+      <ul>
+        {POST.pastCommanders.map(([n, d]) => <li>{n}: {d}</li>)}
+        <li>{POST.pastAuxPresident}: Auxiliary President until June 2026</li>
+      </ul>
+      <p>The post's official name is {POST.officialName}. {POST.joinPrice} {POST.barRule}</p>
+    </div>
+  </section>
+
   <Membership />
 
   <section class="section band-stone">

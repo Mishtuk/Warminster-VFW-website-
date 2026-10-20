@@ -38,7 +38,7 @@ if (defaultInUse(db)) log('Warning: the default admin/admin password is in use (
   const state = getState(db);
   let changed = false;
   for (const [key, check] of [['events', validateEvent], ['specials', validateSpecial], ['news', validateNews], ['menu', validateMenu]]) {
-    const f = join(ROOT, 'src/content', `${key}.json`);
+    const f = join(env.SEED_DIR || join(ROOT, 'src/content'), `${key}.json`);
     if (state[key] !== undefined || !existsSync(f)) continue;
     try {
       const seed = JSON.parse(readFileSync(f, 'utf8'));

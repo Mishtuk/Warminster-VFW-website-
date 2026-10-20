@@ -1,1 +1,142 @@
-[]
+[
+ {
+  "title": "Thursday Bingo",
+  "date": "2026-01-01",
+  "start": "16:30",
+  "end": "",
+  "description": "Doors 4:30 PM, games 6:30 PM. $10 admission covers 4 lap boards for 3 games. Open to the public. Run by the Auxiliary.",
+  "recurring": "weekly",
+  "category": "Auxiliary",
+  "enabled": true
+ },
+ {
+  "title": "Line dancing with Shotgun Jenny",
+  "date": "2026-01-05",
+  "start": "18:00",
+  "end": "22:00",
+  "description": "Doors 6 PM, lesson 6:30 PM, dancing 7 PM to 10 PM. $12 cover. Open to the public. Held every Monday except the 2nd Monday of the month.",
+  "recurring": "monthly_weekday",
+  "category": "Bar",
+  "enabled": true
+ },
+ {
+  "title": "Line dancing with Shotgun Jenny",
+  "date": "2026-01-19",
+  "start": "18:00",
+  "end": "22:00",
+  "description": "Doors 6 PM, lesson 6:30 PM, dancing 7 PM to 10 PM. $12 cover. Open to the public. Held every Monday except the 2nd Monday of the month.",
+  "recurring": "monthly_weekday",
+  "category": "Bar",
+  "enabled": true
+ },
+ {
+  "title": "Line dancing with Shotgun Jenny",
+  "date": "2026-01-26",
+  "start": "18:00",
+  "end": "22:00",
+  "description": "Doors 6 PM, lesson 6:30 PM, dancing 7 PM to 10 PM. $12 cover. Open to the public. Held every Monday except the 2nd Monday of the month.",
+  "recurring": "monthly_weekday",
+  "category": "Bar",
+  "enabled": true
+ },
+ {
+  "title": "Live band dance",
+  "date": "2026-01-02",
+  "start": "19:30",
+  "end": "22:30",
+  "description": "Doors 6:30 PM. $14 per person, cash bar, bring snacks. Held most Fridays. Open to the public. Check the Facebook group for which band is playing.",
+  "recurring": "weekly",
+  "category": "Bar",
+  "enabled": true
+ },
+ {
+  "title": "Dance Party with DJ Jim Tighe (2nd Wednesday)",
+  "date": "2026-03-11",
+  "start": "17:00",
+  "end": "21:00",
+  "description": "Hits of the 50s to 70s. $10 cash. Table reservations through the Facebook group.",
+  "recurring": "monthly_weekday",
+  "category": "Bar",
+  "enabled": true
+ },
+ {
+  "title": "Dance Party with DJ Jim Tighe (4th Wednesday)",
+  "date": "2026-03-25",
+  "start": "17:00",
+  "end": "21:00",
+  "description": "Hits of the 50s to 70s. $10 cash. Table reservations through the Facebook group.",
+  "recurring": "monthly_weekday",
+  "category": "Bar",
+  "enabled": true
+ },
+ {
+  "title": "Cornhole",
+  "date": "2026-01-13",
+  "start": "",
+  "end": "",
+  "description": "Open play on Tuesdays, plus leagues run with Glenside Cornhole and Scoreholio. Open to the public. Email warminstervfwcornhole@gmail.com.",
+  "recurring": "weekly",
+  "category": "Bar",
+  "enabled": true
+ },
+ {
+  "title": "Monthly meetings (2nd Monday)",
+  "date": "2026-01-12",
+  "start": "18:00",
+  "end": "",
+  "description": "For members. Home Association 6 PM, Auxiliary 6:45 PM, VFW 7 PM.",
+  "recurring": "monthly_weekday",
+  "category": "Post",
+  "enabled": true
+ },
+ {
+  "title": "Eagles brunch with The Loaded Belly",
+  "date": "2026-10-11",
+  "start": "09:00",
+  "end": "",
+  "description": "Kitchen opens at 9 AM.",
+  "recurring": "none",
+  "category": "Bar",
+  "enabled": true
+ },
+ {
+  "title": "Auxiliary Cash Bash",
+  "date": "2026-10-24",
+  "start": "",
+  "end": "",
+  "description": "$25 tickets. Two $500 prizes, drawings every 10 minutes, $1 drafts and free food.",
+  "recurring": "none",
+  "category": "Auxiliary",
+  "enabled": true
+ },
+ {
+  "title": "Halloween happy hour and costume contest",
+  "date": "2026-10-30",
+  "start": "",
+  "end": "",
+  "description": "Call the post at 215-773-0693 for the time.",
+  "recurring": "none",
+  "category": "Bar",
+  "enabled": true
+ },
+ {
+  "title": "Marine Corps birthday",
+  "date": "2026-11-10",
+  "start": "",
+  "end": "",
+  "description": "The post marked the Marine Corps birthday in 2024 and 2025. Call the post for this year's plans.",
+  "recurring": "none",
+  "category": "Holiday",
+  "enabled": true
+ },
+ {
+  "title": "Veterans Day",
+  "date": "2026-11-11",
+  "start": "",
+  "end": "",
+  "description": "The post honors Veterans Day. Call the post for what is planned.",
+  "recurring": "none",
+  "category": "Holiday",
+  "enabled": true
+ }
+]

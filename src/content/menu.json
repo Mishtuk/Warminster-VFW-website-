@@ -1,1 +1,64 @@
-{"hours":"","sections":[]}
+{
+ "hours": "Mon 6:30 to 8 PM. Tue to Thu 5 to 8 PM. Fri 5:30 to 8:30 PM (Aug 2026). No kitchen on hall rental days.",
+ "sections": [
+  {
+   "name": "The Loaded Belly (Oct 2026 flyer)",
+   "items": [
+    {
+     "name": "Create-your-own bagel",
+     "price": "",
+     "description": "",
+     "available": true
+    },
+    {
+     "name": "Cheesesteak bagel",
+     "price": "$10",
+     "description": "",
+     "available": true
+    },
+    {
+     "name": "Chicken fingers and fries",
+     "price": "$9",
+     "description": "",
+     "available": true
+    },
+    {
+     "name": "Scrapple fries with french toast bites",
+     "price": "$8",
+     "description": "",
+     "available": true
+    },
+    {
+     "name": "Belly Basket",
+     "price": "$10",
+     "description": "",
+     "available": true
+    },
+    {
+     "name": "Mozzarella sticks",
+     "price": "$6",
+     "description": "",
+     "available": true
+    },
+    {
+     "name": "Loaded tots",
+     "price": "$6",
+     "description": "",
+     "available": true
+    },
+    {
+     "name": "12\" cheese pizza",
+     "price": "$10",
+     "description": "",
+     "available": true
+    },
+    {
+     "name": "12\" pepperoni pizza",
+     "price": "$11",
+     "description": "",
+     "available": true
+    }
+   ]
+  }
+ ]
+}

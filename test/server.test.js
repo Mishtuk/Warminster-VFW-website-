@@ -2,10 +2,13 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { mkdtempSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+const REPO = join(import.meta.dirname, '..');
+const emptySeed = join(REPO, '.data', 'test-seed'); // empty folder: tests start with no seeded content
+mkdirSync(emptySeed, { recursive: true });
 const tmp = mkdtempSync(join(tmpdir(), 'vfw-srv-'));
 const dist = join(tmp, 'dist');
 mkdirSync(join(dist, 'admin'), { recursive: true });
@@ -16,7 +19,7 @@ const ADMIN = { username: 'admin', password: 'admin' };
 
 before(async () => {
   proc = spawn(process.execPath, ['server.js'], { cwd: join(import.meta.dirname, '..'),
-    env: { ...process.env, PORT: '0', DATA_DIR: join(tmp, 'data'), DIST_DIR: dist, ALLOW_DEFAULT_ADMIN: '1', POST_EMAIL: 'post@example.org', SMTP_URL: '', NODE_ENV: 'test' } });
+    env: { ...process.env, PORT: '0', DATA_DIR: join(tmp, 'data'), DIST_DIR: dist, SEED_DIR: emptySeed, ALLOW_DEFAULT_ADMIN: '1', POST_EMAIL: 'post@example.org', SMTP_URL: '', NODE_ENV: 'test' } });
   proc.stderr.on('data', (d) => process.stderr.write(d));
   const port = await new Promise((ok, no) => {
     proc.stdout.on('data', (d) => { const m = /\(port (\d+),/.exec(String(d)); if (m) ok(+m[1]); });
@@ -25,7 +28,7 @@ before(async () => {
   origin = `http://localhost:${port}`;
   base = origin;
 });
-after(() => proc?.kill());
+after(() => { proc?.kill(); rmSync(emptySeed, { recursive: true, force: true }); });
 
 const call = (method, path, body, headers = {}) => fetch(base + path, { method, redirect: 'manual', headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...headers }, body: body ? JSON.stringify(body) : undefined });
 let cookie = '';
@@ -135,4 +138,16 @@ test('login lockout: 5 wrong tries lock the account', async () => {
   let last;
   for (let i = 0; i < 6; i++) last = await call('POST', '/api/login', { username: 'admin', password: `nope${i}` }, { Origin: origin });
   assert.equal(last.status, 429);
+});
+
+test('first run seeds the real src/content files (events > 0)', async () => {
+  const data = mkdtempSync(join(tmpdir(), 'vfw-seed-'));
+  const p = spawn(process.execPath, ['server.js'], { cwd: REPO, env: { ...process.env, PORT: '0', DATA_DIR: data, DIST_DIR: dist, ALLOW_DEFAULT_ADMIN: '1', SEED_DIR: '', NODE_ENV: 'test' } });
+  try {
+    const port = await new Promise((ok, no) => { p.stdout.on('data', (d) => { const m = /\(port (\d+),/.exec(String(d)); if (m) ok(+m[1]); }); p.on('exit', (c) => no(new Error(`exit ${c}`))); });
+    const o = `http://localhost:${port}`;
+    const login = await fetch(`${o}/api/login`, { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: o }, body: JSON.stringify(ADMIN) });
+    const st = await (await fetch(`${o}/api/admin/state`, { headers: { Cookie: login.headers.get('set-cookie').split(';')[0] } })).json();
+    assert.ok(st.events.length > 0);
+  } finally { p.kill(); }
 });

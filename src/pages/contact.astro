@@ -23,7 +23,11 @@ const tabs = [{ label: 'About', path: '/about' }, { label: 'History', path: '/hi
         </li>
         <li>
           <strong>Hours</strong>
-          <span>{POST.hours ?? 'Call the post for hours.'}</span>
+          <span>Bar: {POST.hours.map(([d, h]) => `${d} ${h}`).join('; ')}. For the office, call the post.</span>
+        </li>
+        <li>
+          <strong>Email</strong>
+          <span>The post: <a href={POST.mail}>{POST.email}</a><br />Hall rental: <a href={POST.hallMail}>{POST.hallEmail}</a></span>
         </li>
         <li>
           <strong>Online</strong>
