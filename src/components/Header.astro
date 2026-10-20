@@ -1,6 +1,6 @@
 ---
 /**
- * Masthead (always dark and warm, official reverse lockup, today's bar hours, phone, theme toggle)
+ * Masthead (always dark and warm, official reverse lockup, today's bar hours, phone)
  * + the tab rail on desktop. Below 1240px the masthead sticks and holds Call and the Menu.
  * Theme: Base.astro sets data-theme before paint from localStorage; with no saved choice the CSS follows the system.
  * Store-ready: the rail fits an 8th tab ("Store") at >= 1240px; add it to NAV in site.ts.
@@ -24,8 +24,6 @@ const cur = (l: { path: string; match: readonly string[] }) =>
       <p class="mast-today"><TodayHours prefix="Bar open today" fallback="Bar hours are on The Bar page" /></p>
       <a class="mast-tel" href={POST.tel}><span class="sr-only">Call the post: </span>{POST.phone}</a>
     </div>
-
-    <button type="button" class="theme-toggle tt-mast" aria-label="Switch to dark mode"><span class="tt-icon" aria-hidden="true"></span><span class="tt-text">Dark</span></button>
 
     <a class="mast-call" href={POST.tel}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" /></svg>
@@ -72,29 +70,6 @@ const cur = (l: { path: string; match: readonly string[] }) =>
 </nav>
 
 <script is:inline>
-  // Theme toggle: label names the theme it switches to; the choice is remembered (storage may be blocked).
-  (() => {
-    const root = document.documentElement;
-    const mq = matchMedia('(prefers-color-scheme: dark)');
-    const now = () => root.dataset.theme || (mq.matches ? 'dark' : 'light');
-    const paint = () => {
-      const next = now() === 'dark' ? 'light' : 'dark';
-      for (const b of document.querySelectorAll('.theme-toggle')) {
-        b.dataset.next = next;
-        b.setAttribute('aria-label', `Switch to ${next} mode`);
-        b.querySelector('.tt-text').textContent = next === 'dark' ? 'Dark' : 'Light';
-      }
-    };
-    for (const b of document.querySelectorAll('.theme-toggle')) b.addEventListener('click', () => {
-      const t = now() === 'dark' ? 'light' : 'dark';
-      root.dataset.theme = t;
-      try { localStorage.setItem('theme', t); } catch (e) {}
-      paint();
-    });
-    mq.addEventListener('change', paint);
-    paint();
-  })();
-
   // Phone menu: focus moves in on open and stays inside; Escape or tapping a link closes it.
   (() => {
     const d = document.querySelector('.nav-mobile');
@@ -134,19 +109,6 @@ const cur = (l: { path: string; match: readonly string[] }) =>
   .mast-tel { display: inline-flex; align-items: center; min-height: 44px; font-family: var(--font-display); font-weight: 700; font-size: var(--step-2); text-decoration: none; }
   .mast-tel:hover { text-decoration: underline 2px var(--brass); text-underline-offset: 6px; }
   @media (min-width: 900px) { .mast-info { display: block; } }
-
-  /* Theme toggle: icon + word, 48px */
-  .theme-toggle {
-    display: inline-flex; align-items: center; gap: 0.5rem; min-height: 48px; padding: 0 0.9rem;
-    border: 2px solid rgb(241 234 223 / 0.6); border-radius: var(--radius); background: transparent; color: var(--on-dark);
-    font-weight: 700; font-size: 1.0625rem;
-  }
-  .theme-toggle:hover { border-color: var(--brass); color: var(--brass); }
-  .tt-icon { width: 18px; height: 18px; border-radius: 50%; flex: none; }
-  .theme-toggle[data-next='dark'] .tt-icon { box-shadow: inset -6px -3px 0 0 currentColor; transform: rotate(-20deg); } /* moon */
-  .theme-toggle[data-next='light'] .tt-icon { background: currentColor; box-shadow: 0 0 0 3px var(--night), 0 0 0 5px currentColor; width: 10px; height: 10px; margin: 4px; } /* sun */
-  /* Phones: icon-only 44px toggle in the bar; the word returns from 700px. */
-  @media (max-width: 699px) { .tt-mast { width: 44px; min-height: 44px; padding: 0; justify-content: center; } .tt-mast .tt-text { display: none; } }
 
   .mast-call {
     display: inline-flex; align-items: center; gap: 0.45rem; min-height: 48px; padding: 0 0.9rem;

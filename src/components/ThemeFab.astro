@@ -1,0 +1,49 @@
+---
+/**
+ * Light/dark switch: a small round button fixed at the bottom-right. A moon in light mode, a sun in dark mode.
+ * Base.astro sets data-theme before first paint; with no saved choice the CSS follows the system setting.
+ */
+---
+<button type="button" class="theme-fab" aria-label="Switch to dark mode" data-next="dark">
+  <svg class="ico-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z" /></svg>
+  <svg class="ico-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2" /><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8" /></svg>
+</button>
+
+<script>
+  const root = document.documentElement;
+  const mq = matchMedia('(prefers-color-scheme: dark)');
+  const btn = document.querySelector<HTMLButtonElement>('.theme-fab');
+  if (btn) {
+    const now = () => root.dataset.theme || (mq.matches ? 'dark' : 'light');
+    const paint = () => {
+      const next = now() === 'dark' ? 'light' : 'dark';
+      btn.dataset.next = next;
+      btn.setAttribute('aria-label', `Switch to ${next} mode`);
+    };
+    btn.addEventListener('click', () => {
+      const t = now() === 'dark' ? 'light' : 'dark';
+      root.dataset.theme = t;
+      try { localStorage.setItem('theme', t); } catch (e) { /* storage blocked: the choice lasts for this visit */ }
+      paint();
+    });
+    mq.addEventListener('change', paint);
+    paint();
+  }
+</script>
+
+<style>
+  .theme-fab {
+    position: fixed; z-index: 40; right: max(12px, env(safe-area-inset-right)); bottom: max(12px, env(safe-area-inset-bottom));
+    display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%;
+    background: var(--card); color: var(--ink); border: 1px solid var(--ink-2); box-shadow: 0 1px 4px rgb(0 0 0 / 0.25);
+    opacity: 0.88; cursor: pointer; transition: opacity 0.2s, background-color 0.2s;
+  }
+  .theme-fab:hover, .theme-fab:focus-visible { opacity: 1; }
+  .theme-fab:focus-visible { outline: 3px solid var(--focus, var(--ink)); outline-offset: 3px; }
+  .theme-fab svg { grid-area: 1 / 1; width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; transition: transform 0.4s ease, opacity 0.3s ease; }
+  /* data-next names the theme the button switches to: next=dark means it is light now, so show the moon */
+  .theme-fab[data-next='dark'] .ico-sun, .theme-fab[data-next='light'] .ico-moon { opacity: 0; transform: rotate(-90deg) scale(0.6); }
+  .theme-fab[data-next='dark'] .ico-moon, .theme-fab[data-next='light'] .ico-sun { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .theme-fab svg, .theme-fab { transition: none; } }
+  @media print { .theme-fab { display: none; } }
+</style>

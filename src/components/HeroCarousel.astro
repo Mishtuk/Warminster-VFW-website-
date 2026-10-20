@@ -1,0 +1,134 @@
+---
+/**
+ * Hero photo stack: pinned snapshots from different post events. Every 5.5 s the top one slides away and the next settles in.
+ * Auto-cycling stops on hover or focus, when the tab is hidden, on the Pause button, and always under reduced motion.
+ * Only the first photo loads with the page; the rest load after it. Clicking a photo opens the viewer with the whole set (data-gallery="hero").
+ */
+import { photo, href } from '../lib/site';
+import { HERO_PHOTOS } from '../lib/hero-photos';
+
+const tilts = ['-1.4deg', '1.2deg', '-0.8deg', '1.6deg', '-1.1deg', '0.9deg', '-1.5deg', '1.3deg', '-0.7deg'];
+const list = JSON.stringify(HERO_PHOTOS.map((p) => ({
+  src: href(`/media/photos/${p.name}-full.webp`), thumb: photo(p.name).src, alt: p.alt, cap: p.cap,
+})));
+---
+<div class="car" data-gallery="hero" role="group" aria-roledescription="carousel" aria-label="Photos from events at the post">
+  <ol class="car-stack">
+    {HERO_PHOTOS.map((p, i) => {
+      const ph = photo(p.name);
+      return (
+        <li class="car-slide" data-pos={i}>
+          <figure class="snap" style={`--tilt:${tilts[i % tilts.length]}`}>
+            <img
+              data-src={ph.srcset.split(' ')[0]}
+              sizes="(min-width: 1100px) 24rem, 80vw" width={ph.width} height={ph.height}
+              alt={p.alt} decoding="async" loading="lazy" fetchpriority="low"
+            />
+            {i === 0 && <noscript><img src={ph.srcset.split(' ')[0]} width={ph.width} height={ph.height} alt={p.alt} /></noscript>}
+            <figcaption>{p.cap}</figcaption>
+          </figure>
+        </li>
+      );
+    })}
+  </ol>
+  <div class="car-ctrl">
+    <button type="button" class="car-btn car-prev" aria-label="Previous photo"><span aria-hidden="true">&#8592;</span></button>
+    <button type="button" class="car-btn car-play" aria-label="Pause the photo slideshow"><span class="car-ico" aria-hidden="true"></span></button>
+    <button type="button" class="car-btn car-next" aria-label="Next photo"><span aria-hidden="true">&#8594;</span></button>
+    <span class="car-count">1 of {HERO_PHOTOS.length}</span>
+  </div>
+  <p class="sr-only car-live" aria-live="off"></p>
+  <script type="application/json" data-gallery-list="hero" set:html={list}></script>
+</div>
+
+<script>
+  const root = document.querySelector<HTMLElement>('.car');
+  if (root) {
+    const slides = [...root.querySelectorAll<HTMLElement>('.car-slide')];
+    const n = slides.length;
+    const live = root.querySelector('.car-live') as HTMLElement;
+    const count = root.querySelector('.car-count') as HTMLElement;
+    const play = root.querySelector('.car-play') as HTMLButtonElement;
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let cur = 0, timer = 0, userPaused = reduced, hovering = false;
+
+    const place = (announce: boolean) => {
+      slides.forEach((s, i) => {
+        const pos = (i - cur + n) % n;
+        s.dataset.pos = String(pos === n - 1 ? 'out' : pos);
+        s.toggleAttribute('inert', pos !== 0);
+      });
+      const cap = slides[cur].querySelector('figcaption')?.textContent ?? '';
+      count.textContent = `${cur + 1} of ${n}`;
+      live.setAttribute('aria-live', announce ? 'polite' : 'off');
+      live.textContent = announce ? `Photo ${cur + 1} of ${n}: ${cap}` : '';
+    };
+    const go = (to: number, announce = false) => { cur = (to + n) % n; place(announce); };
+    const sync = () => {
+      clearTimeout(timer);
+      play.setAttribute('aria-label', userPaused ? 'Play the photo slideshow' : 'Pause the photo slideshow');
+      play.dataset.paused = String(userPaused);
+      if (!userPaused && !hovering && !document.hidden) timer = window.setTimeout(() => { go(cur + 1); sync(); }, 5500);
+    };
+
+    // Photos load once the page (and its poster) has finished, so they never compete with it.
+    const loadRest = () => {
+      for (const img of root.querySelectorAll<HTMLImageElement>('img[data-src]')) {
+        if (!img.getAttribute('src')) img.setAttribute('src', img.dataset.src || '');
+      }
+    };
+    // Photos 2 to 9: after the page has loaded and the browser is idle (or on first touch), so they never compete with the poster.
+    let started = false;
+    const later = () => {
+      if (started) return;
+      started = true;
+      const ric = (window as any).requestIdleCallback as undefined | ((cb: () => void, o: { timeout: number }) => void);
+      if (ric) ric(loadRest, { timeout: 4000 }); else setTimeout(loadRest, 1500);
+    };
+    for (const ev of ['pointerdown', 'keydown', 'scroll']) addEventListener(ev, later, { once: true, passive: true });
+    if (document.readyState === 'complete') setTimeout(later, 1500); else addEventListener('load', () => setTimeout(later, 1500), { once: true });
+
+    root.querySelector('.car-prev')!.addEventListener('click', () => { go(cur - 1, true); sync(); });
+    root.querySelector('.car-next')!.addEventListener('click', () => { go(cur + 1, true); sync(); });
+    play.addEventListener('click', () => { userPaused = !userPaused; sync(); });
+    root.addEventListener('mouseenter', () => { hovering = true; sync(); });
+    root.addEventListener('mouseleave', () => { hovering = false; sync(); });
+    root.addEventListener('focusin', () => { hovering = true; sync(); });
+    root.addEventListener('focusout', () => { hovering = false; sync(); });
+    document.addEventListener('visibilitychange', sync);
+
+    if (reduced) { play.hidden = true; root.classList.add('is-still'); }
+    place(false);
+    sync();
+  }
+</script>
+
+<style>
+  .car { width: min(100%, 22rem); margin-inline: auto; }
+  .car-stack { position: relative; list-style: none; padding: 0; margin: 0; aspect-ratio: 1 / 0.98; }
+  .car-slide {
+    position: absolute; inset: 0 8% 4% 8%; transform-origin: 50% 90%;
+    transition: transform 0.9s cubic-bezier(0.22, 0.8, 0.3, 1), opacity 0.7s ease;
+    opacity: 0; transform: scale(0.9);
+  }
+  .car-slide figure { margin: 0; }
+  .car-slide[data-pos='0'] { opacity: 1; transform: none; z-index: 4; }
+  .car-slide[data-pos='1'] { opacity: 1; transform: translate(6%, 3%) rotate(5deg) scale(0.97); z-index: 3; }
+  .car-slide[data-pos='2'] { opacity: 1; transform: translate(-6%, 5%) rotate(-5deg) scale(0.94); z-index: 2; }
+  .car-slide[data-pos='out'] { opacity: 0; transform: translate(70%, -6%) rotate(16deg); z-index: 5; }
+  .car-slide[data-pos='1'] figcaption, .car-slide[data-pos='2'] figcaption { visibility: hidden; }
+  .car-slide figcaption { min-height: 2.9em; }
+  .is-still .car-slide { transition: none; }
+  @media (prefers-reduced-motion: reduce) { .car-slide { transition: none; } }
+
+  .car-ctrl { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem; color: var(--on-dark); }
+  .car-btn {
+    display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0;
+    border: 2px solid var(--on-dark); border-radius: var(--radius); background: rgb(23 18 14 / 0.6); color: var(--on-dark); font-size: 1.25rem; cursor: pointer;
+  }
+  .car-btn:hover { background: var(--on-dark); color: var(--night); }
+  .car-btn[hidden] { display: none; }
+  .car-ico { width: 12px; height: 14px; border-inline: 4px solid currentColor; }
+  .car-play[data-paused='true'] .car-ico { width: 0; height: 0; margin-left: 4px; border: 0; border-block: 8px solid transparent; border-left: 13px solid currentColor; }
+  .car-count { margin-left: auto; font-weight: 700; font-size: var(--step--1); }
+</style>

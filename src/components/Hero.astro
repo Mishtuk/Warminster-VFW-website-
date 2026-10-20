@@ -8,17 +8,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { POST, href, photo } from '../lib/site';
 import TodayHours from './TodayHours.astro';
+import HeroCarousel from './HeroCarousel.astro';
 
 const has = (f: string) => fs.existsSync(path.join(process.cwd(), 'public/media', f));
 const sources = ['hero-portrait.mp4', 'hero-720.mp4', 'hero.av1.mp4', 'hero.mp4'].filter(has);
-const snap = has('photos/life-halloween.webp');
 ---
 
 <section class="welcome" aria-labelledby="welcome-title">
   <div class="welcome-media" aria-hidden="true">
     <picture>
-      <source media="(max-width: 700px) and (orientation: portrait)" srcset={href('/media/hero-poster-portrait.jpg')} />
-      <img class="welcome-poster" src={href('/media/hero-poster.jpg')} alt="" width="1024" height="576" fetchpriority="high" decoding="async" />
+      <source media="(max-width: 700px) and (orientation: portrait)" srcset={`${href('/media/hero-poster-portrait-m.jpg')} 540w, ${href('/media/hero-poster-portrait.jpg')} 1080w`} sizes="100vw" />
+      <img class="welcome-poster" src={href('/media/hero-poster.jpg')} srcset={`${href('/media/hero-poster-m.jpg')} 960w, ${href('/media/hero-poster.jpg')} 1920w`} sizes="100vw" alt="" width="1024" height="576" fetchpriority="high" decoding="async" />
     </picture>
     <video id="hero-video" muted loop playsinline preload="none"
       data-portrait={has('hero-portrait.mp4') ? href('/media/hero-portrait.mp4') : undefined}
@@ -39,12 +39,7 @@ const snap = has('photos/life-halloween.webp');
         <a class="btn btn-ghost" href={href('/hall#inquiry')}>Rent the Hall</a>
       </div>
     </div>
-    {snap && (
-      <figure class="snap welcome-snap" style="--tilt:2deg">
-        <img {...photo('life-halloween')} sizes="(min-width: 1100px) 30vw, 1px" alt="Members at the bar at the post" loading="lazy" />
-        <figcaption>At the bar, Halloween 2025</figcaption>
-      </figure>
-    )}
+    <HeroCarousel />
   </div>
 
   {sources.length > 0 && (
@@ -134,11 +129,9 @@ const snap = has('photos/life-halloween.webp');
   .welcome-motto { margin-top: 0.9rem; font-family: var(--font-display); font-style: italic; font-weight: 650; font-size: var(--step-1); color: var(--brass); }
   .welcome .btn-row { margin-top: 1.75rem; }
 
-  .welcome-snap { display: none; }
-  @media (min-width: 1100px) { .welcome-snap { display: block; } }
 
   .video-toggle {
-    position: absolute; right: max(var(--gutter), env(safe-area-inset-right)); bottom: 16px; display: grid; place-items: center; width: 48px; height: 48px;
+    position: absolute; left: max(var(--gutter), env(safe-area-inset-left)); bottom: 16px; display: grid; place-items: center; width: 48px; height: 48px;
     border: 2px solid var(--on-dark); border-radius: var(--radius); background: rgb(23 18 14 / 0.7); color: var(--on-dark); cursor: pointer;
   }
   .video-toggle:hover { background: var(--on-dark); color: var(--night); }

@@ -21,7 +21,7 @@
 </dialog>
 
 <script>
-  type Item = { src: string; alt: string; cap: string };
+  type Item = { src: string; alt: string; cap: string; thumb?: string };
   const dlg = document.getElementById('lightbox') as HTMLDialogElement | null;
   if (dlg && typeof dlg.showModal === 'function') {
     const img = dlg.querySelector('.lb-img') as HTMLImageElement;
@@ -64,7 +64,7 @@
       const g = groupOf(el) as HTMLElement | null;
       const big = g?.dataset.gallery ? galleryItems(g.dataset.gallery) : null;
       if (big) {
-        const at = big.findIndex((x) => x.src === full(el));
+        const at = big.findIndex((x) => x.src === full(el) || x.thumb === full(el));
         return openList(big, at < 0 ? 0 : at);
       }
       const mine = all.filter((x) => groupOf(x) === g);
