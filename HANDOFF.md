@@ -10,6 +10,18 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
   - `source/hall/` holds the hall-rental listing photos.
   - `source/fb/` holds the Facebook group photos, videos and flyers.
 
+## Working together (two workstations: Desktop and Laptop)
+Two machines work on this repo at the same time. To avoid stepping on each other:
+- **Before starting a task:** `git pull --rebase`, then add a line under "Now working on" below with your machine, the task and the files or areas you will touch, and push that line on its own first. Don't start on files the other machine has claimed; ask it there or on the coordination issue instead.
+- **Small, focused commits.** Always `git pull --rebase` right before `git push`. Never force-push `main`, and never rewrite pushed history.
+- **Shared files** (`src/styles/global.css`, `src/lib/state.js`, `server.js`, `src/pages/admin.astro`, `HANDOFF.md`): append rather than reorder, keep edits local to your feature, and pull right before editing them.
+- **When done:** remove your "Now working on" line, update the relevant HANDOFF.md section, and make sure `npm test` passes before pushing.
+- **Commits** are authored as Mish (see the top of this file).
+
+### Now working on
+- **Desktop:** beer tap tower on the home page (src/components/BeerTaps.astro, src/scripts/pour.ts, src/content/taps.json, the "taps" state/marker/admin section in state.js, server.js and admin.astro, the .taps block at the end of global.css).
+- **Desktop:** hero photo bank to 150+ (src/lib/hero-photos.ts, public/media/photos/hero-*, src/components/HeroCarousel.astro).
+
 ## Status (handoff, 2026-10-20)
 **The site is feature-complete on the preview. The next steps are the owner's choices.**
 
