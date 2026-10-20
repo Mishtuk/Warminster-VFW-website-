@@ -17,6 +17,7 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Shared files** (`src/styles/global.css`, `src/lib/state.js`, `server.js`, `src/pages/admin.astro`, `HANDOFF.md`): append rather than reorder, keep edits local to your feature, and pull right before editing them.
 - **When done:** remove your "Now working on" line, update the relevant HANDOFF.md section, and make sure `npm test` passes before pushing.
 - **Commits** are authored as Mish (see the top of this file).
+- **Task issues:** work is handed out as GitHub issues labeled `laptop` or `desktop`, each a full brief with a "Done when" checklist. Check `gh issue list -l <your machine> --state open` at the start of a session and about every 15 minutes while idle. Take the lowest number, comment "Started", claim it below, and close it with the commit hash when done.
 
 ### Now working on
 - **Laptop:** printable monthly flyer (new src/pages/events/flyer.astro and src/scripts/flyer.ts, a link in src/pages/events.astro, one line in src/pages/sitemap.xml.ts).
