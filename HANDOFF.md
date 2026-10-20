@@ -21,7 +21,6 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Task issues:** work is handed out as GitHub issues labeled `laptop` or `desktop`, each a full brief with a "Done when" checklist. Check `gh issue list -l <your machine> --state open` at the start of a session and about every 15 minutes while idle. Take the lowest number, comment "Started", claim it below, and close it with the commit hash when done.
 
 ### Now working on
-- **Laptop:** #11 home speed: photo bank JSON out of the HTML (new src/pages/media/hero-bank.json.ts, src/components/HeroCarousel.astro, src/lib/hero-photos.ts if needed) and lazy-loading pour.ts (the script line in src/components/BeerTaps.astro, a tiny loader in src/scripts/).
 - **Laptop:** #10 What's going on photos (src/lib/event-photos.js, featuredHtml in src/lib/state.js, the whats-on style block in src/pages/index.astro, maybe a small src/scripts/ script for the cycling bundles).
 
 ## Status (handoff, 2026-10-20)
@@ -31,7 +30,7 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Pages:** 11 pages in the cozy "Canteen" look, plus a light/dark theme.
   - The theme switch is a small moon/sun button at the bottom right (`ThemeFab.astro`). It follows the system setting and is remembered per visitor.
 - **Home:**
-  - The hero has a background video and a polaroid stack showing a random 9 from a 150-photo bank (`HeroCarousel.astro`, `src/lib/hero-photos.ts`). On phones the stack is a strip below the hero.
+  - The hero has a background video and a polaroid stack showing a random 9 from a 150-photo bank (`HeroCarousel.astro`, `src/lib/hero-photos.ts`). The page carries 9 spread-out bank photos; the full bank is `/media/hero-bank.json` (`src/pages/media/hero-bank.json.ts`, built by `src/lib/hero-bank.ts`), fetched after load to reshuffle slides 2 to 9. `BeerTaps.astro` loads `pour-loader.ts`, which imports `pour.ts` on the first touch of a tap. On phones the stack is a strip below the hero.
   - Then "What's going on at the post": the next special event within 30 days, else the next event, plus 4 compact cards (`featuredHtml` in `state.js`, marker `events-featured`). Each event gets a real post photo by title, else by category (`src/lib/event-photos.js`); add a title rule there when a new kind of event gets its own photo. Details and card titles link to `/events#ev-...` (`anchorOf` in `state.js`): one-off events anchor in the calendar month list, repeating nights on their weekly card.
   - Then New here?, food snapshots with the specials menu card, the hall band (2 photos that open a 14-photo gallery, `src/lib/hall-photos.ts`), the namesakes plaque and post news.
 - **Info pages:**
