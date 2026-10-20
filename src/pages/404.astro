@@ -7,12 +7,11 @@ import { NAV, href } from '../lib/site';
   <PageHead title="Page not found" lede="We could not find that page. Try one of these." />
   <section class="section">
     <div class="container">
-      <aside class="board" aria-labelledby="nf-board">
-        <h2 id="nf-board" class="board-title">Where to?</h2>
-        <ul class="board-list">
-          {NAV.map((l) => <li><a href={href(l.path)}><span class="b-name">{l.label}</span></a></li>)}
+      <div class="panel">
+        <ul class="link-list">
+          {NAV.map((l) => <li><a href={href(l.path)}><span>{l.label}</span></a></li>)}
         </ul>
-      </aside>
+      </div>
     </div>
   </section>
 </Base>

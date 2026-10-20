@@ -16,7 +16,7 @@ const fmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'n
         <h2 class="bars">From the post</h2>
         <div style="margin-top:1.5rem"><Fragment set:html={seed.news} /></div>
       </div>
-      <aside>
+      <aside class="panel">
         <h2 class="bars">Veteran news</h2>
         {items.length > 0 && (
           <ul class="link-list" style="margin-top:1rem">

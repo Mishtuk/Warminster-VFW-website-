@@ -7,7 +7,7 @@ import { POST, href } from '../lib/site';
 const tabs = [{ label: 'About', path: '/about' }, { label: 'History', path: '/history' }, { label: 'Contact', path: '/contact' }];
 ---
 <Base title="About the post" description={`About ${POST.name} in ${POST.city}, PA.`}>
-  <PageHead title="About the post" lede={POST.motto} />
+  <PageHead title="About the post" lede={POST.motto} image="life-60th-dinner" />
   <Subnav items={tabs} label="About" />
 
   <section class="section">

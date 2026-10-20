@@ -11,31 +11,20 @@ const tabs = [{ label: 'About', path: '/about' }, { label: 'History', path: '/hi
   <Subnav items={tabs} label="About" />
 
   <section class="section">
-    <div class="container split">
-      <ul class="facts" style="grid-template-columns:1fr">
-        <li>
-          <strong>Address</strong>
-          <span>{POST.street}<br />{POST.city}, {POST.region} {POST.zip}</span>
-          <p style="margin-top:0.75rem"><a class="btn btn-outline" href={POST.mapsUrl} rel="noopener">Directions</a></p>
-        </li>
-        <li>
-          <strong>Phone</strong>
-          <a href={POST.tel} style="font-family:var(--font-display);font-stretch:80%;font-weight:700;font-size:var(--step-3)">{POST.phone}</a>
-        </li>
-        <li>
-          <strong>Hours</strong>
-          <span><TodayHours prefix="Bar open today" fallback="See the hours below" /><br />{POST.hours.map(([d, h]) => `${d} ${h}`).join('; ')}. For the office, call the post.</span>
-        </li>
-        <li>
-          <strong>Email</strong>
-          <span>The post: <a href={POST.mail}>{POST.email}</a><br />Hall rental: <a href={POST.hallMail}>{POST.hallEmail}</a></span>
-        </li>
-        <li>
-          <strong>Online</strong>
-          <p style="margin-top:0.5rem"><a class="btn btn-outline" href={POST.facebook} rel="noopener">Facebook group</a></p>
-        </li>
-      </ul>
-      <div class="media frame" style="aspect-ratio:4/3"><img {...photo('hall-01')} sizes="(min-width: 900px) 45vw, 100vw" alt="The outside of the post building" loading="lazy" /></div>
+    <div class="container split" style="align-items:start">
+      <div class="menu-card">
+        <h2>Visit or call</h2>
+        <p class="menu-note">{POST.street}<br />{POST.city}, {POST.region} {POST.zip}</p>
+        <p><a class="btn btn-outline" href={POST.mapsUrl} rel="noopener">Directions</a></p>
+        <p><a href={POST.tel} style="font-family:var(--font-display);font-weight:700;font-size:var(--step-3)">{POST.phone}</a></p>
+        <p><TodayHours prefix="Bar open today" fallback="See the hours below" /><br />{POST.hours.map(([d, h]) => `${d} ${h}`).join('; ')}. For the office, call the post.</p>
+        <p>The post: <a href={POST.mail}>{POST.email}</a><br />Hall rental: <a href={POST.hallMail}>{POST.hallEmail}</a></p>
+        <p><a class="btn btn-outline" href={POST.facebook} rel="noopener">Facebook group</a></p>
+      </div>
+      <figure class="snap" style="--tilt:1.2deg">
+        <img {...photo('hall-01')} sizes="(min-width: 900px) 45vw, 100vw" alt="The outside of the post building" loading="lazy" />
+        <figcaption>The post at {POST.street}</figcaption>
+      </figure>
     </div>
     <div class="container" style="margin-top:2rem"><p>Want to rent the hall? <a class="link" href={href('/hall#inquiry')}>Send an inquiry</a>.</p></div>
   </section>

@@ -4,6 +4,7 @@ import PageHead from '../components/PageHead.astro';
 import Subnav from '../components/Subnav.astro';
 import { POST } from '../lib/site';
 import { seed, year } from '../lib/seed';
+import { photo } from '../lib/site';
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((label, i) => ({ label, path: `#month-${i + 1}` }));
 ---
 <Base title="Events and calendar" description={`Upcoming events and the ${year} calendar at ${POST.name}.`}>
@@ -11,9 +12,15 @@ const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
   <Subnav items={months} label="Jump to a month" />
 
   <section class="section">
-    <div class="container">
-      <div class="section-head"><h2 class="bars">Upcoming</h2></div>
-      <Fragment set:html={seed.upcoming} />
+    <div class="container split-wide" style="align-items:start">
+      <div class="panel">
+        <div class="section-head"><h2 class="bars">Upcoming</h2></div>
+        <Fragment set:html={seed.upcoming} />
+      </div>
+      <figure class="snap" style="--tilt:1.4deg">
+        <img {...photo('life-linedance')} sizes="(min-width: 900px) 35vw, 100vw" alt="Line dancing at the post" loading="lazy" />
+        <figcaption>Line dancing at the post, 2026</figcaption>
+      </figure>
     </div>
   </section>
 
@@ -21,9 +28,12 @@ const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
     <div class="container">
       <div class="section-head"><h2 class="bars">Full year</h2></div>
       <div class="cal-key" aria-hidden="true"><span class="k-event">Event day</span><span class="k-today">Today</span><span class="k-cat vfw-cat-bar">Bar</span><span class="k-cat vfw-cat-post">Post</span><span class="k-cat vfw-cat-auxiliary">Auxiliary</span><span class="k-cat vfw-cat-community">Community</span><span class="k-cat vfw-cat-holiday">Holiday</span></div>
-      <p class="no-print" style="margin-bottom:1.5rem"><button class="btn btn-outline no-print" type="button" onclick="print()">Print this calendar</button></p>
+      <p class="no-print" style="margin-bottom:1.5rem"><button class="btn btn-outline" type="button" id="print-cal">Print this calendar</button></p>
       <Fragment set:html={seed.calendar} />
     </div>
   </section>
   <Fragment set:html={seed.data} />
+  <script>
+    document.getElementById('print-cal')?.addEventListener('click', () => print());
+  </script>
 </Base>

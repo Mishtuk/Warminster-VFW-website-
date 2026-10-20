@@ -118,12 +118,12 @@ const snap = has('photos/life-halloween.webp');
   @media (min-width: 1100px) { .welcome-snap { display: block; } }
 
   .video-toggle {
-    position: absolute; right: max(var(--gutter), env(safe-area-inset-right)); bottom: 20px; display: grid; place-items: center; width: 48px; height: 48px;
+    position: absolute; right: max(var(--gutter), env(safe-area-inset-right)); bottom: 16px; display: grid; place-items: center; width: 48px; height: 48px;
     border: 2px solid var(--on-dark); border-radius: var(--radius); background: rgb(23 18 14 / 0.7); color: var(--on-dark); cursor: pointer;
   }
   .video-toggle:hover { background: var(--on-dark); color: var(--night); }
   .video-toggle[hidden] { display: none; }
-  .welcome:has(.video-toggle:not([hidden])) { padding-bottom: calc(clamp(3.5rem, 2rem + 5vw, 6.5rem) + 40px); }
+  .welcome:has(.video-toggle:not([hidden])) { padding-bottom: calc(clamp(3.5rem, 2rem + 5vw, 6.5rem) + 84px); }
   .icon { width: 12px; height: 14px; border-inline: 4px solid currentColor; }
   [data-paused='true'] .icon { width: 0; height: 0; margin-left: 4px; border: 0; border-block: 8px solid transparent; border-left: 13px solid currentColor; }
   @media print { .welcome { background: none; color: #000; min-height: 0; } }

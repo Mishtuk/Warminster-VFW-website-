@@ -404,7 +404,7 @@ a.card:hover h3 { text-decoration: underline 2px var(--gold); text-underline-off
 .hp { position: absolute !important; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 
 /* ==========================================================================
-   Admin content (server-injected at vfw markers, see team/markers.md).
+   Admin content (server-injected at vfw markers, see docs/markers.md).
    Must stay global: Astro scoped styles never reach injected HTML.
    ========================================================================== */
 .vfw-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

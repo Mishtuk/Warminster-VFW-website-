@@ -28,7 +28,7 @@ const host = (u: string) => new URL(u).host.replace(/^www\./, '');
   </section>
 
   <section class="section band-stone">
-    <div class="container">
+    <div class="container"><div class="panel">
       <div class="section-head">
         <h2 class="bars">Veteran discounts</h2>
         <p>Offers change. Ask at checkout, and check the source link before you go. Offers marked "Veterans Day only" are not year round.</p>
@@ -48,6 +48,6 @@ const host = (u: string) => new URL(u).host.replace(/^www\./, '');
       ))}
       <p><strong>Checked {DISCOUNTS_CHECKED}. Offers change, so confirm at the store.</strong></p>
       <p class="hint" style="margin-top:0.75rem">Know another business that honors veterans? Tell the post: <a href={POST.tel}>{POST.phone}</a>.</p>
-    </div>
+    </div></div>
   </section>
 </Base>
