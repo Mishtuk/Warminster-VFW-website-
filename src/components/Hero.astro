@@ -10,20 +10,20 @@ import { POST, href, photo } from '../lib/site';
 import TodayHours from './TodayHours.astro';
 
 const has = (f: string) => fs.existsSync(path.join(process.cwd(), 'public/media', f));
-const sources = [
-  { file: 'hero-portrait.mp4', media: '(max-width: 700px) and (orientation: portrait)' },
-  { file: 'hero-720.mp4', media: '(max-width: 700px)' },
-  { file: 'hero.mp4' },
-].filter((s) => has(s.file));
+const sources = ['hero-portrait.mp4', 'hero-720.mp4', 'hero.mp4'].filter(has);
 const snap = has('photos/life-halloween.webp');
 ---
 
 <section class="welcome" aria-labelledby="welcome-title">
   <div class="welcome-media" aria-hidden="true">
-    <video id="hero-video" autoplay muted loop playsinline preload="metadata"
-      poster={href('/media/hero-poster.jpg')} data-poster-portrait={href('/media/hero-poster-portrait.jpg')}>
-      {sources.map((s) => <source media={s.media} src={href(`/media/${s.file}`)} type="video/mp4" />)}
-    </video>
+    <picture>
+      <source media="(max-width: 700px) and (orientation: portrait)" srcset={href('/media/hero-poster-portrait.jpg')} />
+      <img class="welcome-poster" src={href('/media/hero-poster.jpg')} alt="" width="1024" height="576" fetchpriority="high" decoding="async" />
+    </picture>
+    <video id="hero-video" muted loop playsinline preload="none"
+      data-portrait={has('hero-portrait.mp4') ? href('/media/hero-portrait.mp4') : undefined}
+      data-small={has('hero-720.mp4') ? href('/media/hero-720.mp4') : undefined}
+      data-full={has('hero.mp4') ? href('/media/hero.mp4') : undefined}></video>
   </div>
 
   <div class="container welcome-grid">
@@ -58,23 +58,37 @@ const snap = has('photos/life-halloween.webp');
   (() => {
     const v = document.getElementById('hero-video');
     if (!v) return;
-    if (matchMedia('(max-width: 700px) and (orientation: portrait)').matches) v.poster = v.dataset.posterPortrait;
     const b = document.querySelector('.video-toggle');
-    if (!b) return;
-    const label = b.querySelector('.sr-only');
-    const sync = () => { b.dataset.paused = String(v.paused); label.textContent = v.paused ? 'Play the background video' : 'Pause the background video'; };
-    b.hidden = false;
-    b.addEventListener('click', () => (v.paused ? v.play() : v.pause()));
-    v.addEventListener('play', sync);
-    v.addEventListener('pause', sync);
-    // Reduced motion: hold still; the visitor can still press play.
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { v.removeAttribute('autoplay'); v.pause(); sync(); return; }
-    sync();
-    v.play().catch(() => {
-      const go = () => v.play().catch(() => {});
-      addEventListener('touchend', go, { once: true, passive: true });
-      addEventListener('click', go, { once: true });
-    });
+    const label = b && b.querySelector('.sr-only');
+    const sync = () => { if (!b) return; b.dataset.paused = String(v.paused); label.textContent = v.paused ? 'Play the background video' : 'Pause the background video'; };
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches || (navigator.connection && navigator.connection.saveData);
+    // The poster image paints first. The video file is chosen and fetched only after the page has loaded.
+    const start = () => {
+      const phone = matchMedia('(max-width: 700px)').matches, portrait = matchMedia('(orientation: portrait)').matches;
+      const d = v.dataset;
+      const src = phone ? ((portrait && d.portrait) || d.small || d.full) : (d.full || d.small);
+      if (!src) return;
+      v.src = src;
+      v.addEventListener('playing', () => v.classList.add('is-on'), { once: true });
+      v.play().catch(() => {
+        const go = () => v.play().catch(() => {});
+        addEventListener('touchend', go, { once: true, passive: true });
+        addEventListener('click', go, { once: true });
+      });
+    };
+    if (b) {
+      b.hidden = false;
+      b.addEventListener('click', () => {
+        if (!v.src && !v.currentSrc) start();
+        else if (v.paused) v.play(); else v.pause();
+      });
+      v.addEventListener('play', sync);
+      v.addEventListener('pause', sync);
+      sync();
+    }
+    if (still) { sync(); return; }
+    const go = () => setTimeout(start, 300);
+    if (document.readyState === 'complete') go(); else addEventListener('load', go, { once: true });
   })();
 </script>
 
@@ -86,7 +100,10 @@ const snap = has('photos/life-halloween.webp');
     min-height: min(44rem, calc(100svh - var(--header-h) - 24px));
     display: grid; align-items: center;
   }
-  .welcome-media, .welcome-media video { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .welcome-media, .welcome-media video, .welcome-poster { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .welcome-poster { object-fit: cover; }
+  .welcome-media video { opacity: 0; transition: opacity 0.6s; }
+  .welcome-media video.is-on { opacity: 1; }
   .welcome-media { z-index: -1; }
   .welcome-media video { object-fit: cover; }
   /* Warm, candle-lit scrim: >= 0.8 behind all hero text (on-dark >= 7:1, brass >= 4:1 over a white frame). */

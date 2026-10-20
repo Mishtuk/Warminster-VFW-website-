@@ -22,7 +22,7 @@ const alts: Record<string, string> = { 'hall-01': 'The outside of the post build
       <div class="section-head"><h2 class="bars">Photos of the hall</h2></div>
       <ul class="gallery">
         {order.map((n) => (
-          <li><a href={href(`/media/photos/${n}.webp`)}><img {...photo(n)} sizes="(min-width: 800px) 33vw, 100vw" alt={alts[n] ?? 'Inside the hall at the post'} loading="lazy" /></a></li>
+          <li><a href={href(`/media/photos/${n}.webp`)}><img {...photo(n)} sizes="(min-width: 800px) 33vw, 100vw" alt={alts[n] ?? 'Inside the hall at the post'} loading="lazy" decoding="async" fetchpriority="low" /></a></li>
         ))}
       </ul>
     </div>

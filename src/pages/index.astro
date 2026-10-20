@@ -11,6 +11,10 @@ const life = [
 ];
 ---
 <Base title={`${POST.name}, ${POST.city}, PA`}>
+  <Fragment slot="head">
+    <link rel="preload" as="image" href={href('/media/hero-poster-portrait.jpg')} media="(max-width: 700px) and (orientation: portrait)" fetchpriority="high" />
+    <link rel="preload" as="image" href={href('/media/hero-poster.jpg')} media="not all and (max-width: 700px) and (orientation: portrait)" fetchpriority="high" />
+  </Fragment>
   <Hero />
 
   <!-- Food and drink: photos first, then the week's specials on a printed menu card -->
@@ -31,10 +35,10 @@ const life = [
     <div class="container hall-grid">
       <div class="hall-photos">
         <figure class="snap hall-main" style="--tilt:-0.8deg">
-          <img {...photo('hall-07')} sizes="(min-width: 900px) 45vw, 100vw" alt="The hall set with round tables" loading="lazy" />
+          <img {...photo('hall-07')} sizes="(min-width: 900px) 45vw, 100vw" alt="The hall set with round tables" loading="lazy" decoding="async" fetchpriority="low" />
         </figure>
         <figure class="snap hall-small" style="--tilt:2.2deg">
-          <img {...photo('life-60th-tables')} sizes="(min-width: 900px) 20vw, 50vw" alt="Tables dressed for the 60th anniversary dinner" loading="lazy" />
+          <img {...photo('life-60th-tables')} sizes="(min-width: 900px) 20vw, 50vw" alt="Tables dressed for the 60th anniversary dinner" loading="lazy" decoding="async" fetchpriority="low" />
           <figcaption>Set for the 60th anniversary</figcaption>
         </figure>
       </div>
@@ -63,7 +67,7 @@ const life = [
       <div class="life">
         {life.map((l, i) => (
           <figure class="snap" style={`--tilt:${i ? '1.4deg' : '-1.2deg'}`}>
-            <img {...photo(l.name)} sizes="(min-width: 900px) 35vw, 100vw" alt={l.alt} loading="lazy" />
+            <img {...photo(l.name)} sizes="(min-width: 900px) 35vw, 100vw" alt={l.alt} loading="lazy" decoding="async" fetchpriority="low" />
             <figcaption>{l.cap}</figcaption>
           </figure>
         ))}
@@ -108,6 +112,7 @@ const life = [
     .on-grid { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: start; }
   }
 
+  .food-grid { align-items: start; }
   .menu-specials { margin-top: 1.25rem; }
   /* Home shows four specials; the full list is on /bar. */
   .menu-specials :global(.vfw-special:nth-child(n + 5)) { display: none; }

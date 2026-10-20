@@ -31,7 +31,7 @@ const tabs = [{ label: 'About', path: '/about' }, { label: 'History', path: '/hi
       <p>In March 2022, State Senator Maria Collett presented the post with a $50,000 Keystone Communities Program grant for a new roof and parking-lot resurfacing. <a href="https://pasenate.com/?p=129750" rel="noopener">Source: PA Senate</a>.</p>
       <p>Warminster's annual Memorial Day parade ends at the post. <a href="https://www.buckscountyherald.com/community/events/warminster-township-honors-sacrifice-of-nations-service-members/article_195fd6e6-1884-4ebd-ba19-f199eb01fed2.html" rel="noopener">Source: Bucks County Herald, 2026</a>.</p>
       <figure class="snap" style="--tilt:-1.2deg;max-width:26rem">
-        <img {...photo('life-memorial')} sizes="(min-width: 900px) 26rem, 100vw" alt="Memorial Day at the post" loading="lazy" />
+        <img {...photo('life-memorial')} sizes="(min-width: 900px) 26rem, 100vw" alt="Memorial Day at the post" loading="lazy" decoding="async" fetchpriority="low" />
         <figcaption>Memorial Day, May 2026</figcaption>
       </figure>
       <p>Have a story or a photo from the post's past? <a href={POST.tel}>Call {POST.phone}</a> and tell us.</p>

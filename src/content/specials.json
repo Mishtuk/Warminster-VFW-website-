@@ -58,55 +58,5 @@
   "start": "",
   "end": "",
   "enabled": true
- },
- {
-  "label": "Monday kitchen special",
-  "price": "$10",
-  "description": "Boneless wings (8) with fries. Week of Aug 24, 2026.",
-  "period": "weekly",
-  "weekday": 1,
-  "start": "2026-08-24",
-  "end": "2026-08-28",
-  "enabled": true
- },
- {
-  "label": "Tuesday kitchen special",
-  "price": "$10",
-  "description": "Chicken cheesesteak. Week of Aug 24, 2026.",
-  "period": "weekly",
-  "weekday": 2,
-  "start": "2026-08-24",
-  "end": "2026-08-28",
-  "enabled": true
- },
- {
-  "label": "Wednesday kitchen special",
-  "price": "$8",
-  "description": "Chicken Caesar wrap. Week of Aug 24, 2026.",
-  "period": "weekly",
-  "weekday": 3,
-  "start": "2026-08-24",
-  "end": "2026-08-28",
-  "enabled": true
- },
- {
-  "label": "Thursday kitchen special",
-  "price": "$7",
-  "description": "Fried ham and cheese sandwich. Week of Aug 24, 2026.",
-  "period": "weekly",
-  "weekday": 4,
-  "start": "2026-08-24",
-  "end": "2026-08-28",
-  "enabled": true
- },
- {
-  "label": "Friday kitchen special",
-  "price": "$12",
-  "description": "Meatloaf with mashed potatoes and veggies. Week of Aug 24, 2026.",
-  "period": "weekly",
-  "weekday": 5,
-  "start": "2026-08-24",
-  "end": "2026-08-28",
-  "enabled": true
  }
 ]

@@ -18,7 +18,7 @@ const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
         <Fragment set:html={seed.upcoming} />
       </div>
       <figure class="snap" style="--tilt:1.4deg">
-        <img {...photo('life-linedance')} sizes="(min-width: 900px) 35vw, 100vw" alt="Line dancing at the post" loading="lazy" />
+        <img {...photo('life-linedance')} sizes="(min-width: 900px) 35vw, 100vw" alt="Line dancing at the post" loading="lazy" decoding="async" fetchpriority="low" />
         <figcaption>Line dancing at the post, 2026</figcaption>
       </figure>
     </div>
