@@ -1,36 +1,53 @@
 ---
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
+import InfoSection from '../components/info/InfoSection.astro';
+import OnThisPage from '../components/info/OnThisPage.astro';
 import { POST } from '../lib/site';
 import { seed } from '../lib/seed';
 import { latestVeteranNews, FALLBACK_LINKS } from '../lib/feeds';
 const items = await latestVeteranNews(8);
 const fmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/New_York' });
+// Veteran news grouped by where it comes from (feed order kept: VA first).
+const bySource = Map.groupBy(items, (i) => i.source);
+const sections = [
+  { id: 'post-news', label: 'From the post' },
+  ...(items.length ? [{ id: 'veteran-news', label: 'Veteran news' }] : []),
+  { id: 'more-news', label: 'More news sources' },
+];
 ---
 <Base title="News" description={`News from ${POST.name} and the latest veteran news.`}>
-  <PageHead title="News" lede="News from the post, and the latest news for veterans." />
+  <PageHead title="News" lede="News from the post first, then the latest news for veterans from outside sources." />
+  <OnThisPage items={sections} />
 
-  <section class="section">
-    <div class="container news-layout">
-      <div class="panel">
-        <h2 class="bars">From the post</h2>
-        <div style="margin-top:1.5rem"><Fragment set:html={seed.news} /></div>
+  <InfoSection id="post-news" title="From the post" summary="Announcements from Post 6493, newest first." panel>
+    <Fragment set:html={seed.news} />
+  </InfoSection>
+
+  {items.length > 0 && (
+    <InfoSection id="veteran-news" title="Veteran news" summary="Recent headlines for veterans, grouped by source. Each link opens the full story." band="stone">
+      <div class="src-grid">
+        {[...bySource].map(([src, list]) => (
+          <div class="panel info-body">
+            <h3>{src}</h3>
+            <ul class="link-list">
+              {list.map((i) => <li><a href={i.link} rel="noopener"><span>{i.title}</span><small>{fmt(i.date)}</small></a></li>)}
+            </ul>
+          </div>
+        ))}
       </div>
-      <aside class="panel">
-        <h2 class="bars">Veteran news</h2>
-        {items.length > 0 && (
-          <ul class="link-list" style="margin-top:1rem">
-            {items.map((i) => (
-              <li><a href={i.link} rel="noopener"><span>{i.title}</span><small>{i.source}, {fmt(i.date)}</small></a></li>
-            ))}
-          </ul>
-        )}
-        <h3 style="margin-top:2rem">More veteran news and resources</h3>
-        <ul class="link-list" style="margin-top:0.5rem">
-          {FALLBACK_LINKS.map((l) => <li><a href={l.url} rel="noopener"><span>{l.title}</span><small>{l.note}</small></a></li>)}
-        </ul>
-      </aside>
-    </div>
-  </section>
+    </InfoSection>
+  )}
+
+  <InfoSection id="more-news" title="More news sources" summary="Where to read more veteran news and find resources." panel>
+    <ul class="link-list">
+      {FALLBACK_LINKS.map((l) => <li><a href={l.url} rel="noopener"><span>{l.title}</span><small>{l.note}</small></a></li>)}
+    </ul>
+  </InfoSection>
   <Fragment set:html={seed.data} />
 </Base>
+
+<style>
+  .src-grid { display: grid; gap: clamp(1rem, 0.6rem + 1.5vw, 1.5rem); }
+  @media (min-width: 900px) { .src-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } }
+</style>

@@ -3,53 +3,51 @@ import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
 import { POST, href, photo } from '../lib/site';
 import { HALL_PHOTOS } from '../lib/hall-photos';
+import InfoSection from '../components/info/InfoSection.astro';
+import OnThisPage from '../components/info/OnThisPage.astro';
+import KeyFacts from '../components/info/KeyFacts.astro';
+const sections = [{ id: 'included', label: "What's included" }, { id: 'photos', label: 'Photos' }, { id: 'faq', label: 'Questions' }, { id: 'inquiry', label: 'Ask about a date' }];
 const gallery = JSON.stringify(HALL_PHOTOS.map((p) => ({ src: photo(p.name).src, alt: p.alt, cap: p.cap })));
 ---
 <Base title="Rent the Hall" description={POST.hallBlurb}>
-  <PageHead title="Rent the Hall" lede="Our hall is always available for rent." image="hall-07" />
+  <PageHead title="Rent the Hall" lede="Our hall is always available for rent. See what's included, look at the photos, then ask about your date." image="hall-07">
+    <p class="btn-row hall-cta"><a class="btn" href="#inquiry">Ask about a date</a><a class="btn btn-outline" href={POST.tel}>Call {POST.phone}</a></p>
+  </PageHead>
+  <OnThisPage items={sections} />
 
-  <section class="section">
-    <div class="container">
-      <div class="section-head"><h2 class="bars">What's included</h2></div>
-      <ul class="facts">
-        {POST.hallFacts.map(([t, d]) => <li><strong>{t}</strong><span>{d}</span></li>)}
-      </ul>
+  <InfoSection id="included" title="What's included" summary="Free wifi, tables and chairs, and complete bar facilities. You supply your own food and entertainment." panel>
+    <dl class="rows">
+      {POST.hallFacts.map(([t, d]) => <div><dt>{t}</dt><dd>{d}</dd></div>)}
+      <div><dt>Stage</dt><dd>Shown in the photos below.</dd></div>
+      <div><dt>Non-profits</dt><dd>The post offers discounted rates for non-profit events.</dd></div>
+    </dl>
+    <p><strong>Events held in the hall:</strong> banquets, craft fairs, fundraisers, trivia nights, dinners and parties, including the Delta Waterfowl banquet, Cub Scout Pack 139's craft fair, the Auxiliary Cash Bash and the post's 60th anniversary dinner.</p>
+  </InfoSection>
+
+  <InfoSection id="photos" title="Photos of the hall" summary="The building, the stage and the hall set for an event. Tap a photo to see it larger.">
+    <ul class="gallery" data-gallery="hall">
+      {HALL_PHOTOS.map((p) => (
+        <li><a href={photo(p.name).src}><img {...photo(p.name)} sizes="(min-width: 800px) 33vw, 100vw" alt={p.alt} loading="lazy" decoding="async" fetchpriority="low" /></a></li>
+      ))}
+    </ul>
+    <script type="application/json" data-gallery-list="hall" set:html={gallery}></script>
+  </InfoSection>
+
+  <InfoSection id="faq" title="Questions" summary="Kitchen, tours, price and capacity." panel>
+    <div class="faq">
+      <details><summary>Is the kitchen open on rental days?</summary><p>No. The kitchen is closed on rental days, so plan to bring your food.</p></details>
+      <details><summary>Can I see the hall first?</summary><p>Yes. Tours are by phone appointment. Call <a href={POST.tel}>{POST.phone}</a>.</p></details>
+      <details><summary>What does it cost? How many people fit? Is there a deposit? Parking?</summary><p>Call the post at <a href={POST.tel}>{POST.phone}</a> for price, capacity, deposit, hours and parking.</p></details>
     </div>
-  </section>
+  </InfoSection>
 
-  <section class="section">
-    <div class="container"><div class="panel">
-      <div class="section-head"><h2 class="bars">Planning your event</h2></div>
-      <div class="faq">
-        <details><summary>Can I bring my own food, DJ or band?</summary><p>Yes. You can supply your own food and entertainment. Food is renter supplied and staff is not included.</p></details>
-        <details><summary>Is there a bar?</summary><p>Yes. We have complete bar facilities, with full-service alcohol.</p></details>
-        <details><summary>What comes with the hall?</summary><p>Free wifi, and tables and chairs are furnished. Setup and cleaning are venue assisted. There is a stage, shown in the photos below.</p></details>
-        <details><summary>Is the kitchen open on rental days?</summary><p>No. The kitchen is closed on rental days, so plan to bring your food.</p></details>
-        <details><summary>Can I see the hall first?</summary><p>Yes. Tours are by phone appointment. Call <a href={POST.tel}>{POST.phone}</a>.</p></details>
-        <details><summary>Is there a discount for non-profits?</summary><p>Yes. The post offers discounted rates for non-profit events.</p></details>
-        <details><summary>What does it cost? How many people fit? Is there a deposit? Parking?</summary><p>Call the post at <a href={POST.tel}>{POST.phone}</a> for price, capacity, deposit, hours and parking.</p></details>
-      </div>
-      <h3 style="margin-top:2rem">Events held in the hall</h3>
-      <p>Banquets, craft fairs, fundraisers, trivia nights, dinners and parties, including the Delta Waterfowl banquet, Cub Scout Pack 139's craft fair, the Auxiliary Cash Bash and the post's 60th anniversary dinner.</p>
-    </div></div>
-  </section>
-
-  <section class="section">
-    <div class="container">
-      <div class="section-head"><h2 class="bars">Photos of the hall</h2></div>
-      <ul class="gallery" data-gallery="hall">
-        {HALL_PHOTOS.map((p) => (
-          <li><a href={photo(p.name).src}><img {...photo(p.name)} sizes="(min-width: 800px) 33vw, 100vw" alt={p.alt} loading="lazy" decoding="async" fetchpriority="low" /></a></li>
-        ))}
-      </ul>
-      <script type="application/json" data-gallery-list="hall" set:html={gallery}></script>
-    </div>
-  </section>
-
-  <section class="section band-stone" id="inquiry">
-    <div class="container split-wide" style="align-items:start">
+  <section class="section info-sec band-stone" id="inquiry">
+    <div class="container split split-wide">
       <div class="panel">
-        <h2 class="bars">Ask about renting the hall</h2>
+        <header class="info-head">
+          <h2 class="bars">Ask about renting the hall</h2>
+          <p class="info-sum">Send your date and details. We'll call you back to confirm.</p>
+        </header>
         <div id="form-status" class="form-status" role="status" hidden style="margin-top:1.5rem"></div>
         <form class="form" id="hall-form" method="post" action={href('/api/hall-inquiry')} style="margin-top:1.5rem" novalidate>
           <input type="hidden" name="_page" value="/hall" />
@@ -76,13 +74,7 @@ const gallery = JSON.stringify(HALL_PHOTOS.map((p) => ({ src: photo(p.name).src,
           <p class="hint">We use what you send only to answer your hall rental question. Inquiries are kept for up to 12 months and then deleted; call the post any time to have yours removed.</p>
         </form>
       </div>
-      <aside class="menu-card" aria-labelledby="hall-ask">
-        <h2 id="hall-ask">Ask about your date</h2>
-        <p class="menu-note"><a href={POST.tel} style="font-family:var(--font-display);font-weight:700;font-size:var(--step-3)">{POST.phone}</a></p>
-        <p>Hall rental email: <a href={POST.hallMail}>{POST.hallEmail}</a></p>
-        <p>Post email: <a href={POST.mail}>{POST.email}</a></p>
-        <p>{POST.address}. We'll call you back to confirm dates and details.</p>
-      </aside>
+      <KeyFacts title="Ask about your date" hallEmail email note="We'll call you back to confirm dates and details." />
     </div>
   </section>
 
@@ -118,3 +110,7 @@ const gallery = JSON.stringify(HALL_PHOTOS.map((p) => ({ src: photo(p.name).src,
     })();
   </script>
 </Base>
+
+<style>
+  .hall-cta { margin-top: 1.25rem; }
+</style>

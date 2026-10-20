@@ -1,0 +1,43 @@
+---
+/**
+ * Key facts box: the same look on every page. Flags pick the rows; every value comes from post.js.
+ * Extra rows can go in the default slot as <div><dt>..</dt><dd>..</dd></div>.
+ */
+import TodayHours from '../TodayHours.astro';
+import { POST } from '../../lib/site';
+interface Props {
+  title?: string; phone?: boolean; address?: boolean; today?: boolean; office?: boolean;
+  email?: boolean; hallEmail?: boolean; facebook?: boolean; note?: string;
+}
+const { title = 'Call or visit', phone = true, address = true, today = false, office = false, email = false, hallEmail = false, facebook = false, note } = Astro.props;
+---
+<aside class="keyfacts" aria-label={title}>
+  <h2 class="kf-title">{title}</h2>
+  {phone && <p class="kf-tel"><a href={POST.tel}>{POST.phone}</a></p>}
+  <dl class="rows kf-rows">
+    {address && <div><dt>Address</dt><dd>{POST.street}<br />{POST.city}, {POST.region} {POST.zip}<br /><a class="btn btn-outline btn-sm kf-btn" href={POST.mapsUrl} rel="noopener">Directions</a></dd></div>}
+    {today && <div><dt>Bar today</dt><dd><TodayHours prefix="Open" fallback="See the bar hours" /></dd></div>}
+    {office && <div><dt>Office</dt><dd>{POST.officeHours}</dd></div>}
+    {email && <div><dt>Email the post</dt><dd><a href={POST.mail}>{POST.email}</a></dd></div>}
+    {hallEmail && <div><dt>Hall rental email</dt><dd><a href={POST.hallMail}>{POST.hallEmail}</a></dd></div>}
+    {facebook && <div><dt>Facebook</dt><dd><a href={POST.facebook} rel="noopener">The post's Facebook group</a></dd></div>}
+    <slot />
+  </dl>
+  {note && <p class="kf-note">{note}</p>}
+</aside>
+
+<style>
+  .keyfacts {
+    background: var(--card); color: var(--ink); border-radius: 4px; box-shadow: var(--shadow);
+    border-top: 6px double var(--gold); padding: clamp(1.25rem, 1rem + 1.2vw, 1.75rem);
+  }
+  .kf-title { font-size: var(--step-2); }
+  .kf-tel { margin-top: 0.4rem; }
+  .kf-tel a { display: inline-flex; align-items: center; min-height: 48px; font-family: var(--font-display); font-weight: 700; font-size: var(--step-3); text-decoration-color: var(--gold); text-decoration-thickness: 2px; text-underline-offset: 0.18em; }
+  .kf-rows { margin-top: 1rem; }
+  .keyfacts :global(.rows > div) { grid-template-columns: 1fr; }
+  .keyfacts :global(.rows dt) { font-size: var(--step--1); color: var(--ink-2); font-weight: 650; }
+  .keyfacts :global(.rows dd a:not(.btn)) { display: inline-flex; align-items: center; min-height: 44px; font-weight: 650; text-decoration-color: var(--gold); text-decoration-thickness: 2px; text-underline-offset: 0.2em; overflow-wrap: anywhere; }
+  .kf-btn { margin-top: 0.6rem; }
+  .kf-note { margin-top: 1rem; color: var(--ink-2); }
+</style>

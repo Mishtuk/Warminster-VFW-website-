@@ -2,52 +2,76 @@
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
 import Subnav from '../components/Subnav.astro';
+import InfoSection from '../components/info/InfoSection.astro';
+import OnThisPage from '../components/info/OnThisPage.astro';
 import { POST } from '../lib/site';
 import { BENEFITS, DISCOUNTS, DISCOUNTS_CHECKED } from '../lib/resources.js';
 const tabs = [{ label: 'Programs', path: '/programs' }, { label: 'Resources', path: '/resources' }];
 const host = (u: string) => new URL(u).host.replace(/^www\./, '');
+const groups = [
+  { id: 'health', label: 'Health', summary: 'VA health care, counseling and mental health support.' },
+  { id: 'benefits', label: 'Benefits and claims', summary: 'Apply for benefits and get free help with a VA claim.' },
+  { id: 'money', label: 'Money and housing', summary: 'Financial grants through the VFW.' },
+].map((g) => ({ ...g, items: BENEFITS.filter((b) => b.need === g.id) }));
+const sections = [...groups.map(({ id, label }) => ({ id, label })), { id: 'discounts', label: 'Discounts' }];
 ---
 <Base title="Resources" description="Veteran benefits, assistance and discounts, with links to official sources.">
-  <PageHead title="Resources" lede="Benefits, help and discounts for veterans, with links to the official sources." />
+  <PageHead title="Resources" lede="Help for veterans, sorted by need, with links to the official sources." />
   <Subnav items={tabs} label="Programs and resources" />
 
-  <section class="section">
+  <section class="crisis" id="crisis" aria-labelledby="crisis-h">
     <div class="container">
-      <div class="callout callout-crisis" style="margin-bottom:3rem">
+      <div class="callout callout-crisis crisis-box">
+        <h2 id="crisis-h">In crisis? Call now.</h2>
         <p><strong>Veterans Crisis Line:</strong> dial 988, then press 1. Free, confidential and open all day, every day.</p>
-      </div>
-      <div class="section-head"><h2 class="bars">Benefits and assistance</h2></div>
-      <div class="cards-grid">
-        {BENEFITS.map((b) => (
-          <a class="card" href={b.url} rel="noopener">
-            <h3>{b.name}</h3><p style="margin-top:0.5rem">{b.line}</p><small class="hint">{host(b.url)}</small>
-          </a>
-        ))}
+        <p><a class="btn" href="tel:988">Call 988</a></p>
       </div>
     </div>
   </section>
 
-  <section class="section band-stone">
-    <div class="container"><div class="panel">
-      <div class="section-head">
-        <h2 class="bars">Veteran discounts</h2>
-        <p>Offers change. Ask at checkout, and check the source link before you go. Offers marked "Veterans Day only" are not year round.</p>
-      </div>
+  <OnThisPage items={sections} title="Go straight to" label="Resource groups" />
+
+  {groups.map((g) => (
+    <InfoSection id={g.id} title={g.label} summary={g.summary} panel>
+      <ul class="link-list res-list">
+        {g.items.map((b) => (
+          <li><a href={b.url} rel="noopener"><span>{b.name}</span><small>{b.line}</small><small class="res-host">{host(b.url)}</small></a></li>
+        ))}
+      </ul>
+    </InfoSection>
+  ))}
+
+  <InfoSection id="discounts" title="Veteran discounts" summary={`Checked ${DISCOUNTS_CHECKED}. Offers change, so ask at checkout and check the source first.`} band="stone">
+    <div class="disc-grid">
       {DISCOUNTS.map((g) => (
-        <div class="stack" style="margin-bottom:2.5rem">
+        <div class="panel info-body">
           <h3>{g.cat}</h3>
-          <ul class="link-list">
+          <ul class="link-list res-list">
             {g.items.map((i) => (
               <li><a href={i.url} rel="noopener">
-                <span>{i.biz}{i.vdOnly && <> <span class="tag">Veterans Day only</span></>}</span>
-                <small>{i.offer} Source: {host(i.url)}</small>
+                <span>{i.biz}</span>
+                {i.vdOnly && <small class="res-tag"><span class="tag">Veterans Day only</span></small>}
+                <small>{i.offer}</small><small class="res-host">Source: {host(i.url)}</small>
               </a></li>
             ))}
           </ul>
         </div>
       ))}
-      <p><strong>Checked {DISCOUNTS_CHECKED}. Offers change, so confirm at the store.</strong></p>
-      <p class="hint" style="margin-top:0.75rem">Know another business that honors veterans? Tell the post: <a href={POST.tel}>{POST.phone}</a>.</p>
-    </div></div>
-  </section>
+    </div>
+    <p class="disc-foot">Know another business that honors veterans? Tell the post: <a href={POST.tel}>{POST.phone}</a>.</p>
+  </InfoSection>
 </Base>
+
+<style>
+  .crisis { padding-top: clamp(1.5rem, 1rem + 2vw, 2.5rem); padding-bottom: 1.5rem; }
+  .crisis-box { padding: clamp(1.1rem, 1rem + 1vw, 1.75rem); }
+  .crisis-box h2 { font-size: var(--step-2); }
+  .crisis-box > * + * { margin-top: 0.6rem; }
+  .res-list a small + small { margin-top: 0.15rem; }
+  .res-host { font-style: italic; }
+  .res-tag { margin-block: 0.25rem; }
+  .disc-grid { display: grid; gap: clamp(1rem, 0.6rem + 1.5vw, 1.5rem); }
+  @media (min-width: 900px) { .disc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } }
+  .disc-foot { margin-top: 1.5rem; }
+  .disc-foot a { font-weight: 700; }
+</style>

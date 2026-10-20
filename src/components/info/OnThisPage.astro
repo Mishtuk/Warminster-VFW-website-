@@ -1,0 +1,31 @@
+---
+/** "On this page": big jump links to the page's sections. items: [{ id, label }]. label: the nav's accessible name. */
+interface Props { items: { id: string; label: string }[]; label?: string; title?: string }
+const { items, label = 'On this page', title = 'On this page' } = Astro.props;
+---
+<nav class="otp" aria-label={label}>
+  <div class="container">
+    {title && <p class="otp-title">{title}</p>}
+    <ul>
+      {items.map((i) => <li><a href={`#${i.id}`}>{i.label}</a></li>)}
+    </ul>
+  </div>
+</nav>
+
+<style>
+  .otp { padding-block: 0.25rem 0.5rem; }
+  .otp-title { font-weight: 700; color: var(--ink-2); margin-bottom: 0.6rem; }
+  ul { display: flex; flex-wrap: wrap; gap: 0.6rem; list-style: none; padding: 0; }
+  a {
+    display: inline-flex; align-items: center; gap: 0.6rem; min-height: 56px; padding: 0.5rem 1.15rem;
+    background: var(--card); color: var(--ink); border: 2px solid var(--line); border-radius: 3px;
+    font-weight: 650; text-decoration: none; line-height: 1.2;
+  }
+  a::before {
+    content: ''; flex: none; width: 0.45em; height: 0.65em;
+    background: linear-gradient(90deg, var(--gold) 0 30%, transparent 30% 52%, var(--gold) 52% 100%);
+    transform: skewX(var(--lean));
+  }
+  a:hover { border-color: var(--gold); }
+  @media (max-width: 479px) { li { flex: 1 1 100%; } a { width: 100%; } }
+</style>

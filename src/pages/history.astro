@@ -2,62 +2,77 @@
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
 import Subnav from '../components/Subnav.astro';
+import InfoSection from '../components/info/InfoSection.astro';
+import OnThisPage from '../components/info/OnThisPage.astro';
 import { POST, photo } from '../lib/site';
 import { NATIONAL_TIMELINE } from '../lib/resources.js';
 const tabs = [{ label: 'About', path: '/about' }, { label: 'History', path: '/history' }, { label: 'Contact', path: '/contact' }];
+// [when, what, source url?, source label?]
+const POST_TIMELINE: [string, string, string?, string?][] = [
+  ['March 2022', 'State Senator Maria Collett presented a $50,000 Keystone Communities Program grant for a new roof and parking-lot resurfacing.', 'https://pasenate.com/?p=129750', 'PA Senate'],
+  ['September 2023', "The post's Facebook group began."],
+  ['December 2023', 'The post said VFW National Headquarters named it #1 in the nation for community service.'],
+  ['March 2024', 'Rep. Brian Munroe announced a $20,000 grant for the post (as posted in the Facebook group).'],
+  ['About June 2025', 'The post won the Pennsylvania "Working Together Excellence Award" at the convention in Gettysburg.'],
+  ['September 2025', "The post celebrated the VFW's 60th and the Auxiliary's 50th anniversary."],
+  ['November 2025', 'The Auxiliary honored Ruth Mann, age 93, for 50 years of membership.'],
+  ['June 2026', 'Bill Zuk became Post Commander and Nichole Zuk Auxiliary President.'],
+  ['October 2026', "Sen. Frank Farry secured renovation funding for the post's building."],
+];
+const YEAR: [string, string, string?, string?][] = [
+  ['May', "Loyalty Day. Flags go on veterans' graves at Sunset Memorial Park on Armed Forces Day."],
+  ['Memorial Day', 'The post gathers at its flagpole at 7:30 AM, then visits the graves of Harry C. Wilson II and Douglas A. Post. The township ceremony is at 10 AM at the Township Building. The parade is at 11 AM and ends at the post.', 'https://www.buckscountyherald.com/community/events/warminster-township-honors-sacrifice-of-nations-service-members/article_195fd6e6-1884-4ebd-ba19-f199eb01fed2.html', 'Bucks County Herald, 2026'],
+  ['June', 'Flag retirement ceremony with Scout Troop 139. Worn flags can be left in the blue receptacle at the rear door, left side.'],
+  ['July 4', 'Independence Day party at the post.'],
+  ['November 10', 'The Marine Corps birthday, marked at the post in 2024 and 2025.'],
+  ['Veterans Day', 'Check the Facebook group or call the post for what is planned.'],
+  ['December', 'Army-Navy game party.'],
+  ['Fridays', 'Red Shirt Friday: RED means Remember Everyone Deployed.'],
+];
+const host = (u: string) => new URL(u).host.replace(/^www\./, '');
+const sections = [{ id: 'vfw', label: 'The VFW' }, { id: 'post', label: 'Post 6493' }, { id: 'year', label: 'Through the year' }];
 ---
 <Base title="History" description="The history of the Veterans of Foreign Wars and of VFW Post 6493 in Warminster.">
-  <PageHead title="History" lede="From the VFW's start in 1899 to Post 6493 today." />
+  <PageHead title="History" lede="The VFW from 1899, the story of Post 6493, and the days the post keeps every year." />
   <Subnav items={tabs} label="About" />
+  <OnThisPage items={sections} />
 
-  <section class="section">
-    <div class="container"><div class="panel prose">
-      <h2 class="bars">The VFW</h2>
-      <p>The Veterans of Foreign Wars began on September 29, 1899, when veterans of the Spanish-American War formed a group to look after one another and their families. Here is how it grew.</p>
-      <ol class="timeline">
-        {NATIONAL_TIMELINE.map(([y, t, u]) => (
-          <li><span class="year">{y}</span>{t} <a href={u} rel="noopener">Source</a></li>
-        ))}
-      </ol>
-    </div></div>
-  </section>
+  <InfoSection id="vfw" title="The VFW" summary="Begun on September 29, 1899, by veterans of the Spanish-American War, to look after one another and their families." panel>
+    <ol class="tl">
+      {NATIONAL_TIMELINE.map(([y, t, u]) => (
+        <li><span class="when">{y}</span><div class="what"><p>{t}</p><a class="src" href={u} rel="noopener">Source: {host(u)}</a></div></li>
+      ))}
+    </ol>
+  </InfoSection>
 
-  <section class="section">
-    <div class="container"><div class="panel prose">
-      <h2 class="bars">Post 6493</h2>
-      <p>The post's official name is {POST.officialName}. It carries the names of two local men: Harry C. Wilson II, who died in Vietnam and is buried in Union Cemetery, and Douglas A. Post, who died during the Vietnam era and is buried in Whitemarsh Cemetery.</p>
-      <ol class="timeline">
-        <li><span class="year">March 2022</span>State Senator Maria Collett presented a $50,000 Keystone Communities Program grant for a new roof and parking-lot resurfacing. <a href="https://pasenate.com/?p=129750" rel="noopener">Source: PA Senate</a></li>
-        <li><span class="year">September 2023</span>The post's Facebook group began.</li>
-        <li><span class="year">December 2023</span>The post said VFW National Headquarters named it #1 in the nation for community service.</li>
-        <li><span class="year">March 2024</span>Rep. Brian Munroe announced a $20,000 grant for the post (as posted in the Facebook group).</li>
-        <li><span class="year">About June 2025</span>The post won the Pennsylvania "Working Together Excellence Award" at the convention in Gettysburg.</li>
-        <li><span class="year">September 2025</span>The post celebrated the VFW's 60th and the Auxiliary's 50th anniversary.</li>
-        <li><span class="year">November 2025</span>The Auxiliary honored Ruth Mann, age 93, for 50 years of membership.</li>
-        <li><span class="year">June 2026</span>Bill Zuk became Post Commander and Nichole Zuk Auxiliary President.</li>
-        <li><span class="year">October 2026</span>Sen. Frank Farry secured renovation funding for the post's building.</li>
-      </ol>
-      <figure class="snap" style="--tilt:-1.2deg;max-width:26rem">
-        <img {...photo('life-memorial')} sizes="(min-width: 900px) 26rem, 100vw" alt="Memorial Day at the post" loading="lazy" decoding="async" fetchpriority="low" />
+  <InfoSection id="post" title="Post 6493" summary={`Officially ${POST.officialName}, named for two local men.`}>
+    <div class="info-two">
+      <div class="panel info-body">
+        <h3>The namesakes</h3>
+        <dl class="rows">
+          <div><dt>Harry C. Wilson II</dt><dd>Died in Vietnam. Buried in Union Cemetery.</dd></div>
+          <div><dt>Douglas A. Post</dt><dd>Died during the Vietnam era. Buried in Whitemarsh Cemetery.</dd></div>
+        </dl>
+        <h3>The post's story</h3>
+        <ol class="tl">
+          {POST_TIMELINE.map(([w, t, u, l]) => (
+            <li><span class="when">{w}</span><div class="what"><p>{t}</p>{u && <a class="src" href={u} rel="noopener">Source: {l}</a>}</div></li>
+          ))}
+        </ol>
+        <p>Have a story or a photo from the post's past? <a href={POST.tel}>Call {POST.phone}</a> and tell us.</p>
+      </div>
+      <figure class="snap" style="--tilt:-1.2deg">
+        <img {...photo('life-memorial')} sizes="(min-width: 900px) 35vw, 100vw" alt="Memorial Day at the post" loading="lazy" decoding="async" fetchpriority="low" />
         <figcaption>Memorial Day, May 2026</figcaption>
       </figure>
-      <p>Have a story or a photo from the post's past? <a href={POST.tel}>Call {POST.phone}</a> and tell us.</p>
-    </div></div>
-  </section>
+    </div>
+  </InfoSection>
 
-  <section class="section">
-    <div class="container"><div class="panel prose">
-      <h2 class="bars">Through the year</h2>
-      <ol class="timeline">
-        <li><span class="year">May</span>Loyalty Day. Flags go on veterans' graves at Sunset Memorial Park on Armed Forces Day.</li>
-        <li><span class="year">Memorial Day</span>The post gathers at its flagpole at 7:30 AM, then visits the graves of Harry C. Wilson II and Douglas A. Post. The township ceremony is at 10 AM at the Township Building. The parade is at 11 AM and ends at the post. <a href="https://www.buckscountyherald.com/community/events/warminster-township-honors-sacrifice-of-nations-service-members/article_195fd6e6-1884-4ebd-ba19-f199eb01fed2.html" rel="noopener">Source: Bucks County Herald, 2026</a></li>
-        <li><span class="year">June</span>Flag retirement ceremony with Scout Troop 139. Worn flags can be left in the blue receptacle at the rear door, left side.</li>
-        <li><span class="year">July 4</span>Independence Day party at the post.</li>
-        <li><span class="year">November 10</span>The Marine Corps birthday, marked at the post in 2024 and 2025.</li>
-        <li><span class="year">Veterans Day</span>Check the Facebook group or call the post for what is planned.</li>
-        <li><span class="year">December</span>Army-Navy game party.</li>
-        <li><span class="year">Fridays</span>Red Shirt Friday: RED means Remember Everyone Deployed.</li>
-      </ol>
-    </div></div>
-  </section>
+  <InfoSection id="year" title="Through the year" summary="The days and traditions the post keeps every year." panel>
+    <ol class="tl">
+      {YEAR.map(([w, t, u, l]) => (
+        <li><span class="when">{w}</span><div class="what"><p>{t}</p>{u && <a class="src" href={u} rel="noopener">Source: {l}</a>}</div></li>
+      ))}
+    </ol>
+  </InfoSection>
 </Base>

@@ -1,0 +1,64 @@
+---
+/**
+ * One section of an information page: heading with the gold bars, a one-line summary, then the details.
+ * panel: wrap the details in a light .panel. band: "stone" for a set-apart section (forms, calendar, menu).
+ * The <style is:global> below is the shared info-page kit (.rows, .tl, .info-*), used by every page that uses this component.
+ */
+interface Props { id: string; title: string; summary?: string; panel?: boolean; band?: 'stone'; class?: string }
+const { id, title, summary, panel = false, band, class: cls } = Astro.props;
+---
+<section class:list={['section', 'info-sec', band && `band-${band}`, cls]} id={id} aria-labelledby={`${id}-h`}>
+  <div class="container">
+    <header class="info-head">
+      <h2 class="bars" id={`${id}-h`}>{title}</h2>
+      {summary && <p class="info-sum">{summary}</p>}
+    </header>
+    {panel ? <div class="panel info-body"><slot /></div> : <slot />}
+  </div>
+</section>
+
+<style is:global>
+  /* Sections: tighter rhythm than marketing bands; a hairline between plain sections on the same ground. */
+  .info-sec { padding-block: clamp(2.25rem, 1.5rem + 3vw, 4rem); scroll-margin-top: calc(var(--header-h) + 0.5rem); }
+  .info-sec + .info-sec:not([class*='band-']) { border-top: 1px solid var(--line); }
+  .info-head { max-width: 46rem; margin-bottom: clamp(1.25rem, 1rem + 1.5vw, 2rem); }
+  .info-sum { margin-top: 0.6rem; font-size: var(--step-1); line-height: 1.45; color: var(--ink-2); }
+  .info-body > * + * { margin-top: 1.25rem; }
+  .info-body h3 { font-size: var(--step-2); }
+  .info-body h3:not(:first-child) { margin-top: 2rem; }
+  .info-body ul:not([class]) { padding-left: 1.3em; }
+  .info-body ul:not([class]) li + li { margin-top: 0.5em; }
+  .info-body ul:not([class]) li::marker { color: var(--gold-ink); }
+  .info-body a:not([class]) { font-weight: 600; text-decoration-color: var(--gold); text-decoration-thickness: 2px; text-underline-offset: 0.2em; }
+  .info-two { display: grid; gap: clamp(2rem, 1.5rem + 3vw, 4rem); align-items: start; }
+  @media (min-width: 900px) { .info-two { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); } }
+
+  /* Definition rows: label left, value right; stacked on phones. */
+  .rows { display: grid; }
+  .rows > div { display: grid; gap: 0.15rem 1.5rem; padding-block: 0.8rem; border-top: 1px solid var(--line); }
+  .rows > div:last-child { border-bottom: 1px solid var(--line); }
+  .rows dt { font-weight: 700; }
+  .rows dd { color: var(--ink); }
+  .rows dd .hint { display: block; margin-top: 0.2rem; }
+  @media (min-width: 640px) { .rows > div { grid-template-columns: minmax(9rem, 14rem) 1fr; } }
+
+  /* Timeline: year column, gold rail, source on its own line. */
+  .tl { list-style: none; padding: 0; }
+  .tl li { display: grid; gap: 0.2rem 1.5rem; padding-block: 0.9rem; border-top: 1px solid var(--line); }
+  .tl li:first-child { border-top: 0; padding-top: 0; }
+  .tl .when { font-family: var(--font-display); font-weight: 700; font-size: var(--step-1); line-height: 1.25; color: var(--red-ink); }
+  .tl .what { max-width: 62ch; }
+  .tl .src { display: inline-flex; align-items: center; min-height: 44px; font-size: var(--step--1); color: var(--ink-2); font-weight: 600; text-decoration-color: var(--gold); text-underline-offset: 0.2em; }
+  @media (min-width: 640px) {
+    .tl li { grid-template-columns: 10rem 1fr; }
+    .tl .what { padding-left: 1.5rem; border-left: 3px solid var(--gold); }
+  }
+
+  /* Accordions outside the hall FAQ reuse .faq (global); a small lead-in line above them. */
+  .info-body .faq { margin-top: 1.5rem; }
+  .faq summary { gap: 1rem; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: '+'; margin-left: auto; flex: none; width: 2rem; text-align: center; font-family: var(--font-display); font-size: 1.6rem; line-height: 1; color: var(--gold-ink); }
+  .faq details[open] > summary::after { content: '−'; }
+  .faq details > :not(summary) { padding-bottom: 1rem; }
+</style>

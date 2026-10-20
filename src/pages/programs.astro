@@ -2,42 +2,54 @@
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
 import Subnav from '../components/Subnav.astro';
+import InfoSection from '../components/info/InfoSection.astro';
+import OnThisPage from '../components/info/OnThisPage.astro';
+import KeyFacts from '../components/info/KeyFacts.astro';
 import { POST, href } from '../lib/site';
-import { POST_DOES } from '../lib/resources.js';
+import { POST_DOES, PROGRAMS } from '../lib/resources.js';
 const tabs = [{ label: 'Programs', path: '/programs' }, { label: 'Resources', path: '/resources' }];
 const pillars = [
-  { name: 'Community service', items: POST_DOES.service },
-  { name: 'Veteran outreach', items: POST_DOES.outreach },
-  { name: 'Youth and education', items: POST_DOES.youth },
+  { id: 'service', name: 'Community service', summary: 'Food bank giving, toy drives, flag retirement, and national honors for the post.', items: POST_DOES.service, national: PROGRAMS.service,
+    link: { url: 'https://www.vfw.org/community/community-initiatives', note: 'Buddy Poppy, Still Serving, troop support' } },
+  { id: 'outreach', name: 'Veteran outreach', summary: "Flags on veterans' graves, Buddy Poppies, the veterans home and Memorial Day.", items: POST_DOES.outreach, national: PROGRAMS.outreach,
+    link: { url: 'https://www.vfw.org/assistance', note: 'Free VA claims help, financial assistance, mental wellness' } },
+  { id: 'youth', name: 'Youth and education', summary: 'Essay contests, youth sports teams and the local Scouts.', items: POST_DOES.youth, national: PROGRAMS.youth,
+    link: { url: 'https://www.vfw.org/community/youth-and-education', note: "Voice of Democracy, Patriot's Pen, Scout and Teacher of the Year" } },
 ];
+const sections = [...pillars.map((p) => ({ id: p.id, label: p.name })), { id: 'take-part', label: 'Take part' }];
 ---
 <Base title="Programs" description={`VFW programs for community service, veteran outreach and youth and education, and how to reach ${POST.name}.`}>
-  <PageHead title="Programs" lede="What Post 6493 does for veterans, families and neighbors, and the national VFW programs behind it." />
+  <PageHead title="Programs" lede="What Post 6493 does, in three pillars, with the national VFW program behind each one." />
   <Subnav items={tabs} label="Programs and resources" />
+  <OnThisPage items={sections} />
 
-  <section class="section">
-    <div class="container">
-      <div class="panel">
-      {pillars.map((p, i) => (
-        <section class="split pillar" style={i ? 'border-top:1px solid var(--line);padding-top:2.5rem;margin-top:2.5rem' : ''} aria-labelledby={`pillar-${i}`}>
-          <h2 class="bars" id={`pillar-${i}`}>{p.name}</h2>
-          <ul class="stack" style="padding-left:1.2rem">{p.items.map((t) => <li>{t}</li>)}</ul>
-        </section>
-      ))}
-      </div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="container"><div class="panel prose">
-      <h2 class="bars">National VFW programs</h2>
-      <p>Behind the post's work are national VFW programs. Ask the post which ones it takes part in.</p>
+  {pillars.map((p) => (
+    <InfoSection id={p.id} title={p.name} summary={p.summary} panel>
+      <h3>At Post 6493</h3>
+      <ul>{p.items.map((t) => <li>{t}</li>)}</ul>
+      <h3>The national VFW program</h3>
       <ul class="link-list">
-        <li><a href="https://www.vfw.org/community/community-initiatives" rel="noopener"><span>Community service</span><small>Buddy Poppy, Still Serving, troop support (vfw.org)</small></a></li>
-        <li><a href="https://www.vfw.org/assistance" rel="noopener"><span>Veteran outreach</span><small>Free VA claims help, financial assistance, mental wellness (vfw.org)</small></a></li>
-        <li><a href="https://www.vfw.org/community/youth-and-education" rel="noopener"><span>Youth and education</span><small>Voice of Democracy, Patriot's Pen, Scout and Teacher of the Year (vfw.org)</small></a></li>
+        <li><a href={p.link.url} rel="noopener"><span>{p.name} at the VFW</span><small>{p.link.note} (vfw.org)</small></a></li>
       </ul>
-      <p>More help is on the <a href={href('/resources')}>Resources page</a>. To learn which programs the post runs and how to take part, call <a href={POST.tel}><strong>{POST.phone}</strong></a>.</p>
-    </div></div>
-  </section>
+      <div class="faq">
+        <details>
+          <summary>More about the national programs</summary>
+          <ul class="link-list">
+            {p.national.map((n) => <li><a href={n.url} rel="noopener"><span>{n.name}</span><small>{n.line}</small></a></li>)}
+          </ul>
+        </details>
+      </div>
+    </InfoSection>
+  ))}
+
+  <InfoSection id="take-part" title="Take part" summary="Ask the post which programs it runs and how you can help.">
+    <div class="info-two">
+      <div class="panel info-body">
+        <p>To learn which programs the post runs and how to take part, call the post.</p>
+        <p>Looking for help for a veteran? Benefits, health care and discounts are on the <a href={href('/resources')}>Resources page</a>.</p>
+        <p><a class="btn btn-outline" href={href('/resources')}>Go to Resources</a></p>
+      </div>
+      <KeyFacts address={false} />
+    </div>
+  </InfoSection>
 </Base>

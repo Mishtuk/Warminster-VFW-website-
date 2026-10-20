@@ -2,35 +2,54 @@
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
 import Subnav from '../components/Subnav.astro';
-import VisitBlock from '../components/VisitBlock.astro';
-import TodayHours from '../components/TodayHours.astro';
+import InfoSection from '../components/info/InfoSection.astro';
+import KeyFacts from '../components/info/KeyFacts.astro';
 import { POST, href, photo } from '../lib/site';
 const tabs = [{ label: 'About', path: '/about' }, { label: 'History', path: '/history' }, { label: 'Contact', path: '/contact' }];
 ---
 <Base title="Contact" description={`Address, phone and Facebook group for ${POST.name}.`}>
-  <PageHead title="Contact" lede="Visit, call or find us online." />
+  <PageHead title="Contact" lede="Phone, address, email and opening hours for the post." />
   <Subnav items={tabs} label="About" />
 
-  <section class="section">
-    <div class="container split" style="align-items:start">
-      <div class="menu-card">
-        <h2>Visit or call</h2>
-        <p class="menu-note">{POST.street}<br />{POST.city}, {POST.region} {POST.zip}</p>
-        <p><a class="btn btn-outline" href={POST.mapsUrl} rel="noopener">Directions</a></p>
-        <p><a href={POST.tel} style="font-family:var(--font-display);font-weight:700;font-size:var(--step-3)">{POST.phone}</a></p>
-        <p><TodayHours prefix="Bar open today" fallback="See the hours below" /><br />{POST.hours.map(([d, h]) => `${d} ${h}`).join('; ')}. For the office, call the post.</p>
-        <p>The post: <a href={POST.mail}>{POST.email}</a><br />Hall rental: <a href={POST.hallMail}>{POST.hallEmail}</a></p>
-        <p><a class="btn btn-outline" href={POST.facebook} rel="noopener">Facebook group</a></p>
-      </div>
+  <InfoSection id="reach" title="Call or visit" summary={`${POST.address}.`}>
+    <div class="info-two">
+      <KeyFacts title="Reach the post" today email hallEmail facebook />
       <figure class="snap" style="--tilt:1.2deg">
-        <img {...photo('hall-01')} sizes="(min-width: 900px) 45vw, 100vw" alt="The outside of the post building" loading="lazy" decoding="async" fetchpriority="low" />
+        <img {...photo('hall-01')} sizes="(min-width: 900px) 35vw, 100vw" alt="The outside of the post building" loading="lazy" decoding="async" fetchpriority="low" />
         <figcaption>The post at {POST.street}</figcaption>
       </figure>
     </div>
-  </section>
-  <VisitBlock office />
-  <section class="section">
-    <div class="container"><p>Want to rent the hall? <a class="link" href={href('/hall#inquiry')}>Send an inquiry</a>.</p></div>
-  </section>
+  </InfoSection>
 
+  <InfoSection id="hours" title="Hours" summary="The bar, the kitchen and the office keep different hours." band="stone">
+    <div class="hours-grid">
+      <div class="panel info-body">
+        <h3>Bar</h3>
+        <dl class="rows">{POST.hours.map(([d, h]) => <div><dt>{d}</dt><dd>{h}</dd></div>)}</dl>
+      </div>
+      <div class="panel info-body">
+        <h3>Kitchen</h3>
+        <dl class="rows">{POST.kitchen.map(([d, h]) => <div><dt>{d}</dt><dd>{h}</dd></div>)}</dl>
+        <p class="hint">Call to confirm; the kitchen is closed on hall rental days.</p>
+      </div>
+      <div class="panel info-body">
+        <h3>Office</h3>
+        <dl class="rows"><div><dt>Open</dt><dd>{POST.officeHours}</dd></div></dl>
+      </div>
+    </div>
+  </InfoSection>
+
+  <InfoSection id="welcome" title="Who can come in" summary={POST.barRule} panel>
+    <dl class="rows">
+      <div><dt>Members and guests</dt><dd>The bar is for members and their guests, and joining is easy. <a href={href('/about#join')}>How to join</a></dd></div>
+      <div><dt>Open to the public</dt><dd>Events marked Open to the Public need no membership: {POST.publicNights.join(', ')}.</dd></div>
+      <div><dt>Renting the hall</dt><dd><a href={href('/hall#inquiry')}>Send a hall inquiry</a></dd></div>
+    </dl>
+  </InfoSection>
 </Base>
+
+<style>
+  .hours-grid { display: grid; gap: clamp(1rem, 0.6rem + 1.5vw, 1.5rem); }
+  @media (min-width: 900px) { .hours-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; } }
+  .hours-grid .rows > div { grid-template-columns: 1fr auto; }
+</style>

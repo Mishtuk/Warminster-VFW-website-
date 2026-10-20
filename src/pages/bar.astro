@@ -4,6 +4,9 @@ import PageHead from '../components/PageHead.astro';
 import FoodSnaps from '../components/FoodSnaps.astro';
 import { POST } from '../lib/site';
 import { seed } from '../lib/seed';
+import InfoSection from '../components/info/InfoSection.astro';
+import OnThisPage from '../components/info/OnThisPage.astro';
+const sections = [{ id: 'hours', label: 'Hours and specials' }, { id: 'food', label: 'Food photos' }, { id: 'menu', label: 'Food menu' }];
 
 // Canteen hours board: the visitor's weekday row is marked by the small script below.
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -18,32 +21,33 @@ const rows = POST.hours.map(([d, h]) => {
 <Base title="The Bar" description={`Bar hours, drink specials and the food menu at ${POST.name}, ${POST.city}, PA.`}>
   <PageHead title="The Bar" lede="Hours, drink specials and food from the Loaded Belly kitchen." image="food-1-burgers" />
 
-  <section class="section band-paper">
-    <div class="container bar-grid">
+  <OnThisPage items={sections} />
+
+  <InfoSection id="hours" title="Hours and drink specials" summary="Today's hours are marked on the board, beside this week's drink specials.">
+    <div class="bar-grid">
       <div class="board">
-        <h2 class="board-title">Bar hours</h2>
+        <h3 class="board-title">Bar hours</h3>
         <ul class="board-list">
           {rows.map((r) => <li class="board-row" data-days={r.days}><span class="b-name">{r.d}</span><span class="b-info">{r.h}</span></li>)}
         </ul>
         <p class="board-note">{POST.barRule} {POST.joinPrice}</p>
       </div>
       <div class="menu-card">
-        <h2>Drink specials</h2>
+        <h3>Drink specials</h3>
         <p class="menu-note">At the bar this week</p>
-        <div style="margin-top:1.25rem"><Fragment set:html={seed.specials} /></div>
+        <div class="specials-body"><Fragment set:html={seed.specials} /></div>
       </div>
     </div>
-  </section>
+  </InfoSection>
 
-  <section class="section band-stone">
-    <div class="container">
-      <div class="section-head"><h2>From the Loaded Belly kitchen</h2></div>
-      <FoodSnaps />
-      <div class="section-head" style="margin-top:clamp(2.5rem, 2rem + 3vw, 4rem)"><h2>Food menu</h2></div>
-      <Fragment set:html={seed.menu} />
-      <p class="hint" style="margin-top:1.5rem">Questions about the bar or the kitchen? <a href={POST.tel}>Call {POST.phone}</a>.</p>
-    </div>
-  </section>
+  <InfoSection id="food" title="From the Loaded Belly kitchen" summary="Real plates from the post's kitchen.">
+    <FoodSnaps />
+  </InfoSection>
+
+  <InfoSection id="menu" title="Food menu" summary="Kitchen hours first, then the menu by section." band="stone">
+    <Fragment set:html={seed.menu} />
+    <p class="hint menu-foot">Questions about the bar or the kitchen? <a href={POST.tel}>Call {POST.phone}</a>.</p>
+  </InfoSection>
 </Base>
 
 <script is:inline>
@@ -59,4 +63,7 @@ const rows = POST.hours.map(([d, h]) => {
   .bar-grid { display: grid; gap: clamp(2.5rem, 2rem + 3vw, 4.5rem); }
   @media (min-width: 960px) { .bar-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: start; } }
   .board-row { min-height: 56px; }
+  .menu-card > h3 { font-size: var(--step-3); }
+  .specials-body { margin-top: 1.25rem; }
+  .menu-foot { margin-top: 1.5rem; }
 </style>

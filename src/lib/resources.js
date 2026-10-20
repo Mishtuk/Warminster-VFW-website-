@@ -1,15 +1,16 @@
 // Outside-world content for /resources, /programs and /history. Every entry traces to docs/research.md.
+// need: health | benefits | money (the groups on /resources)
 export const BENEFITS = [
-  { name: 'VA.gov', line: 'Benefits, health care and how to apply.', url: 'https://www.va.gov' },
-  { name: 'VFW free claims help', line: 'Accredited VFW Service Officers help with VA claims at no cost.', url: 'https://www.vfw.org/assistance/va-claims-separation-benefits' },
-  { name: 'Start a claim with the VFW', line: 'Begin a VA claim online with VFW support.', url: 'https://claims.vfw.org' },
-  { name: 'VFW financial assistance', line: 'Grants for service members, paid to creditors.', url: 'https://www.vfw.org/assistance/financial-grants' },
-  { name: 'PA Dept. of Military and Veterans Affairs', line: 'State programs, including the Veterans Trust Fund and PA VETConnect.', url: 'https://www.pa.gov/agencies/dmva' },
-  { name: 'Bucks County Military and Veterans Affairs', line: '55 East Court St, Doylestown, PA 18901. Phone 215-345-3307. Call to confirm hours.', url: 'https://buckscounty.gov/Directory.aspx?DID=87' },
-  { name: 'Vet Centers', line: 'Readjustment counseling for veterans and families.', url: 'https://www.vetcenter.va.gov/' },
-  { name: 'VA mental health', line: 'Mental health care and support from the VA.', url: 'https://www.mentalhealth.va.gov/' },
-  { name: 'Corporal Michael J. Crescenz VA Medical Center', line: '3900 Woodland Ave, Philadelphia, PA 19104.', url: 'https://www.va.gov/philadelphia-health-care/locations/' },
-  { name: 'VFW Find a Post', line: 'Locate other VFW posts and what they offer.', url: 'https://www.vfw.org/find-a-post' },
+  { need: 'benefits', name: 'VA.gov', line: 'Benefits, health care and how to apply.', url: 'https://www.va.gov' },
+  { need: 'benefits', name: 'VFW free claims help', line: 'Accredited VFW Service Officers help with VA claims at no cost.', url: 'https://www.vfw.org/assistance/va-claims-separation-benefits' },
+  { need: 'benefits', name: 'Start a claim with the VFW', line: 'Begin a VA claim online with VFW support.', url: 'https://claims.vfw.org' },
+  { need: 'money', name: 'VFW financial assistance', line: 'Grants for service members, paid to creditors.', url: 'https://www.vfw.org/assistance/financial-grants' },
+  { need: 'benefits', name: 'PA Dept. of Military and Veterans Affairs', line: 'State programs, including the Veterans Trust Fund and PA VETConnect.', url: 'https://www.pa.gov/agencies/dmva' },
+  { need: 'benefits', name: 'Bucks County Military and Veterans Affairs', line: '55 East Court St, Doylestown, PA 18901. Phone 215-345-3307. Call to confirm hours.', url: 'https://buckscounty.gov/Directory.aspx?DID=87' },
+  { need: 'health', name: 'Vet Centers', line: 'Readjustment counseling for veterans and families.', url: 'https://www.vetcenter.va.gov/' },
+  { need: 'health', name: 'VA mental health', line: 'Mental health care and support from the VA.', url: 'https://www.mentalhealth.va.gov/' },
+  { need: 'health', name: 'Corporal Michael J. Crescenz VA Medical Center', line: '3900 Woodland Ave, Philadelphia, PA 19104.', url: 'https://www.va.gov/philadelphia-health-care/locations/' },
+  { need: 'benefits', name: 'VFW Find a Post', line: 'Locate other VFW posts and what they offer.', url: 'https://www.vfw.org/find-a-post' },
 ];
 
 // vdOnly: true = holiday or limited-time offer, not year round.

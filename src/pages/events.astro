@@ -1,47 +1,56 @@
 ---
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
-import Subnav from '../components/Subnav.astro';
-import { POST } from '../lib/site';
+import InfoSection from '../components/info/InfoSection.astro';
+import OnThisPage from '../components/info/OnThisPage.astro';
+import { POST, photo, href } from '../lib/site';
 import { seed, year } from '../lib/seed';
-import { photo, href } from '../lib/site';
-const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((label, i) => ({ label, path: `#month-${i + 1}` }));
+const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((label, i) => ({ label, id: `month-${i + 1}` }));
+const sections = [
+  { id: 'upcoming', label: 'Coming up' },
+  { id: 'regular', label: 'Every week' },
+  { id: 'calendar', label: `Full ${year} calendar` },
+  { id: 'add', label: 'Add to your calendar' },
+];
 ---
 <Base title="Events and calendar" description={`Upcoming events and the ${year} calendar at ${POST.name}.`}>
-  <PageHead title="Events and calendar" lede={`Everything on the calendar at the post for ${year}.`} />
-  <Subnav items={months} label="Jump to a month" />
+  <PageHead title="Events and calendar" lede={`What's coming up, the nights that repeat every week, and the full ${year} calendar.`} />
+  <OnThisPage items={sections} />
 
-  <section class="section">
-    <div class="container split-wide" style="align-items:start">
-      <div class="panel">
-        <div class="section-head"><h2 class="bars">Upcoming</h2></div>
-        <Fragment set:html={seed.upcoming} />
-      </div>
+  <InfoSection id="upcoming" title="Coming up" summary="The next events at the post.">
+    <div class="info-two">
+      <div class="panel"><Fragment set:html={seed.upcoming} /></div>
       <figure class="snap" style="--tilt:1.4deg">
         <img {...photo('life-linedance')} sizes="(min-width: 900px) 35vw, 100vw" alt="Line dancing at the post" loading="lazy" decoding="async" fetchpriority="low" />
         <figcaption>Line dancing at the post, 2026</figcaption>
       </figure>
     </div>
-  </section>
+  </InfoSection>
 
-  <section class="section">
-    <div class="container"><div class="panel">
-      <div class="section-head"><h2 class="bars">Every week and every month</h2><p>These nights repeat. Their dates are marked on the calendar below.</p></div>
-      <Fragment set:html={seed.regular} />
-      <p class="no-print" style="margin-top:1.5rem"><a class="btn btn-outline" href={href('/events.ics')} download>Add to my calendar</a></p>
-    </div></div>
-  </section>
+  <InfoSection id="regular" title="Every week and every month" summary="These nights repeat. Their dates are marked on the calendar below." panel>
+    <Fragment set:html={seed.regular} />
+  </InfoSection>
 
-  <section class="section band-stone">
-    <div class="container">
-      <div class="section-head"><h2 class="bars">Full year</h2></div>
-      <div class="cal-key" aria-hidden="true"><span class="k-event">Event day</span><span class="k-today">Today</span><span class="k-cat vfw-cat-bar">Bar</span><span class="k-cat vfw-cat-post">Post</span><span class="k-cat vfw-cat-auxiliary">Auxiliary</span><span class="k-cat vfw-cat-community">Community</span><span class="k-cat vfw-cat-holiday">Holiday</span></div>
-      <p class="no-print" style="margin-bottom:1.5rem"><button class="btn btn-outline" type="button" id="print-cal">Print this calendar</button></p>
-      <Fragment set:html={seed.calendar} />
-    </div>
-  </section>
+  <InfoSection id="calendar" title={`Full ${year} calendar`} summary="Pick a month, or scroll through the year. Event days are dark, with a ribbon for the kind of event." band="stone">
+    <OnThisPage items={months} title="" label="Jump to a month" />
+    <div class="cal-key" aria-hidden="true"><span class="k-event">Event day</span><span class="k-today">Today</span><span class="k-cat vfw-cat-bar">Bar</span><span class="k-cat vfw-cat-post">Post</span><span class="k-cat vfw-cat-auxiliary">Auxiliary</span><span class="k-cat vfw-cat-community">Community</span><span class="k-cat vfw-cat-holiday">Holiday</span></div>
+    <Fragment set:html={seed.calendar} />
+  </InfoSection>
+
+  <InfoSection id="add" title="Add to your calendar" summary="Put every post event in your phone or computer calendar, or print the year." class="no-print">
+    <p class="btn-row"><a class="btn" href={href('/events.ics')} download>Add to my calendar</a><button class="btn btn-outline" type="button" id="print-cal">Print this calendar</button></p>
+  </InfoSection>
   <Fragment set:html={seed.data} />
   <script>
     document.getElementById('print-cal')?.addEventListener('click', () => print());
   </script>
 </Base>
+
+<style>
+  :global(#calendar .otp) { padding: 0 0 1.25rem; }
+  :global(#calendar .otp .container) { width: 100%; }
+  :global(#calendar .otp li) { flex: 0 0 auto; }
+  :global(#calendar .otp a) { width: auto; min-width: 4.75rem; justify-content: center; }
+  :global(.vfw-month) { scroll-margin-top: calc(var(--header-h) + 0.5rem); }
+  @media print { :global(.otp) { display: none; } }
+</style>

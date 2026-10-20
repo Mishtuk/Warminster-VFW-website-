@@ -2,50 +2,147 @@
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
 import Subnav from '../components/Subnav.astro';
-import Membership from '../components/Membership.astro';
+import InfoSection from '../components/info/InfoSection.astro';
+import OnThisPage from '../components/info/OnThisPage.astro';
+import KeyFacts from '../components/info/KeyFacts.astro';
 import { POST, href } from '../lib/site';
 const tabs = [{ label: 'About', path: '/about' }, { label: 'History', path: '/history' }, { label: 'Contact', path: '/contact' }];
+// "The 2nd Monday of each month: Home Association 6 PM, ..." -> when + [group, time] rows (single source: post.js)
+const [meetWhen, meetList = ''] = POST.meetings.replace(/\.$/, '').split(': ');
+const meetRows = meetList.split(', ').map((s) => s.match(/^(.*) (\d.*)$/)?.slice(1) ?? [s, '']);
+const sections = [
+  { id: 'who', label: 'Who we are' },
+  { id: 'leaders', label: 'Leadership' },
+  { id: 'membership', label: 'Join the post' },
+  { id: 'auxiliary', label: 'The Auxiliary' },
+  { id: 'meetings', label: 'Meetings' },
+];
 ---
 <Base title="About the post" description={`About ${POST.name} in ${POST.city}, PA.`}>
-  <PageHead title="About the post" lede={POST.motto} image="life-60th-dinner" />
+  <PageHead title="About the post" lede="Who we are, who leads the post, how to join, the Auxiliary and when we meet." image="life-60th-dinner" />
   <Subnav items={tabs} label="About" />
+  <OnThisPage items={sections} />
 
-  <section class="section">
-    <div class="container"><div class="panel prose">
-      <h2 class="bars">Who we are</h2>
-      <p>{POST.name} is a Veterans of Foreign Wars post and auxiliary in {POST.city}, Pennsylvania. Our Facebook group describes us with one line: "{POST.motto}."</p>
-      <p>The post is at {POST.address}. Call us at <a href={POST.tel}>{POST.phone}</a>.</p>
-      <p>The post has a bar, hosts events, and rents its hall for private parties. See <a href={href('/bar')}>The Bar</a>, <a href={href('/events')}>Events</a> and <a href={href('/hall')}>Hall Rental</a>. You can also read about the <a href={href('/history')}>history</a> of the VFW and the post, or find us on the <a href={POST.facebook} rel="noopener">Facebook group</a>.</p>
-    </div></div>
-  </section>
+  <InfoSection id="who" title="Who we are" summary={`A Veterans of Foreign Wars post and auxiliary in ${POST.city}, Pennsylvania. "${POST.motto}."`}>
+    <div class="info-two">
+      <div class="panel info-body">
+        <dl class="rows">
+          <div><dt>Official name</dt><dd>{POST.officialName}</dd></div>
+          <div><dt>Members</dt><dd>{POST.membership}</dd></div>
+        </dl>
+        <h3>At the post</h3>
+        <ul class="link-list">
+          <li><a href={href('/bar')}><span>The Bar</span><small>Hours, drink specials and the food menu</small></a></li>
+          <li><a href={href('/events')}><span>Events</span><small>What's on, and the full-year calendar</small></a></li>
+          <li><a href={href('/hall')}><span>Hall Rental</span><small>Rent the hall for a private party</small></a></li>
+          <li><a href={href('/history')}><span>History</span><small>The VFW and Post 6493</small></a></li>
+        </ul>
+      </div>
+      <KeyFacts facebook />
+    </div>
+  </InfoSection>
 
-  <section class="section">
-    <div class="container"><div class="panel prose">
-      <h2 class="bars">Leaders</h2>
-      <p>Post Commander: {POST.commander}. Auxiliary President: {POST.auxPresident}. Both took office in June 2026.</p>
-      <h3>Past leaders</h3>
-      <ol class="timeline">
-        {POST.pastCommanders.map(([n, d]) => <li><span class="year">{n}</span>{d}</li>)}
-        <li><span class="year">{POST.pastAuxPresident}</span>Auxiliary President until June 2026</li>
-      </ol>
-      <p>The post's official name is {POST.officialName}.</p>
-    </div></div>
-  </section>
+  <InfoSection id="leaders" title="Leadership" summary="Both took office in June 2026." panel>
+    <dl class="rows">
+      <div><dt>Post Commander</dt><dd>{POST.commander}</dd></div>
+      <div><dt>Auxiliary President</dt><dd>{POST.auxPresident}</dd></div>
+    </dl>
+    <div class="faq">
+      <details>
+        <summary>Past leaders</summary>
+        <dl class="rows">
+          {POST.pastCommanders.map(([n, d]) => <div><dt>{n}</dt><dd>{d}</dd></div>)}
+          <div><dt>{POST.pastAuxPresident}</dt><dd>Auxiliary President until June 2026</dd></div>
+        </dl>
+      </details>
+    </div>
+  </InfoSection>
 
-  <section class="section" id="auxiliary">
-    <div class="container"><div class="panel prose">
-      <h2 class="bars">The Auxiliary</h2>
-      <p>The VFW Auxiliary at Post 6493 marked its 50th year in 2025. Its president is {POST.auxPresident}, from June 2026.</p>
-      <ul>
-        <li>Runs the Thursday bingo and the Auxiliary Cash Bash.</li>
-        <li>Prepared 50 Easter baskets for F.E.A.S.T. in spring 2025.</li>
-        <li>Volunteers at the Delaware Valley Veterans Home, and received the Citation of Excellence, Outstanding Hospital of the Year, from the PA Auxiliary.</li>
-        <li>Honored Ruth Mann, age 93, for 50 years of membership in November 2025. The youngest member is 16.</li>
-      </ul>
-      <p>Who can join is explained in <a href="#join">Join the post</a>.</p>
-    </div></div>
-  </section>
+  <InfoSection id="membership" title="Join the post" summary={POST.membership} band="stone">
+    <span id="join"></span>
+    <div class="join-grid">
+      <article class="panel info-body">
+        <h3>VFW membership</h3>
+        <p class="hint">For veterans</p>
+        <dl class="rows">
+          <div><dt>Who can join</dt><dd>You served honorably, or are serving now, in a war, campaign or expedition on foreign soil or in hostile waters.</dd></div>
+          <div><dt>Proof</dt><dd>Usually the DD-214.</dd></div>
+          <div><dt>Cost</dt><dd>National dues are listed at $45 a calendar year. The post may charge differently, so ask at the bar.</dd></div>
+        </dl>
+        <div class="faq">
+          <details>
+            <summary>What shows you served</summary>
+            <p>Any one of these:</p>
+            <ul>
+              <li>a campaign or expeditionary medal, ribbon or badge</li>
+              <li>Hostile Fire Pay or Imminent Danger Pay</li>
+              <li>30 days in a row (60 days in all) in Korea</li>
+            </ul>
+          </details>
+        </div>
+        <ul class="link-list">
+          <li><a href="https://www.vfw.org/join/eligibility" rel="noopener"><span>VFW eligibility</span><small>vfw.org</small></a></li>
+          <li><a href="https://www.vfw.org/join" rel="noopener"><span>Join the VFW</span><small>vfw.org</small></a></li>
+          <li><a href="https://www.vfw.org/find-a-post" rel="noopener"><span>Find a Post</span><small>vfw.org</small></a></li>
+        </ul>
+      </article>
+      <article class="panel info-body">
+        <h3>Home Association</h3>
+        <p class="hint">Social membership</p>
+        <dl class="rows">
+          <div><dt>Who can join</dt><dd>People who are not eligible for the VFW, and friends and family of members.</dd></div>
+          <div><dt>Cost</dt><dd>{POST.joinPrice}</dd></div>
+          <div><dt>Note</dt><dd>This is a post membership, not VFW membership. Ask the post for details.</dd></div>
+        </dl>
+      </article>
+      <article class="panel info-body">
+        <h3>The Auxiliary</h3>
+        <p class="hint">For relatives of veterans</p>
+        <dl class="rows">
+          <div><dt>Who can join</dt><dd>Relatives of a person who is or was eligible for VFW membership: a current or surviving spouse, parents, grandparents, children, grandchildren and siblings. Step, adopted and half relatives count the same.</dd></div>
+          <div><dt>Age</dt><dd>16 or older.</dd></div>
+          <div><dt>Proof</dt><dd>Proof of the veteran's service is required.</dd></div>
+        </dl>
+        <ul class="link-list">
+          <li><a href="https://www.vfwauxiliary.org/eligibility" rel="noopener"><span>Auxiliary eligibility</span><small>vfwauxiliary.org</small></a></li>
+        </ul>
+      </article>
+    </div>
+    <div class="panel info-body join-how">
+      <h3>How to join at the post</h3>
+      <dl class="rows">
+        <div><dt>Ask or call</dt><dd>Ask at the bar, or call <a href={POST.tel}>{POST.phone}</a>.</dd></div>
+        <div><dt>Visit the office</dt><dd>{POST.officeHours}.</dd></div>
+        <div><dt>Come to a meeting</dt><dd>{POST.meetings}</dd></div>
+        <div><dt>At the door</dt><dd>{POST.barRule}</dd></div>
+      </dl>
+      <p><a class="btn" href={POST.tel}>Call {POST.phone}</a></p>
+    </div>
+  </InfoSection>
 
-  <Membership />
+  <InfoSection id="auxiliary" title="The Auxiliary" summary={`Marked its 50th year in 2025. President: ${POST.auxPresident}, from June 2026.`} panel>
+    <h3>What the Auxiliary does</h3>
+    <ul>
+      <li>Runs the Thursday bingo and the Auxiliary Cash Bash.</li>
+      <li>Prepared 50 Easter baskets for F.E.A.S.T. in spring 2025.</li>
+      <li>Volunteers at the Delaware Valley Veterans Home, and received the Citation of Excellence, Outstanding Hospital of the Year, from the PA Auxiliary.</li>
+      <li>Honored Ruth Mann, age 93, for 50 years of membership in November 2025. The youngest member is 16.</li>
+    </ul>
+    <p>Who can join: see <a href="#membership">Join the post</a>.</p>
+  </InfoSection>
 
+  <InfoSection id="meetings" title="Meetings" summary={`${meetWhen}.`} panel>
+    <dl class="rows">
+      {meetRows.map(([g, t]) => <div><dt>{g}</dt><dd>{t}</dd></div>)}
+      <div><dt>Office hours</dt><dd>{POST.officeHours}</dd></div>
+    </dl>
+  </InfoSection>
 </Base>
+
+<style>
+  .join-grid { display: grid; gap: clamp(1rem, 0.6rem + 1.5vw, 1.5rem); }
+  @media (min-width: 1000px) { .join-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .join-grid h3 + .hint { margin-top: 0.15rem; }
+  .join-grid .rows > div { grid-template-columns: 1fr; }
+  .join-how { margin-top: clamp(1rem, 0.6rem + 1.5vw, 1.5rem); }
+</style>
