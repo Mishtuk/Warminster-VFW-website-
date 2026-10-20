@@ -11,7 +11,7 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
   - `source/fb/` holds the Facebook group photos, videos and flyers.
 
 ## Status
-**2026-10-20:**
+**2026-10-20:** original redesign live (885daba).
 - **Live on the preview:**
   - the full site: 11 pages, with the admin panel in `server.js`
   - real content from the Facebook group: bar hours, specials, kitchen menu, recurring and dated events, officers, programs and post news
@@ -81,7 +81,20 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
 
 ## Look and feel
 - **Audience:** older visitors and veterans. Large type (body text 19–20px), high contrast, simple navigation with at most 7 tabs, large tap targets, and no hover-only menus.
-- **Colours:** dark and neutral, with nothing loud. Military homage stays tasteful: stars, a brass rule, flag-stripe accents, and a POW/MIA remembrance note.
+- **Colours:** dark and neutral, with nothing loud.
+  - a navy masthead and frame
+  - a warm putty page ground (`#c9c5bb`)
+  - light `.panel`s for long reading text
+  - the official red and gold as accents only; red text uses `--red-ink`
+- **An original design, not a template:** it is deliberately unlike the Riverside and Madison sites.
+  - a dark masthead with folder-tab navigation
+  - an "At the post" canteen letter-board over the background-video hero
+  - specials shown as a plain price board
+  - event categories shown as ribbon stripes (on the calendar too)
+  - a memorial plaque for the namesakes, with the six branches (Space Force included) and POW/MIA
+  - no phone bottom bar
+- **Fonts:** Archivo (condensed sans) and Literata (serif), both self-hosted OFL.
+- **Design notes:** kept locally only, in `.claude/team/redesign.md`.
 - **Logo:** the post's official VFW design, rebuilt as outlined vectors in `public/brand/`:
   - red "VFW" with gold bars, "NO ONE DOES MORE FOR VETERANS." and "Post 6493"
   - `logo.svg`: full colour
