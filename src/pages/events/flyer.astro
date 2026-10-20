@@ -1,0 +1,105 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Subnav from '../../components/Subnav.astro';
+import InfoSection from '../../components/info/InfoSection.astro';
+import { POST, href, EVENT_TABS } from '../../lib/site';
+import events from '../../content/events.json';
+import { seed, today } from '../../lib/seed';
+import { monthOf, shiftMonth, headingText, specialsHtml, weeklyHtml } from '../../scripts/flyer.ts';
+const ym = monthOf(today);
+const next = shiftMonth(ym, 1);
+---
+<Base title="Monthly flyer" description={`A one-page printable flyer of this month's events at ${POST.name}, for the bulletin board.`}>
+  <PageHead title="Monthly flyer" lede="One page to print and post on a bulletin board or hand out." />
+  <Subnav items={EVENT_TABS} label="Events" />
+
+  <InfoSection id="choose" title="Print the flyer" summary="Pick a month, then press Print. It fits one Letter page." class="no-print">
+    <p class="btn-row">
+      <a class="btn btn-outline" href={`?month=${ym}`} data-flyer-month="0" aria-current="true">This month</a>
+      <a class="btn btn-outline" href={`?month=${next}`} data-flyer-month="1">Next month</a>
+      <button class="btn" type="button" id="fl-print">Print</button>
+    </p>
+  </InfoSection>
+
+  <section class="section fl-sec" aria-label="Flyer preview">
+    <div class="container fl-scroll">
+      <article class="fl-sheet">
+        <header class="fl-top">
+          <img class="fl-logo" src={href('/brand/logo-1c.svg')} alt="" width="359" height="184" />
+          <div>
+            <p class="fl-org">{POST.name}</p>
+            <h2 class="fl-title" id="fl-title">{headingText(ym)}</h2>
+            <p class="fl-motto">{POST.motto}</p>
+          </div>
+        </header>
+        <section class="fl-block" aria-labelledby="fl-h-special">
+          <h3 id="fl-h-special">Special events</h3>
+          <div id="fl-special" set:html={specialsHtml(events, ym)} />
+        </section>
+        <section class="fl-block" aria-labelledby="fl-h-weekly">
+          <h3 id="fl-h-weekly">Every week</h3>
+          <div id="fl-weekly" set:html={weeklyHtml(events)} />
+        </section>
+        <footer class="fl-foot">
+          <section aria-labelledby="fl-h-hours">
+            <h3 id="fl-h-hours">Bar hours</h3>
+            <ul>{POST.hours.map(([d, h]) => <li><strong>{d}</strong> {h}</li>)}</ul>
+          </section>
+          <section aria-labelledby="fl-h-visit">
+            <h3 id="fl-h-visit">Visit or call</h3>
+            <p>{POST.address}</p>
+            <p><strong>{POST.phone}</strong></p>
+            <p>{POST.meetings}</p>
+            <p>{POST.barRule}</p>
+          </section>
+        </footer>
+      </article>
+    </div>
+  </section>
+  <Fragment set:html={seed.data} />
+  <script>import '../../scripts/flyer.ts';</script>
+</Base>
+
+<style is:global>
+  /* The sheet is always light, like paper, in both themes. Sized in inches so it matches the printed page. */
+  .fl-scroll { overflow-x: auto; padding-bottom: 1rem; }
+  .fl-sheet { --fl-red: #952f32; box-sizing: border-box; width: 7.5in; min-height: 10in; margin-inline: auto; padding: 0.4in; display: flex; flex-direction: column; gap: 0.22in; background: #fff; color: #000; box-shadow: 0 2px 14px rgb(0 0 0 / 0.35); font-family: var(--font-ui); }
+  .fl-top { display: flex; align-items: center; gap: 0.25in; padding-bottom: 0.15in; border-bottom: 0.07in solid var(--fl-red); }
+  .fl-logo { width: 1.5in; height: auto; flex: none; }
+  .fl-org { font-size: 13pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+  .fl-title { font-family: var(--font-display); font-size: 34pt; line-height: 1.05; font-weight: 800; color: #000; margin: 0.04in 0; }
+  .fl-motto { font-family: var(--font-display); font-style: italic; font-size: 14pt; }
+  .fl-block h3, .fl-foot h3 { font-family: var(--font-ui); font-size: 15pt; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--fl-red); border-bottom: 2px solid var(--fl-red); padding-bottom: 0.03in; margin-bottom: 0.08in; }
+  .fl-sheet ul { list-style: none; padding: 0; margin: 0; }
+  .fl-sheet li { font-size: 15pt; line-height: 1.25; padding: 0.04in 0; }
+  .fl-sheet li + li { border-top: 1px solid #bbb; }
+  .fl-sheet li strong { font-weight: 800; }
+  .fl-sheet time { font-weight: 800; color: var(--fl-red); margin-right: 0.08in; }
+  .fl-sheet .fl-t { font-weight: 600; margin-right: 0.08in; }
+  .fl-sheet .fl-empty, .fl-sheet .fl-more { font-size: 15pt; font-weight: 700; }
+  .fl-foot { margin-top: auto; display: grid; grid-template-columns: 1fr 1.3fr; gap: 0.3in; padding-top: 0.15in; border-top: 0.07in solid var(--fl-red); }
+  .fl-foot li { font-size: 12pt; padding: 0.02in 0; border: 0 !important; }
+  .fl-foot p { font-size: 12pt; line-height: 1.3; margin-top: 0.04in; }
+  /* Narrow screens: the preview reflows to the screen width instead of keeping the Letter size. Print is unaffected. */
+  @media screen and (max-width: 799px) {
+    .fl-scroll { overflow-x: visible; min-width: 0; }
+    .fl-sheet { width: 100%; min-height: 0; padding: 1.1rem; gap: 1.1rem; }
+    .fl-top { flex-wrap: wrap; gap: 0.75rem; }
+    .fl-logo { width: 6.5rem; }
+    .fl-title { font-size: clamp(1.75rem, 8vw, 34pt); overflow-wrap: anywhere; }
+    .fl-org, .fl-motto { font-size: 1rem; }
+    .fl-block h3, .fl-foot h3 { font-size: 1.05rem; }
+    .fl-sheet li, .fl-sheet .fl-empty, .fl-sheet .fl-more { font-size: 1.05rem; }
+    .fl-foot { grid-template-columns: 1fr; gap: 1rem; }
+    .fl-foot li, .fl-foot p { font-size: 1rem; }
+  }
+  @media print {
+    @page { size: letter; margin: 0.5in; }
+    html, body { background: #fff !important; color: #000 !important; }
+    .page-head, .subnav, .otp, .theme-fab, .no-print, .masthead, .site-footer { display: none !important; }
+    .fl-sec { padding: 0 !important; }
+    .fl-sec .container, .fl-scroll { width: auto; overflow: visible; padding: 0; }
+    .fl-sheet { width: 100%; height: 10in; min-height: 0; padding: 0; margin: 0; box-shadow: none; overflow: hidden; break-inside: avoid; background: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>

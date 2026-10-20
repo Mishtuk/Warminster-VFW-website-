@@ -40,7 +40,7 @@ const sections = [
   </InfoSection>
 
   <InfoSection id="add" title="Add to your calendar" summary="Put every post event in your phone or computer calendar, or print the year." class="no-print">
-    <p class="btn-row"><a class="btn" href={href('/events.ics')} download>Add to my calendar</a><button class="btn btn-outline" type="button" id="print-cal">Print this calendar</button></p>
+    <p class="btn-row"><a class="btn" href={href('/events.ics')} download>Add to my calendar</a><button class="btn btn-outline" type="button" id="print-cal">Print this calendar</button><a class="btn btn-outline" href={href('/events/flyer')}>Print this month's flyer</a></p>
   </InfoSection>
   <Fragment set:html={seed.data} />
   <script>
