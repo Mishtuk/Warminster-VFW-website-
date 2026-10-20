@@ -21,7 +21,6 @@ Two machines work on this repo at the same time. Live coordination happens on th
 
 ### Now working on
 - **Desktop:** beer tap refresh: badges closer to each brand, a bar backdrop behind the tower, a more fluid pour (src/components/BeerTaps.astro, src/content/taps.json, the .taps block in global.css, src/scripts/pour.ts, and the taps validator, marker and admin fields only in state.js and admin.astro).
-- **Laptop:** printable monthly flyer (new src/pages/events/flyer.astro and src/scripts/flyer.ts, a link in src/pages/events.astro, one line in src/pages/sitemap.xml.ts).
 
 ## Status (handoff, 2026-10-20)
 **The site is feature-complete on the preview. The next steps are the owner's choices.**
@@ -37,7 +36,7 @@ Two machines work on this repo at the same time. Live coordination happens on th
   - All of them use one layout (`src/components/info/`: InfoSection, OnThisPage, KeyFacts), with multi-column layouts on desktop.
   - Resources are grouped by need, with the crisis line first.
   - Programs shows the 3 pillars side by side.
-  - Events: the weekly nights appear as a row of cards, the year calendar lists dated events per month, and there is an `.ics` "Add to my calendar" feed.
+  - Events: the weekly nights appear as a row of cards, the year calendar lists dated events per month, and there is an `.ics` "Add to my calendar" feed. `/events/flyer` is a one-page Letter flyer for the bulletin board (`?month=YYYY-MM`, this or next month): special events, weekly nights, bar hours and contact. It renders from seed data at build and re-renders from `#vfw-data` in the browser (`src/scripts/flyer.ts`), so admin edits show; no marker needed.
   - News: post news has photos (an optional `photo` field, chosen in the admin), and VA/DVIDS stories have self-hosted thumbnails.
 - **Photo viewer:** a native `<dialog>` (`Lightbox.astro`) on every photo group, with Previous/Next, swipe, a count and Close/Esc. `-full.webp` copies are used for the large view.
 - **Admin (`/admin`, UI in `src/pages/admin.astro`, API in `server.js`):** written for volunteers. It has the site's look with the logo top-left, plain wording (no brackets, codes or file names), and a phone menu.
