@@ -312,7 +312,7 @@ export function injectMarkers(html, state, today, year, { photos, photoBase } = 
   return html.replace(MARKER, (m, name) => parts[name]?.() ?? m);
 }
 
-// ---------- home "What's on" (marker: events-featured) ----------
+// ---------- home "What's going on" (marker: events-featured) ----------
 const dateBox = (ymd) => {
   const d = parseDay(ymd);
   const f = (o) => d.toLocaleDateString('en-US', { ...o, timeZone: 'UTC' });
