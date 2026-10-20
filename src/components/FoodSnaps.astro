@@ -28,7 +28,7 @@ const tilts = ['-1.6deg', '1.2deg', '1deg', '-1.3deg', '-0.9deg', '1.5deg'];
 ---
 <div class:list={['food-snaps', `n${food.length}`]}>
   {food.map((n, i) => (
-    <figure class="snap" style={`--tilt:${tilts[i % tilts.length]}`}>
+    <figure class="snap snap-stamped" style={`--tilt:${tilts[i % tilts.length]}`}>
       <img {...photo(n)} {sizes} alt={`${CAPTIONS[n] ?? 'Food'} from the post's kitchen`} loading="lazy" decoding="async" fetchpriority="low" />
       <figcaption>{CAPTIONS[n] ?? 'From the kitchen'}</figcaption>
     </figure>
