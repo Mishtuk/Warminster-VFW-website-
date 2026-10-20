@@ -27,7 +27,6 @@ const year = new Date().getFullYear();
       <ul>
         {NAV.map((l) => <li><a href={href(l.path)}>{l.label}</a></li>)}
         {EXTRA.map((l) => <li><a href={href(l.path)}>{l.label}</a></li>)}
-        <li><a href={href('/about#join')}>Join the post</a></li>
         <li><a href={POST.facebook} rel="noopener">Facebook group</a></li>
       </ul>
     </nav>

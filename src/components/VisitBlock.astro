@@ -26,7 +26,7 @@ const { office = false } = Astro.props;
           {office && <p>Office: {POST.officeHours}.</p>}
         </div>
       </div>
-      <p><strong>The bar is for members and their guests, and joining is easy.</strong> <a href={href('/about#join')}>How to join</a></p>
+      <p><strong>The bar is for members and their guests, and joining is easy.</strong> <a href={href('/join')}>How to join</a></p>
       <p>Events marked Open to the Public need no membership: {POST.publicNights.join(', ')}.</p>
       <p><a href={href('/events/first-visit')}>First time? See what to expect</a></p>
     </div>

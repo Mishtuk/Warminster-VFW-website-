@@ -24,10 +24,14 @@ export const NAV = [
   { label: 'Programs & Resources', path: '/programs', match: ['/programs', '/resources', '/youth', '/support', '/volunteer', '/help'] },
   { label: 'News', path: '/news', match: ['/news'] },
   { label: 'Post shop', path: '/shop', match: ['/shop'] },
-  { label: 'About', path: '/about', match: ['/about', '/history', '/contact'] },
+  { label: 'About', path: '/about', match: ['/about', '/join', '/history', '/contact'] },
 ] as const;
 
+/** Subnav shared by About, Join the post, History and Contact. */
+export const ABOUT_TABS = [{ label: 'About', path: '/about' }, { label: 'Join the post', path: '/join' }, { label: 'History', path: '/history' }, { label: 'Contact', path: '/contact' }];
+
 export const EXTRA = [
+  { label: 'Join the post', path: '/join' },
   { label: 'History', path: '/history' },
   { label: 'Contact', path: '/contact' },
   { label: 'Your first visit', path: '/events/first-visit' },

@@ -4,9 +4,9 @@ import PageHead from '../components/PageHead.astro';
 import Subnav from '../components/Subnav.astro';
 import InfoSection from '../components/info/InfoSection.astro';
 import OnThisPage from '../components/info/OnThisPage.astro';
-import { POST, photo } from '../lib/site';
+import { POST, ABOUT_TABS, photo } from '../lib/site';
 import { NATIONAL_TIMELINE } from '../lib/resources.js';
-const tabs = [{ label: 'About', path: '/about' }, { label: 'History', path: '/history' }, { label: 'Contact', path: '/contact' }];
+const tabs = ABOUT_TABS;
 // [when, what, source url?, source label?]
 const POST_TIMELINE: [string, string, string?, string?][] = [
   ['March 2022', 'State Senator Maria Collett presented a $50,000 Keystone Communities Program grant for a new roof and parking-lot resurfacing.', 'https://pasenate.com/?p=129750', 'PA Senate'],

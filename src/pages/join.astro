@@ -1,0 +1,136 @@
+---
+/*
+ * Sources for the facts below (checked October 2026):
+ *   VFW eligibility   https://www.vfw.org/join/eligibility
+ *   How to join/dues  https://www.vfw.org/join  (form: https://oms.vfw.org/newmember.aspx)
+ *   Renewing          https://oms.vfw.org/QuickRenew.aspx  (linked as "Renew" in the vfw.org nav)
+ *   Auxiliary         https://www.vfwauxiliary.org/eligibility and https://www.vfwauxiliary.org/join
+ * Post facts (membership, meetings, bar rule) come from src/lib/post.js.
+ */
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Subnav from '../components/Subnav.astro';
+import InfoSection from '../components/info/InfoSection.astro';
+import OnThisPage from '../components/info/OnThisPage.astro';
+import KeyFacts from '../components/info/KeyFacts.astro';
+import { POST, ABOUT_TABS } from '../lib/site';
+// Home Association price. docs/research.md has no source for POST.joinPrice yet, so this stays null
+// (the page says "Call the post"). To publish the price, change this one line to: POST.joinPrice
+const homePrice: string | null = null;
+const [meetWhen] = POST.meetings.replace(/\.$/, '').split(': ');
+const sections = [
+  { id: 'who', label: 'Who can join' },
+  { id: 'paths', label: 'Three ways to join' },
+  { id: 'how', label: 'How to join' },
+  { id: 'renew', label: 'Renewing' },
+  { id: 'meetings', label: 'Meetings' },
+];
+const EXT = 'noopener noreferrer';
+---
+<Base title="Join the post" description={`Who can join ${POST.name} in ${POST.city}, PA, and how to sign up as a veteran, a family member or a neighbour.`}>
+  <PageHead title="Join the post" lede="Veterans, family members and neighbours are all welcome. Find your way in below." image="life-60th-dinner" />
+  <Subnav items={ABOUT_TABS} label="About" />
+  <OnThisPage items={sections} />
+
+  <InfoSection id="who" title="Who can join" summary={POST.membership}>
+    <div class="info-two">
+      <div class="panel info-body">
+        <ul class="link-list">
+          <li><a href="#vfw"><span>You served</span><small>Join the VFW</small></a></li>
+          <li><a href="#auxiliary"><span>A relative of someone who served</span><small>Join the Auxiliary</small></a></li>
+          <li><a href="#home"><span>A friend or neighbour</span><small>Join the Home Association</small></a></li>
+        </ul>
+        <p>{POST.barRule}</p>
+      </div>
+      <KeyFacts office>
+        <div><dt>Meetings</dt><dd>{meetWhen}</dd></div>
+      </KeyFacts>
+    </div>
+  </InfoSection>
+
+  <InfoSection id="paths" title="Three ways to join" summary="Pick the one that fits you. Each has its own next step." band="stone">
+    <div class="join-grid">
+      <article class="panel info-body" id="vfw">
+        <h3>VFW membership</h3>
+        <p class="hint">For veterans and people serving now</p>
+        <dl class="rows">
+          <div><dt>Who can join</dt><dd>You served honorably, or are serving now, in the U.S. Armed Forces in a war, campaign or expedition on foreign soil or in hostile waters.</dd></div>
+          <div><dt>Proof</dt><dd>Usually your DD-214 or personnel record. The National Personnel Records Center can send your records.</dd></div>
+          <div><dt>Cost</dt><dd>National dues are $45 for one calendar year, and a Life membership is available. Dues at the post can differ, so check current dues with the post or vfw.org.</dd></div>
+        </dl>
+        <div class="faq">
+          <details>
+            <summary>What shows you served</summary>
+            <p>Any one of these:</p>
+            <ul>
+              <li>an authorized campaign or expeditionary medal, ribbon, badge or insignia</li>
+              <li>Hostile Fire Pay or Imminent Danger Pay</li>
+              <li>30 days in a row, or 60 days in all, in Korea</li>
+            </ul>
+          </details>
+        </div>
+        <p><a class="btn" href="https://oms.vfw.org/newmember.aspx" rel={EXT}>Join the VFW online</a></p>
+        <ul class="link-list">
+          <li><a href="https://www.vfw.org/join/eligibility" rel={EXT}><span>VFW eligibility</span><small>vfw.org</small></a></li>
+          <li><a href="https://www.vfw.org/find-a-post" rel={EXT}><span>Find a Post</span><small>vfw.org</small></a></li>
+        </ul>
+      </article>
+      <article class="panel info-body" id="auxiliary">
+        <h3>The Auxiliary</h3>
+        <p class="hint">For relatives of veterans</p>
+        <dl class="rows">
+          <div><dt>Who can join</dt><dd>Relatives of a person who is or was eligible for VFW membership: a current or surviving spouse, parents, grandparents, children, grandchildren and siblings. Step, adopted and half relatives count the same.</dd></div>
+          <div><dt>Age</dt><dd>16 or older.</dd></div>
+          <div><dt>Proof</dt><dd>Proof of the veteran's service is needed.</dd></div>
+          <div><dt>National office</dt><dd><a href="mailto:info@vfwauxiliary.org">info@vfwauxiliary.org</a><br /><a href="tel:+18165618655">816-561-8655</a></dd></div>
+        </dl>
+        <p><a class="btn" href="https://www.vfwauxiliary.org/join" rel={EXT}>Join the Auxiliary</a></p>
+        <ul class="link-list">
+          <li><a href="https://www.vfwauxiliary.org/eligibility" rel={EXT}><span>Auxiliary eligibility</span><small>vfwauxiliary.org</small></a></li>
+        </ul>
+      </article>
+      <article class="panel info-body" id="home">
+        <h3>Home Association</h3>
+        <p class="hint">Social membership at this post</p>
+        <dl class="rows">
+          <div><dt>Who can join</dt><dd>Neighbours and friends who are not eligible for the VFW or the Auxiliary.</dd></div>
+          <div><dt>Cost</dt><dd>{homePrice ?? 'Call the post.'}</dd></div>
+          <div><dt>Note</dt><dd>This is a post membership, not VFW membership.</dd></div>
+        </dl>
+        <p><a class="btn" href={POST.tel}>Call the post {POST.phone}</a></p>
+      </article>
+    </div>
+  </InfoSection>
+
+  <InfoSection id="how" title="How to join" summary="Online or in person. Either way works." panel>
+    <dl class="rows">
+      <div><dt>Online</dt><dd>Veterans can fill in the <a href="https://oms.vfw.org/newmember.aspx" rel={EXT}>Join the VFW form</a> on vfw.org. Auxiliary members start at <a href="https://www.vfwauxiliary.org/join" rel={EXT}>vfwauxiliary.org</a>.</dd></div>
+      <div><dt>Ask or call</dt><dd>Ask at the bar, or call <a href={POST.tel}>{POST.phone}</a>.</dd></div>
+      <div><dt>Visit the office</dt><dd>{POST.officeHours}.</dd></div>
+      <div><dt>Come to a meeting</dt><dd>{POST.meetings}</dd></div>
+      <div><dt>Bring</dt><dd>For the VFW or the Auxiliary, bring proof of the veteran's service, such as a DD-214.</dd></div>
+    </dl>
+    <p><a class="btn" href={POST.tel}>{POST.callText}</a></p>
+  </InfoSection>
+
+  <InfoSection id="renew" title="Renewing" summary="Already a member? Renew your VFW dues online." band="stone">
+    <div class="panel info-body">
+      <p>Have your VFW membership number ready. No login is needed.</p>
+      <p><a class="btn" href="https://oms.vfw.org/QuickRenew.aspx" rel={EXT}>Renew on vfw.org</a></p>
+      <p>For Auxiliary or Home Association renewals, <a href={POST.tel}>call the post</a>.</p>
+    </div>
+  </InfoSection>
+
+  <InfoSection id="meetings" title="Meetings" summary={`${meetWhen}.`} panel>
+    <p>{POST.meetings}</p>
+    <p>{POST.address}</p>
+  </InfoSection>
+</Base>
+
+<style>
+  .join-grid { display: grid; gap: clamp(1rem, 0.6rem + 1.5vw, 1.5rem); }
+  @media (min-width: 1000px) { .join-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .join-grid h3 + .hint { margin-top: 0.15rem; }
+  .join-grid .rows > div { grid-template-columns: 1fr; }
+  .join-grid .rows dd { overflow-wrap: anywhere; }
+</style>

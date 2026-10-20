@@ -5,8 +5,8 @@ import Subnav from '../components/Subnav.astro';
 import InfoSection from '../components/info/InfoSection.astro';
 import OnThisPage from '../components/info/OnThisPage.astro';
 import KeyFacts from '../components/info/KeyFacts.astro';
-import { POST, href } from '../lib/site';
-const tabs = [{ label: 'About', path: '/about' }, { label: 'History', path: '/history' }, { label: 'Contact', path: '/contact' }];
+import { POST, ABOUT_TABS, href } from '../lib/site';
+const tabs = ABOUT_TABS;
 // "The 2nd Monday of each month: Home Association 6 PM, ..." -> when + [group, time] rows (single source: post.js)
 const [meetWhen, meetList = ''] = POST.meetings.replace(/\.$/, '').split(': ');
 const meetRows = meetList.split(', ').map((s) => s.match(/^(.*) (\d.*)$/)?.slice(1) ?? [s, '']);
@@ -59,64 +59,9 @@ const sections = [
   </InfoSection>
 
   <InfoSection id="membership" title="Join the post" summary={POST.membership} band="stone">
-    <span id="join"></span>
-    <div class="join-grid">
-      <article class="panel info-body">
-        <h3>VFW membership</h3>
-        <p class="hint">For veterans</p>
-        <dl class="rows">
-          <div><dt>Who can join</dt><dd>You served honorably, or are serving now, in a war, campaign or expedition on foreign soil or in hostile waters.</dd></div>
-          <div><dt>Proof</dt><dd>Usually the DD-214.</dd></div>
-          <div><dt>Cost</dt><dd>National dues are listed at $45 a calendar year. The post may charge differently, so ask at the bar.</dd></div>
-        </dl>
-        <div class="faq">
-          <details>
-            <summary>What shows you served</summary>
-            <p>Any one of these:</p>
-            <ul>
-              <li>a campaign or expeditionary medal, ribbon or badge</li>
-              <li>Hostile Fire Pay or Imminent Danger Pay</li>
-              <li>30 days in a row (60 days in all) in Korea</li>
-            </ul>
-          </details>
-        </div>
-        <ul class="link-list">
-          <li><a href="https://www.vfw.org/join/eligibility" rel="noopener"><span>VFW eligibility</span><small>vfw.org</small></a></li>
-          <li><a href="https://www.vfw.org/join" rel="noopener"><span>Join the VFW</span><small>vfw.org</small></a></li>
-          <li><a href="https://www.vfw.org/find-a-post" rel="noopener"><span>Find a Post</span><small>vfw.org</small></a></li>
-        </ul>
-      </article>
-      <article class="panel info-body">
-        <h3>Home Association</h3>
-        <p class="hint">Social membership</p>
-        <dl class="rows">
-          <div><dt>Who can join</dt><dd>People who are not eligible for the VFW, and friends and family of members.</dd></div>
-          <div><dt>Cost</dt><dd>{POST.joinPrice}</dd></div>
-          <div><dt>Note</dt><dd>This is a post membership, not VFW membership. Ask the post for details.</dd></div>
-        </dl>
-      </article>
-      <article class="panel info-body">
-        <h3>The Auxiliary</h3>
-        <p class="hint">For relatives of veterans</p>
-        <dl class="rows">
-          <div><dt>Who can join</dt><dd>Relatives of a person who is or was eligible for VFW membership: a current or surviving spouse, parents, grandparents, children, grandchildren and siblings. Step, adopted and half relatives count the same.</dd></div>
-          <div><dt>Age</dt><dd>16 or older.</dd></div>
-          <div><dt>Proof</dt><dd>Proof of the veteran's service is required.</dd></div>
-        </dl>
-        <ul class="link-list">
-          <li><a href="https://www.vfwauxiliary.org/eligibility" rel="noopener"><span>Auxiliary eligibility</span><small>vfwauxiliary.org</small></a></li>
-        </ul>
-      </article>
-    </div>
-    <div class="panel info-body join-how">
-      <h3>How to join at the post</h3>
-      <dl class="rows">
-        <div><dt>Ask or call</dt><dd>Ask at the bar, or call <a href={POST.tel}>{POST.phone}</a>.</dd></div>
-        <div><dt>Visit the office</dt><dd>{POST.officeHours}.</dd></div>
-        <div><dt>Come to a meeting</dt><dd>{POST.meetings}</dd></div>
-        <div><dt>At the door</dt><dd>{POST.barRule}</dd></div>
-      </dl>
-      <p><a class="btn" href={POST.tel}>Call {POST.phone}</a></p>
+    <div class="panel info-body">
+      <p>Veterans join the VFW, relatives join the Auxiliary, and neighbours join the Home Association.</p>
+      <p><a class="btn" href={href('/join')}>How to join the post</a></p>
     </div>
   </InfoSection>
 
@@ -128,7 +73,7 @@ const sections = [
       <li>Volunteers at the Delaware Valley Veterans Home, and received the Citation of Excellence, Outstanding Hospital of the Year, from the PA Auxiliary.</li>
       <li>Honored Ruth Mann, age 93, for 50 years of membership in November 2025. The youngest member is 16.</li>
     </ul>
-    <p>Who can join: see <a href="#membership">Join the post</a>.</p>
+    <p>Who can join: see <a href={href('/join')}>Join the post</a>.</p>
   </InfoSection>
 
   <InfoSection id="meetings" title="Meetings" summary={`${meetWhen}.`} panel>
@@ -139,10 +84,3 @@ const sections = [
   </InfoSection>
 </Base>
 
-<style>
-  .join-grid { display: grid; gap: clamp(1rem, 0.6rem + 1.5vw, 1.5rem); }
-  @media (min-width: 1000px) { .join-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-  .join-grid h3 + .hint { margin-top: 0.15rem; }
-  .join-grid .rows > div { grid-template-columns: 1fr; }
-  .join-how { margin-top: clamp(1rem, 0.6rem + 1.5vw, 1.5rem); }
-</style>

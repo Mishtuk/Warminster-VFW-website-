@@ -4,8 +4,8 @@ import PageHead from '../components/PageHead.astro';
 import Subnav from '../components/Subnav.astro';
 import InfoSection from '../components/info/InfoSection.astro';
 import KeyFacts from '../components/info/KeyFacts.astro';
-import { POST, href, photo } from '../lib/site';
-const tabs = [{ label: 'About', path: '/about' }, { label: 'History', path: '/history' }, { label: 'Contact', path: '/contact' }];
+import { POST, ABOUT_TABS, href, photo } from '../lib/site';
+const tabs = ABOUT_TABS;
 ---
 <Base title="Contact" description={`Address, phone and Facebook group for ${POST.name}.`}>
   <PageHead title="Contact" lede="Phone, address, email and opening hours for the post." />
@@ -41,7 +41,7 @@ const tabs = [{ label: 'About', path: '/about' }, { label: 'History', path: '/hi
 
   <InfoSection id="welcome" title="Who can come in" summary={POST.barRule} panel>
     <dl class="rows">
-      <div><dt>Members and guests</dt><dd>The bar is for members and their guests, and joining is easy. <a href={href('/about#join')}>How to join</a></dd></div>
+      <div><dt>Members and guests</dt><dd>The bar is for members and their guests, and joining is easy. <a href={href('/join')}>How to join</a></dd></div>
       <div><dt>Open to the public</dt><dd>Events marked Open to the Public need no membership: {POST.publicNights.join(', ')}.</dd></div>
       <div><dt>Renting the hall</dt><dd><a href={href('/hall#inquiry')}>Send a hall inquiry</a></dd></div>
     </dl>
