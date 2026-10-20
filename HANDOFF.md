@@ -23,7 +23,6 @@ Two machines work on this repo at the same time. Live coordination happens on th
 ### Now working on
 - **Laptop:** #11 home speed: photo bank JSON out of the HTML (new src/pages/media/hero-bank.json.ts, src/components/HeroCarousel.astro, src/lib/hero-photos.ts if needed) and lazy-loading pour.ts (the script line in src/components/BeerTaps.astro, a tiny loader in src/scripts/).
 - **Laptop:** #10 What's going on photos (src/lib/event-photos.js, featuredHtml in src/lib/state.js, the whats-on style block in src/pages/index.astro, maybe a small src/scripts/ script for the cycling bundles).
-- **Laptop:** #9 real logos on the taps (the taps parts of src/lib/state.js and src/pages/admin.astro, src/components/BeerTaps.astro, src/content/taps.json, the .taps block in src/styles/global.css, test/taps.test.js).
 
 ## Status (handoff, 2026-10-20)
 **The site is feature-complete on the preview. The next steps are the owner's choices.**
@@ -84,6 +83,7 @@ Two machines work on this repo at the same time. Live coordination happens on th
 
 ### Beer taps on the home page (2026-10-20)
 - A tap tower sits above the food snapshots (`src/components/BeerTaps.astro`, styles in the `.taps` block of global.css). Each handle has a name badge evoking the brand (colours, type style, shape: oval, circle, shield, banner or crest; an accent ring and a sub-label), on a back-bar backdrop of wood, smoky mirror, bottle shelf and amber glow. No logo artwork is copied.
+- Tap logos: an optional `logo` slug per tap (`LOGOS` in `state.js`, files in `public/brand/taps/`: Yuengling, Coors Light, Budweiser, Blue Moon, Guinness, Miller Lite, Modelo; the owner approved real logos). Admin > Beers on tap has a Brand logo select. Bud Light and Michelob Ultra have no file and keep drawn badges. Existing databases keep their old taps: set each logo in the admin after deploying (and Miller Lite's shape to shield).
 - Pressing a handle pours beer (`src/scripts/pour.ts`, a canvas overlay drawn as merging liquid through an SVG blur-and-threshold filter, with a tapered stream and foam). Each beer has its own colour from the tap name (light, amber, wheat, stout; a tap can override with a `data-liquid` hex), and the stream is drawn on a second, unfiltered canvas. Boxes are oriented colliders (size, centre and the rotation summed over ancestors), so beer runs down tilted snapshots and off their low end (`SLIDE` scales the downhill pull). Foam, bubbles and after-drips sit on the pooled beer. Boxes are measured once per pour and shifted with the scroll. It only runs on desktop with a mouse (900px or wider) and is off with reduced motion; phones don't get the tower at all.
 - The taps are placeholders (9 common drafts). Staff edit them in Admin > Beers on tap: name, badge and text colours, accent, shape, sub-label, Show on website, order. Saved taps from before these fields default to an oval. Marker `taps`.
 
