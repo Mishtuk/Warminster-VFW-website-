@@ -15,7 +15,12 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
 - **Live on the preview:**
   - **Pages:** 11 pages in the cozy "Canteen" look. Each has a dark/light theme toggle in the header (an icon in the phone header). The theme follows the system setting and is remembered per visitor.
   - **Home:** a background-video hero, real food snapshots beside a printed menu card of specials, a large hall-rental band, What's on with event photos, the namesakes plaque (six branches and POW/MIA), and post news.
-  - **Hero video:** cut from the post's own Facebook clips (the Memorial Day parade and line dancing in the hall), upscaled with Real-ESRGAN, and encoded to `public/media/hero*.mp4`. The re-cut scripts are local only.
+  - **Hero video:** cut from the post's own Facebook clips (the Memorial Day parade and line dancing in the hall) and upscaled with Real-ESRGAN.
+    - Encoded with 2-pass bitrate targets: `hero.av1.mp4` (1440p AV1, about 4 Mbps, served first to large screens that support it), `hero.mp4` (1080p, 4.5 Mbps), `hero-720.mp4` and `hero-portrait.mp4` (1080x1920).
+    - The video loads only after the page does, and is skipped under Data Saver or reduced motion. The re-cut scripts are local only.
+  - **Photo viewer:** tap any photo to see it large, then use Previous/Next, the arrow keys or a swipe to go through that group, with a "3 of 7" count and the caption. Close with the Close button, Esc or the backdrop.
+    - It is built on the native `<dialog>` element (`src/components/Lightbox.astro`).
+    - Facebook photos have an uncropped 1600px `-full.webp` copy for the viewer.
   - **Content:** real content from the Facebook group, the official VFW Post 6493 logo, and veteran news led by VA News.
 - **Security:** hardened 2026-10-20.
   - **Logins:** per-address login backoff, and the server refuses to start in production with the default or a weak admin password.

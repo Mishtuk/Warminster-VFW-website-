@@ -1,7 +1,7 @@
 ---
 /**
  * Food and drink snapshots: every public/media/photos/food-*.webp (sorted by name) as pinned photos.
- * Add a photo (1024x768 + -800 copy) and a caption below; it appears on home (first 4) and /bar (all).
+ * Add a photo (1024x768 + -800 copy, optional uncropped -full for the photo viewer) and a caption below; it appears on home (first 4) and /bar (all).
  * Captions describe what is in the picture only; no dish names or prices that are not on the menu.
  */
 import fs from 'node:fs';
@@ -20,7 +20,7 @@ const CAPTIONS: Record<string, string> = {
 };
 const dir = path.join(process.cwd(), 'public/media/photos');
 const food = fs.readdirSync(dir)
-  .filter((f) => /^food-.+\.webp$/.test(f) && !f.endsWith('-800.webp'))
+  .filter((f) => /^food-.+\.webp$/.test(f) && !/-(800|full).webp$/.test(f))
   .map((f) => f.replace('.webp', ''))
   .sort()
   .slice(0, limit);

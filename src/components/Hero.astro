@@ -10,7 +10,7 @@ import { POST, href, photo } from '../lib/site';
 import TodayHours from './TodayHours.astro';
 
 const has = (f: string) => fs.existsSync(path.join(process.cwd(), 'public/media', f));
-const sources = ['hero-portrait.mp4', 'hero-720.mp4', 'hero.mp4'].filter(has);
+const sources = ['hero-portrait.mp4', 'hero-720.mp4', 'hero.av1.mp4', 'hero.mp4'].filter(has);
 const snap = has('photos/life-halloween.webp');
 ---
 
@@ -23,6 +23,7 @@ const snap = has('photos/life-halloween.webp');
     <video id="hero-video" muted loop playsinline preload="none"
       data-portrait={has('hero-portrait.mp4') ? href('/media/hero-portrait.mp4') : undefined}
       data-small={has('hero-720.mp4') ? href('/media/hero-720.mp4') : undefined}
+      data-av1={has('hero.av1.mp4') ? href('/media/hero.av1.mp4') : undefined}
       data-full={has('hero.mp4') ? href('/media/hero.mp4') : undefined}></video>
   </div>
 
@@ -66,7 +67,9 @@ const snap = has('photos/life-halloween.webp');
     const start = () => {
       const phone = matchMedia('(max-width: 700px)').matches, portrait = matchMedia('(orientation: portrait)').matches;
       const d = v.dataset;
-      const src = phone ? ((portrait && d.portrait) || d.small || d.full) : (d.full || d.small);
+      // Large landscape screens: AV1 first when the browser can play it; others skip to hero.mp4.
+      const av1 = !phone && innerWidth >= 1280 && d.av1 && v.canPlayType('video/mp4; codecs="av01.0.12M.10"') ? d.av1 : '';
+      const src = av1 || (phone ? ((portrait && d.portrait) || d.small || d.full) : (d.full || d.small));
       if (!src) return;
       v.src = src;
       v.addEventListener('playing', () => v.classList.add('is-on'), { once: true });

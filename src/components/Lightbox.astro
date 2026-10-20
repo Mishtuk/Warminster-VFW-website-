@@ -1,0 +1,125 @@
+---
+/**
+ * Photo viewer, one per page. Every photo in .snap / .gallery opens large in a native <dialog>.
+ * Photos are grouped by their nearest .food-snaps, .life, .gallery, .hall-photos or section, so Previous/Next
+ * walk only through related photos. No JS: the hall gallery still links to the full image; other photos stay plain pictures.
+ */
+---
+<dialog id="lightbox" class="lightbox" aria-label="Photo viewer">
+  <div class="lb-top">
+    <p class="lb-count" aria-live="polite"></p>
+    <button type="button" class="lb-btn lb-close">Close <span aria-hidden="true">&#10005;</span></button>
+  </div>
+  <figure class="lb-fig">
+    <img class="lb-img" alt="" />
+    <figcaption class="lb-cap"></figcaption>
+  </figure>
+  <div class="lb-nav">
+    <button type="button" class="lb-btn lb-prev"><span aria-hidden="true">&#8592;</span> Previous</button>
+    <button type="button" class="lb-btn lb-next">Next <span aria-hidden="true">&#8594;</span></button>
+  </div>
+</dialog>
+
+<script>
+  const dlg = document.getElementById('lightbox') as HTMLDialogElement | null;
+  if (dlg && typeof dlg.showModal === 'function') {
+    const img = dlg.querySelector('.lb-img') as HTMLImageElement;
+    const cap = dlg.querySelector('.lb-cap') as HTMLElement;
+    const count = dlg.querySelector('.lb-count') as HTMLElement;
+    const prev = dlg.querySelector('.lb-prev') as HTMLButtonElement;
+    const next = dlg.querySelector('.lb-next') as HTMLButtonElement;
+    const full = (el: HTMLImageElement) => (el.getAttribute('src') || el.currentSrc).replace('-800.', '.');
+    const text = (el: HTMLImageElement) => el.closest('figure')?.querySelector('figcaption')?.textContent?.trim() || el.alt || '';
+
+    const all = [...document.querySelectorAll<HTMLImageElement>('.snap img, .gallery img')]
+      .filter((el) => !el.closest('[aria-hidden="true"]') && !el.closest('dialog'));
+    const groupOf = (el: HTMLElement) => el.closest('.food-snaps, .life, .gallery, .hall-photos, section, main');
+    let list: HTMLImageElement[] = [];
+    let i = 0;
+
+    const show = (n: number) => {
+      i = (n + list.length) % list.length;
+      const el = list[i];
+      // The full-size file loads only now. Facebook photos have an uncropped 1600px "-full" copy; others fall back to the page file.
+      const base = full(el);
+      img.onerror = () => { img.onerror = null; img.src = base; };
+      img.src = /\/(food|life)-[^/]+\.webp$/.test(base) ? base.replace(/\.webp$/, '-full.webp') : base;
+      img.alt = el.alt;
+      cap.textContent = text(el);
+      count.textContent = `${i + 1} of ${list.length}`;
+    };
+    const open = (el: HTMLImageElement) => {
+      const g = groupOf(el);
+      list = all.filter((x) => groupOf(x) === g);
+      const many = list.length > 1;
+      prev.hidden = next.hidden = !many;
+      count.hidden = !many;
+      show(list.indexOf(el));
+      dlg.showModal();
+    };
+
+    for (const el of all) {
+      const link = el.closest('a');
+      const target = link ?? el;
+      if (!link) {
+        el.tabIndex = 0;
+        el.setAttribute('role', 'button');
+        el.setAttribute('aria-label', `Enlarge photo: ${el.alt}`);
+        el.style.cursor = 'zoom-in';
+        el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(el); } });
+      } else {
+        link.setAttribute('aria-label', `Enlarge photo: ${el.alt}`);
+      }
+      target.addEventListener('click', (e) => { e.preventDefault(); open(el); });
+    }
+
+    prev.addEventListener('click', () => show(i - 1));
+    next.addEventListener('click', () => show(i + 1));
+    dlg.querySelector('.lb-close')!.addEventListener('click', () => dlg.close());
+    // Backdrop: a click that lands on the dialog itself (outside the content) closes it.
+    dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+    dlg.addEventListener('close', () => { img.removeAttribute('src'); });
+    dlg.addEventListener('keydown', (e) => {
+      if (list.length < 2) return;
+      if (e.key === 'ArrowLeft') { e.preventDefault(); show(i - 1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); show(i + 1); }
+    });
+    // Swipe on phones
+    let x0 = 0, y0 = 0;
+    dlg.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+    dlg.addEventListener('touchend', (e) => {
+      if (list.length < 2) return;
+      const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) show(i + (dx < 0 ? 1 : -1));
+    }, { passive: true });
+  }
+</script>
+
+<style>
+  /* Always dark, both themes. Large controls for older eyes. */
+  .lightbox {
+    width: 100%; max-width: 100%; height: 100%; max-height: 100%; margin: 0; padding: 0; border: 0;
+    background: rgb(12 9 7 / 0.96); color: #f4eee3;
+  }
+  .lightbox[open] { display: grid; grid-template-rows: auto 1fr auto; }
+  .lightbox::backdrop { background: rgb(12 9 7 / 0.9); }
+  .lb-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.75rem max(1rem, env(safe-area-inset-right)) 0.5rem 1rem; }
+  .lb-count { font-size: 1.1875rem; font-weight: 700; }
+  .lb-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; min-height: 56px; min-width: 56px; padding: 0 1.25rem;
+    border: 2px solid #f4eee3; border-radius: 4px; background: rgb(244 238 227 / 0.08); color: #f4eee3; font: inherit; font-size: 1.1875rem; font-weight: 700; cursor: pointer;
+  }
+  .lb-btn:hover { background: #f4eee3; color: #17120e; }
+  .lb-btn:focus-visible { outline: 3px solid #c2ab72; outline-offset: 3px; }
+  .lb-btn[hidden] { display: none; }
+  .lb-fig { margin: 0; min-height: 0; display: grid; grid-template-rows: 1fr auto; justify-items: center; padding: 0 1rem; }
+  .lb-img { max-width: 100%; max-height: 100%; min-height: 0; object-fit: contain; align-self: center; }
+  .lb-cap { padding: 0.75rem 0; font-size: 1.1875rem; text-align: center; max-width: 60rem; }
+  .lb-nav { display: flex; justify-content: space-between; gap: 1rem; padding: 0.5rem 1rem max(1rem, env(safe-area-inset-bottom)); }
+  .lb-nav .lb-btn { flex: 1; max-width: 16rem; }
+  .lb-nav .lb-next { margin-left: auto; }
+  @media (prefers-reduced-motion: no-preference) {
+    .lightbox[open] { animation: lb-in 0.2s ease-out; }
+    @keyframes lb-in { from { opacity: 0; } }
+  }
+</style>
