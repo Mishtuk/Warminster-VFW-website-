@@ -11,7 +11,7 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
   - `source/fb/` holds the Facebook group photos, videos and flyers.
 
 ## Status (handoff, 2026-10-20)
-**The site is feature-complete on the preview. The next steps are the owner's choices, plus finishing the hero video.**
+**The site is feature-complete on the preview. The next steps are the owner's choices.**
 
 ### What's live
 - **Pages:** 11 pages in the cozy "Canteen" look, plus a light/dark theme.
@@ -44,10 +44,11 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
   - CI runs tests, npm audit and CodeQL. Secret scanning, push protection and Dependabot are on.
 - **Tests:** `npm test` passes 55/55. Home mobile Lighthouse performance is about 92; accessibility is 100.
 
-### In progress
-- **Hero video quality:** the current hero is cut from SD (640x360) Facebook clips, which stay soft even after upscaling.
-  - Newer group videos exist in HD (1080p). The next cut uses mostly HD shots (flags on the graves, the post bar on Memorial Day, the hall at a watch party) with at most 2 of the best SD shots.
-  - Same outputs and encode targets as today: `hero.av1.mp4`, `hero.mp4`, `hero-720.mp4`, `hero-portrait.mp4` and the posters. The editing scripts are local only.
+### Hero video (v2, 2026-10-20)
+- The hero is now cut mostly from the group's 1080p videos (flags on the graves, the post bar on Memorial Day, the hall at a watch party) plus the 2 best SD shots. It replaces the soft all-SD first cut.
+  - Landscape is 21.4 s and portrait is 16.1 s. Both loop by crossfading back into the first shot.
+  - The files keep the same names and targets: `hero.av1.mp4`, `hero.mp4`, `hero-720.mp4`, `hero-portrait.mp4` and the 4 posters. Every file is the same size or smaller than before; the posters are within +10%.
+  - Not used: a child close-up, a third-party production, and a shaky bar close-up. The editing scripts are local only.
 
 ### Waiting on the owner
 - Hosting and domain (see the launch security checklist below).
