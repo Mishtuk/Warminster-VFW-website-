@@ -11,7 +11,7 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
   - `source/fb/` holds the Facebook group photos, videos and flyers.
 
 ## Status
-**2026-10-20:** the Canteen redesign is live on every page (8adbf02). Final QA is in progress.
+**2026-10-20:** the Canteen redesign is live and has passed final QA (2147127).
 - **Live on the preview:**
   - **Pages:** 11 pages in the cozy "Canteen" look. Each has a dark/light theme toggle in the header (on phones it is in the Menu sheet). The theme follows the system setting and is remembered per visitor.
   - **Home:** a background-video hero, real food snapshots beside a printed menu card of specials, a large hall-rental band, What's on with event photos, the namesakes plaque (six branches and POW/MIA), and post news.
@@ -24,6 +24,10 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
   - **Deploy:** a least-privilege deploy workflow pinned to commit SHAs.
   - **Checks:** `npm audit` is clean and there are no secrets in history.
   - **Verified:** `npm test` passes 41/41. The admin has been checked in a browser under the CSP.
+- **Final QA (2026-10-20):**
+  - **Lighthouse mobile:** accessibility 100 on every page tested. Performance is 91 on / and 90 on /hall under simulated throttling, with about 0.1 s observed.
+  - AA contrast in both themes, no horizontal scroll at 360px, and no CSP refusals.
+  - The admin flows and hall inquiries work end to end.
 - **Rules for editing code:**
   - Keep every asset self-hosted (the CSP blocks other origins).
   - Use no inline `on*=` handlers; use `addEventListener`.
@@ -91,19 +95,20 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
 
 ## Look and feel
 - **Audience:** older visitors and veterans. Large type (body text 19–20px), high contrast, simple navigation with at most 7 tabs, large tap targets, and no hover-only menus.
-- **Colours:** dark and neutral, with nothing loud.
-  - a navy masthead and frame
-  - a warm putty page ground (`#c9c5bb`)
-  - light `.panel`s for long reading text
-  - the official red and gold as accents only; red text uses `--red-ink`
-- **An original design, not a template:** it is deliberately unlike the Riverside and Madison sites.
-  - a dark masthead with folder-tab navigation
-  - an "At the post" canteen letter-board over the background-video hero
-  - specials shown as a plain price board
-  - event categories shown as ribbon stripes (on the calendar too)
-  - a memorial plaque for the namesakes, with the six branches (Space Force included) and POW/MIA
-  - no phone bottom bar
-- **Fonts:** Archivo (condensed sans) and Literata (serif), both self-hosted OFL.
+- **Look ("Canteen"):** a cozy neighbourhood bar and kitchen at a VFW post, not a corporate site. It is deliberately unlike the Riverside and Madison sites.
+  - **Light theme:** menu paper with brown ink.
+  - **Dark theme:** candle-lit brown-black. Both pass AA.
+  - **The toggle:** in the header (an icon on phones). It follows the system setting, and an inline head script sets the theme before paint.
+  - **Food:** real food photos as tilted paper snapshots.
+  - **Specials:** on a printed menu card with a gold double rule.
+  - **Bar hours:** on a chalkboard.
+  - **Drinks:** typographic only (no drink photos exist).
+  - **Home:**
+    - a big hall-rental band; "Rent the Hall" goes to `/hall#inquiry`
+    - event categories as ribbon stripes
+    - a namesakes plaque with the six branches and POW/MIA
+  - The official red and gold are accents only.
+- **Fonts:** Literata for sign-style headings and Archivo for body text, both self-hosted OFL.
 - **Logo:** the post's official VFW design, rebuilt as outlined vectors in `public/brand/`:
   - red "VFW" with gold bars, "NO ONE DOES MORE FOR VETERANS." and "Post 6493"
   - `logo.svg`: full colour
