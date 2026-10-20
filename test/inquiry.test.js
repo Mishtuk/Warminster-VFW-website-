@@ -68,3 +68,9 @@ test('mail failure keeps the inquiry (emailed = 0); no POST_EMAIL writes a place
   await c.submit(form, '198.51.100.8');
   assert.equal(c.rows()[0].emailed, 0);
 });
+
+test('L6 junk posts do not use up the rate allowance', async () => {
+  const { submit } = setup(undefined, { send: async () => {} });
+  for (let i = 0; i < 10; i++) assert.equal((await submit({ name: '' }, '198.51.100.9')).status, 400);
+  assert.equal((await submit(form, '198.51.100.9')).status, 200);
+});

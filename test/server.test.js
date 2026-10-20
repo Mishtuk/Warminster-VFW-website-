@@ -100,11 +100,11 @@ test('hall inquiry: JSON reply, no-JS form gets a 303, honeypot ignored, stored 
   assert.deepEqual([j.status, await j.json()], [200, { ok: true }]);
   const f = await call('POST', '/api/hall-inquiry', null, { 'Content-Type': 'application/x-www-form-urlencoded', Origin: origin });
   assert.equal(f.status, 303);
-  assert.match(f.headers.get('location'), /^\/hall-rental\?error=name/);
+  assert.match(f.headers.get('location'), /^\/hall\/\?error=name/);
   const body = new URLSearchParams({ name: 'Form Person', email: 'f@example.org' });
   const ok = await fetch(`${base}/api/hall-inquiry`, { method: 'POST', redirect: 'manual', body, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
   assert.equal(ok.status, 303);
-  assert.equal(ok.headers.get('location'), '/hall-rental?sent=1');
+  assert.equal(ok.headers.get('location'), '/hall/?sent=1');
   await call('POST', '/api/hall-inquiry', { ...q, website: 'spam' }, { Origin: origin });
   assert.equal((await call('POST', '/api/hall-inquiry', q, { Origin: 'http://evil.example' })).status, 403);
   const list = (await (await admin('GET', 'inquiries')).json()).inquiries;
@@ -134,12 +134,6 @@ test('change password: needs the current one, then the old password stops workin
   assert.equal((await call('POST', '/api/login', ADMIN, { Origin: origin })).status, 401);
 });
 
-test('login lockout: 5 wrong tries lock the account', async () => {
-  let last;
-  for (let i = 0; i < 6; i++) last = await call('POST', '/api/login', { username: 'admin', password: `nope${i}` }, { Origin: origin });
-  assert.equal(last.status, 429);
-});
-
 test('first run seeds the real src/content files (events > 0)', async () => {
   const data = mkdtempSync(join(tmpdir(), 'vfw-seed-'));
   const p = spawn(process.execPath, ['server.js'], { cwd: REPO, env: { ...process.env, PORT: '0', DATA_DIR: data, DIST_DIR: dist, ALLOW_DEFAULT_ADMIN: '1', SEED_DIR: '', NODE_ENV: 'test' } });
@@ -150,4 +144,53 @@ test('first run seeds the real src/content files (events > 0)', async () => {
     const st = await (await fetch(`${o}/api/admin/state`, { headers: { Cookie: login.headers.get('set-cookie').split(';')[0] } })).json();
     assert.ok(st.events.length > 0);
   } finally { p.kill(); }
+});
+
+test('M5 hall form redirect: _page is allow-listed, never an arbitrary path', async () => {
+  const post = (page) => fetch(`${base}/api/hall-inquiry`, { method: 'POST', redirect: 'manual', body: new URLSearchParams({ name: '', _page: page }), headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
+  for (const page of ['//2130706433', 'https://evil.example/', '/\\evil.example', '/about/', '/hall-rental']) {
+    const r = await post(page);
+    assert.match(r.headers.get('location'), /^\/hall\/\?error=name/, page);
+  }
+  assert.match((await post('/hall')).headers.get('location'), /^\/hall\/\?error=name/);
+});
+
+test('M4 security headers on pages, the admin page and error replies; CSP hashes inline scripts', async () => {
+  writeFileSync(join(dist, 'inline.html'), '<script>var a=1</script><button onclick="print()">x</button><script type="module" src="/x.js"></script>');
+  const check = (r) => { for (const h of ['content-security-policy', 'permissions-policy', 'x-content-type-options', 'x-frame-options', 'referrer-policy']) assert.ok(r.headers.get(h), h); };
+  const page = await call('GET', '/inline.html');
+  check(page);
+  const csp = page.headers.get('content-security-policy');
+  assert.ok(csp.includes("object-src 'none'") && csp.includes("frame-ancestors 'self'"));
+  assert.ok(csp.includes("'sha256-") && csp.includes("'unsafe-hashes'"));
+  assert.ok(!/script-src[^;]*'unsafe-inline'/.test(csp));
+  check(await call('GET', '/admin/'));
+  check(await call('GET', '/nope'));
+  check(await call('GET', '/api/nothing'));
+  check(await call('POST', '/', null)); // 405
+  check(await call('POST', '/api/hall-inquiry', { name: 'x' }, { Origin: 'http://evil.example' }));
+});
+
+test('L2 directory redirect stays on this site', async () => {
+  const r = await call('GET', '/.//admin');
+  assert.ok(!(r.headers.get('location') ?? '').startsWith('//'));
+});
+
+test('M3 production refuses to start with ALLOW_DEFAULT_ADMIN=1', async () => {
+  const code = await new Promise((ok) => spawn(process.execPath, ['server.js'], { cwd: REPO, env: { ...process.env, NODE_ENV: 'production', SESSION_SECRET: 'x', ALLOW_DEFAULT_ADMIN: '1', DATA_DIR: join(tmp, 'prod'), PORT: '0' } }).on('exit', ok));
+  assert.equal(code, 1);
+});
+
+test('L1 sign out ends the session even for a copied cookie', async () => {
+  const login = await call('POST', '/api/login', { username: 'admin', password: 'a-better-password' }, { Origin: origin });
+  const c = login.headers.get('set-cookie').split(';')[0];
+  assert.equal((await call('GET', '/api/admin/state', null, { Cookie: c })).status, 200);
+  await call('POST', '/api/logout', null, { Origin: origin, Cookie: c });
+  assert.equal((await call('GET', '/api/admin/state', null, { Cookie: c })).status, 401);
+});
+
+test('login lockout: 5 wrong tries lock the account', async () => {
+  let last;
+  for (let i = 0; i < 6; i++) last = await call('POST', '/api/login', { username: 'admin', password: `nope${i}` }, { Origin: origin });
+  assert.equal(last.status, 429);
 });

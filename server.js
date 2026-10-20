@@ -3,12 +3,12 @@
 import { createServer } from 'node:http';
 import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, normalize, sep } from 'node:path';
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { brotliCompressSync, constants as zc, gzipSync } from 'node:zlib';
 import { openDb, getState, setState, backup } from './src/db.js';
 import {
   allow, adminRow, checkLogin, clearFailures, clientIp, cookieHeader, defaultInUse, locked, readCookie, recordFailure, sameOrigin, seedAdmin, setPassword,
-  signSession, verifySession, SESSION_DAYS,
+  signSession, startupProblem, verifySession, SESSION_DAYS,
 } from './src/auth.js';
 import { etDay, injectMarkers, validateEvent, validateMenu, validateNews, validateSpecial } from './src/lib/state.js';
 import { createInquiryHandler } from './src/email/index.js';
@@ -19,6 +19,8 @@ const PROD = process.env.NODE_ENV === 'production';
 if (!PROD && existsSync(join(ROOT, '.env'))) process.loadEnvFile(join(ROOT, '.env'));
 const env = process.env;
 const PORT = env.PORT === undefined ? 8080 : Number(env.PORT);
+const startup = startupProblem(env, PROD);
+if (startup) { console.error(`Refusing to start: ${startup}`); process.exit(1); }
 if (PROD && !env.SESSION_SECRET) { console.error('Refusing to start: set SESSION_SECRET.'); process.exit(1); }
 const PUBLIC_URL = (env.PUBLIC_URL || `http://localhost:${PORT}`).replace(/\/$/, '');
 const SESSION_SECRET = env.SESSION_SECRET || randomBytes(32).toString('hex'); // dev: new secret each start, so sessions end on restart
@@ -62,9 +64,21 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; ch
   '.mp4': 'video/mp4', '.webm': 'video/webm', '.pdf': 'application/pdf' };
 const TEXT = /^(text\/|application\/(json|xml|manifest)|image\/svg)/;
 
-function baseHeaders(url) {
-  const h = { 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin', 'X-Frame-Options': 'SAMEORIGIN' };
-  if (url.protocol === 'https:') h['Strict-Transport-Security'] = 'max-age=31536000';
+// Security headers go on EVERY response, errors included. The CSP lists a hash for each inline script (and inline on*= handler) found in the
+// page being sent, so Astro's inline scripts run but injected script text would not. Inline styles stay allowed (style-src 'unsafe-inline').
+const sha = (t) => `'sha256-${createHash('sha256').update(t).digest('base64')}'`;
+const unent = (t) => t.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+function csp(html = '') {
+  const scripts = [...html.matchAll(/<script\b(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map((m) => sha(m[1]));
+  const attrs = [...html.matchAll(/\son[a-z]+="([^"]*)"/g)].map((m) => sha(unent(m[1])));
+  return ["default-src 'self'", `script-src 'self' ${scripts.join(' ')}`.trim(), `script-src-attr ${attrs.length ? `'unsafe-hashes' ${attrs.join(' ')}` : "'none'"}`,
+    "style-src 'self' 'unsafe-inline'", "img-src 'self' data:", "media-src 'self'", "font-src 'self'", "connect-src 'self'", "object-src 'none'", "base-uri 'self'",
+    "form-action 'self'", "frame-ancestors 'self'"].join('; ');
+}
+function baseHeaders(url, html) {
+  const h = { 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin', 'X-Frame-Options': 'SAMEORIGIN',
+    'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()', 'Content-Security-Policy': csp(html) };
+  if (url.protocol === 'https:') h['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains';
   return h;
 }
 function compress(nreq, buf, type, headers) {
@@ -104,7 +118,7 @@ async function serveStatic(nreq, nres, url) {
   let file = resolveFile(p);
   let st = file && statSafe(file);
   if (st?.isDirectory()) {
-    if (!p.endsWith('/')) { nres.writeHead(301, { ...baseHeaders(url), Location: `${p}/${url.search}` }); return nres.end(); }
+    if (!p.endsWith('/')) { nres.writeHead(301, { ...baseHeaders(url), Location: `/${p.replace(/^\/+/, '')}/${url.search}` }); return nres.end(); }
     file = join(file, 'index.html');
     st = statSafe(file);
   }
@@ -118,6 +132,7 @@ async function serveStatic(nreq, nres, url) {
     if (!isAdmin) { try { html = injectMarkers(html, getState(db), etDay(), url.searchParams.get('year')); } catch (e) { log('inject failed, serving the static page', e.message); } } // fail open: static HTML is a correct default
     headers['Cache-Control'] = isAdmin ? 'no-store' : 'no-cache';
     if (isAdmin) headers['X-Robots-Tag'] = 'noindex, nofollow';
+    Object.assign(headers, baseHeaders(url, html)); // CSP hashes for this page's inline scripts
     const body = compress(nreq, Buffer.from(html), type, headers);
     nres.writeHead(200, headers);
     if (!isAdmin) stats.record(nreq, nres);
@@ -148,14 +163,15 @@ function sendRange(nreq, nres, file, st, headers) {
   headers['Content-Length'] = end - start + 1;
   nres.writeHead(status, headers);
   if (nreq.method === 'HEAD') return nres.end();
-  createReadStream(file, { start, end }).pipe(nres);
+  createReadStream(file, { start, end }).on('error', () => nres.destroy()).pipe(nres);
 }
 
 // ---------- sign-in ----------
 const origins = (url) => [url.origin, PUBLIC_URL];
 const sessionVersion = () => adminRow(db)?.session_v ?? 0;
-const sessionCookie = (url) => cookieHeader(signSession(adminRow(db).username, Date.now() + SESSION_DAYS * 86400e3, SESSION_SECRET, sessionVersion()), { secure: PROD || url.protocol === 'https:' });
-const signedIn = (req) => { const row = adminRow(db); return row ? verifySession(readCookie(req.headers.get('cookie')), SESSION_SECRET, { name: row.username, version: row.session_v }) : null; };
+const secure = (url) => PROD || url.protocol === 'https:';
+const sessionCookie = (url) => cookieHeader(signSession(adminRow(db).username, Date.now() + SESSION_DAYS * 86400e3, SESSION_SECRET, sessionVersion()), { secure: secure(url) });
+const signedIn = (req, url) => { const row = adminRow(db); return row ? verifySession(readCookie(req.headers.get('cookie'), secure(url)), SESSION_SECRET, { name: row.username, version: row.session_v }) : null; };
 
 const WRONG = 'That username and password do not match. Check them and try again.';
 async function login(req, url) {
@@ -163,14 +179,14 @@ async function login(req, url) {
   const b = await req.json().catch(() => null);
   const username = String(b?.username ?? '').trim().toLowerCase().slice(0, 64);
   const ip = clientIp(req);
-  // Lockout after 5 failures, per IP and per username (whether or not it exists).
-  if (locked(`ip:${ip}`) || locked(`user:${username}`)) return json({ error: 'locked', message: 'Too many tries. Wait 15 minutes, then try again.' }, 429);
-  if (!checkLogin(db, username, String(b?.password ?? '').slice(0, 200))) {
-    recordFailure(`ip:${ip}`);
-    recordFailure(`user:${username}`);
+  // Lockout with backoff, per address and per username+address. Not per username alone: a stranger could lock the real admin out that way.
+  const keys = [`ip:${ip}`, `user:${username}|${ip}`];
+  if (keys.some((k) => locked(k))) return json({ error: 'locked', message: 'Too many tries. Wait a few minutes, then try again.' }, 429);
+  if (!(await checkLogin(db, username, String(b?.password ?? '').slice(0, 200)))) { // async scrypt: same cost for unknown names, never blocks other requests
+    keys.forEach((k) => recordFailure(k));
     return json({ error: 'wrong', message: WRONG }, 401);
   }
-  clearFailures(`user:${username}`);
+  keys.forEach((k) => clearFailures(k));
   log('admin signed in');
   return json({ ok: true }, 200, { 'Set-Cookie': sessionCookie(url) });
 }
@@ -179,6 +195,7 @@ async function login(req, url) {
 const FIELDS = { events: validateEvent, specials: validateSpecial, news: validateNews };
 const SORT = { events: (a, b) => a.date.localeCompare(b.date) || (a.start ?? '').localeCompare(b.start ?? ''), specials: (a, b) => a.label.localeCompare(b.label), news: (a, b) => b.date.localeCompare(a.date) };
 
+const HALL_PAGES = { __proto__: null, '/hall': '/hall/', '/hall/': '/hall/' };
 /** Public hall form: JSON (fetch) gets JSON back; a plain browser form post gets a 303 back to the hall page (works without JS). */
 async function hallInquiry(req, url) {
   const origin = req.headers.get('origin');
@@ -187,7 +204,7 @@ async function hallInquiry(req, url) {
   const fields = isJson ? await req.json().catch(() => null) : Object.fromEntries([...(await req.formData().catch(() => new FormData())).entries()].map(([k, v]) => [k, String(v)]));
   const r = await submitInquiry(fields ?? {}, clientIp(req));
   if (isJson || (req.headers.get('accept') ?? '').includes('application/json')) return json(r.body, r.status);
-  const page = /^\/[a-z0-9\/_-]{1,60}$/i.test(String(fields?._page ?? '')) ? fields._page : '/hall-rental';
+  const page = HALL_PAGES[fields?._page] ?? '/hall/'; // allow-list: never redirect to a visitor-supplied path
   return new Response(null, { status: 303, headers: { Location: r.status === 200 ? `${page}?sent=1` : `${page}?error=${r.body.error}#inquiry`, 'Cache-Control': 'no-store' } });
 }
 
@@ -197,10 +214,11 @@ async function route(req, url) {
   if (p === '/api/login' && req.method === 'POST') return login(req, url);
   if (p === '/api/logout' && req.method === 'POST') {
     if (!sameOrigin(req, ...origins(url))) return bad('origin', 403);
-    return json({ ok: true }, 200, { 'Set-Cookie': cookieHeader('', { secure: PROD || url.protocol === 'https:', maxAge: 0 }) });
+    if (signedIn(req, url)) db.prepare('UPDATE admin SET session_v = session_v + 1 WHERE id = 1').run(); // ends every session, so a copied cookie dies too
+    return json({ ok: true }, 200, { 'Set-Cookie': cookieHeader('', { secure: secure(url), maxAge: 0 }) });
   }
   if (p.startsWith('/api/admin/')) {
-    const user = signedIn(req);
+    const user = signedIn(req, url);
     if (!user) return bad('signed_out', 401);
     if (req.method !== 'GET' && !sameOrigin(req, ...origins(url))) return bad('origin', 403);
     return adminApi(req, url, user);
@@ -219,7 +237,7 @@ async function adminApi(req, url, user) {
   if (key === 'GET state') return json({ user, defaultPassword: defaultInUse(db), events: list('events'), specials: list('specials'), news: list('news'), menu: state.menu ?? emptyMenu, today: etDay(new Date()) });
   if (key === 'GET stats') return json(stats.summary(url.searchParams.get('range') ?? '30d'));
 
-  if (FIELDS[section] && ['PUT', 'DELETE'].includes(req.method)) { // /api/admin/<events|specials|news>/<id or "new">
+  if (Object.hasOwn(FIELDS, section) && ['PUT', 'DELETE'].includes(req.method)) { // /api/admin/<events|specials|news>/<id or "new">
     const items = list(section);
     if (a1 !== 'new' && !items.some((x) => x.id === a1)) return bad('not_found', 404);
     if (req.method === 'DELETE') { state[section] = items.filter((x) => x.id !== a1); setState(db, state); return json({ ok: true, items: state[section] }); }
@@ -245,7 +263,7 @@ async function adminApi(req, url, user) {
 
   if (key === 'POST password') { // change password: prove it's you first
     if (!allow(`pw:${clientIp(req)}`, 10)) return bad('rate', 429);
-    if (!checkLogin(db, user, body?.current)) return bad('current');
+    if (!(await checkLogin(db, user, body?.current))) return bad('current');
     const r = setPassword(db, body?.password);
     if (r.error) return bad(r.error);
     log('admin password changed');
@@ -271,7 +289,7 @@ const server = createServer(async (nreq, nres) => {
   try {
     const proto = String(nreq.headers['x-forwarded-proto'] ?? 'http').split(',')[0].trim() === 'https' ? 'https' : 'http'; // the host's proxy ends TLS
     url = new URL(nreq.url, `${proto}://${nreq.headers.host ?? 'localhost'}`);
-  } catch { nres.writeHead(400).end(); return; }
+  } catch { nres.writeHead(400, baseHeaders(new URL('http://localhost'))).end(); return; }
   try {
     if (!url.pathname.startsWith('/api/')) {
       if (!['GET', 'HEAD'].includes(nreq.method)) { nres.writeHead(405, baseHeaders(url)).end(); return; }
@@ -279,14 +297,17 @@ const server = createServer(async (nreq, nres) => {
     }
     const headers = new Headers();
     for (const [k, v] of Object.entries(nreq.headers)) for (const x of [v].flat()) headers.append(k, x);
+    headers.set('x-vfw-peer', nreq.socket.remoteAddress ?? ''); // overwrites any copy the client sent; see clientIp()
     const body = ['GET', 'HEAD'].includes(nreq.method) ? undefined : await readBody(nreq);
     await send(nreq, nres, url, await route(new Request(url, { method: nreq.method, headers, body }), url));
   } catch (e) {
     if (e.status !== 413) log('error', nreq.method, url.pathname, e.stack ?? e);
-    if (!nres.headersSent) { nres.writeHead(e.status ?? 500, { 'Content-Type': 'application/json' }); nres.end(JSON.stringify({ error: e.status === 413 ? 'too_large' : 'server' })); }
+    if (!nres.headersSent) { nres.writeHead(e.status ?? 500, { ...baseHeaders(url), 'Content-Type': 'application/json' }); nres.end(JSON.stringify({ error: e.status === 413 ? 'too_large' : 'server' })); }
   }
 });
 
+server.headersTimeout = 10e3; // slow-connection guards
+server.requestTimeout = 30e3;
 server.listen(PORT, () => log(`VFW Post 6493 site on ${PUBLIC_URL} (port ${server.address().port}, data in ${DATA}${PROD ? '' : ', development'})`));
 const stop = () => { server.close(() => { db.close(); process.exit(0); }); setTimeout(() => process.exit(0), 5000).unref(); };
 process.on('SIGTERM', stop);

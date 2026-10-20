@@ -10,7 +10,7 @@ export const HONEYPOT = 'website'; // hidden field real people leave empty
 
 export function createMailer({ env, dataDir, log = () => {} }) {
   let seq = 0;
-  const smtp = env.SMTP_URL ? nodemailer.createTransport(env.SMTP_URL, { connectionTimeout: 10000, socketTimeout: 15000 }) : null;
+  const smtp = env.SMTP_URL ? nodemailer.createTransport(env.SMTP_URL, { connectionTimeout: 10000, socketTimeout: 15000, requireTLS: true }) : null;
   const file = nodemailer.createTransport({ streamTransport: true, buffer: true, newline: 'unix' });
   const from = env.MAIL_FROM || env.POST_EMAIL || 'website@localhost';
   return async function send(msg) {
@@ -32,9 +32,10 @@ export const inquiryText = (v) => `New hall rental inquiry\n\n${row('Name', v.na
 export function createInquiryHandler({ db, env, dataDir, log = () => {}, send = createMailer({ env, dataDir, log }), now = () => new Date() }) {
   return async function submit(fields, ip) {
     if (String(fields?.[HONEYPOT] ?? '').trim()) return { status: 200, body: { ok: true } }; // a bot filled the hidden field: look successful, store nothing
-    if (!allow(`inquiry:ip:${ip}`, 5) || !allow('inquiry:all', 100)) return { status: 429, body: { error: 'rate' } };
     const v = validateInquiry(fields);
     if (v.error) return { status: 400, body: { error: v.error } };
+    // Rate limits count only well-formed posts, so junk can't use up the hourly allowance of real inquiries.
+    if (!allow(`inquiry:ip:${ip}`, 5) || !allow('inquiry:all', 100)) return { status: 429, body: { error: 'rate' } };
     const q = v.value;
     const at = now();
     const r = db.prepare('INSERT INTO inquiries (at, day, name, phone, email, event_date, event_type, guests, message) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')

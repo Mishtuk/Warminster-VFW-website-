@@ -3,7 +3,7 @@
 // so a code can't be reversed or followed across days. Only daily totals are stored (table stats_daily). Hall inquiries come from their own table.
 import { createHash, randomBytes } from 'node:crypto';
 import { etDay } from '../lib/state.js';
-import { COOKIE } from '../auth.js';
+import { COOKIE, SECURE_COOKIE, pickIp } from '../auth.js';
 
 // Things that aren't people. Cheap and honest, not exhaustive.
 const BOT = /bot|crawl|spider|slurp|scrap|preview|curl|wget|python|httpclient|java\/|go-http|okhttp|axios|node-fetch|monitor|uptime|pingdom|headless|lighthouse|facebookexternalhit|embedly|whatsapp|scan/i;
@@ -19,7 +19,8 @@ export function createStats({ db, log = () => {}, now: clock = () => new Date() 
   function visitor(req, now) {
     const day = etDay(now);
     if (today.day !== day) today = { day, salt: randomBytes(32), seen: new Set() };
-    const ip = header(req, 'x-forwarded-for').split(',').pop().trim().replace(/:\d+$/, '') || req.socket?.remoteAddress || '';
+    if (today.seen.size > 50000) return { fresh: false, day }; // flood guard: stop counting new visitors for today
+    const ip = pickIp(header(req, 'x-forwarded-for'), req.socket?.remoteAddress);
     const id = createHash('sha256').update(today.salt).update(`|${header(req, 'host')}|${ip}|${header(req, 'user-agent')}`).digest('base64url').slice(0, 22);
     const fresh = !today.seen.has(id);
     if (fresh) today.seen.add(id);
@@ -37,7 +38,7 @@ export function createStats({ db, log = () => {}, now: clock = () => new Date() 
       path = path.length > 1 ? path.replace(/\/(index\.html)?$/, '') || '/' : path;
       if (path.length > 100 || !/^\/[a-z0-9/_-]*$/.test(path) || /^\/(admin|api)(\/|$)/.test(path)) return false;
       const ua = header(req, 'user-agent');
-      if (new RegExp(`(^|;\\s*)${COOKIE}=`).test(header(req, 'cookie')) || header(req, 'sec-gpc') === '1' || header(req, 'dnt') === '1' || isBot(ua)
+      if (new RegExp(`(^|;\\s*)(${COOKIE}|${SECURE_COOKIE})=`).test(header(req, 'cookie')) || header(req, 'sec-gpc') === '1' || header(req, 'dnt') === '1' || isBot(ua)
         || /prefetch|prerender/i.test(header(req, 'sec-purpose') + header(req, 'purpose'))) return false;
       const v = visitor(req, clock());
       add(v.day, 'views');
@@ -46,7 +47,7 @@ export function createStats({ db, log = () => {}, now: clock = () => new Date() 
         add(v.day, 'visitors');
         let ref = '';
         try { ref = new URL(header(req, 'referer')).host.replace(/^www\./, ''); } catch {}
-        if (ref && ref !== header(req, 'host').replace(/^www\./, '')) add(v.day, 'ref', ref.slice(0, 80));
+        if (ref && ref !== header(req, 'host').replace(/^www\./, '') && q("SELECT COUNT(*) n FROM stats_daily WHERE day = ? AND metric = 'ref'").get(v.day).n < 200) add(v.day, 'ref', ref.slice(0, 80));
       }
       return true;
     } catch (e) { log(`stats: ${e.message}`); return false; } // counting must never break a page
