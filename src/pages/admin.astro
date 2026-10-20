@@ -270,7 +270,7 @@
         upload: 'The picture could not be saved. Try again.', in_use: 'A news item or a product still uses that picture.',
         past: 'Pick today or a later date.', slots: 'Enter a number from 1 to 100.', responder: 'Add who answers before turning the form on.', responderEmail: 'That email address does not look right.',
         donateUrl: 'That link must start with https:// and be a full web address.', donateLabel: 'Keep the button words under 40 characters.',
-        checkoutUrl: 'That link must start with https:// and be a full web address.', options: 'Keep it to 12 choices, each under 30 characters.', name: 'Please enter a name of up to 40 characters.', bg: 'Pick a badge colour.', fg: 'Pick a text colour.', order: 'The order could not be saved. Reload the page and try again.' };
+        checkoutUrl: 'That link must start with https:// and be a full web address.', options: 'Keep it to 12 choices, each under 30 characters.', name: 'Please enter a name of up to 40 characters.', bg: 'Pick a badge colour.', accent: 'Pick an accent colour.', shape: 'Pick a badge shape from the list.', fg: 'Pick a text colour.', order: 'The order could not be saved. Reload the page and try again.' };
       const ALT_HINT = 'For people who cannot see it, for example: Members at the 60th anniversary dinner. If you leave it empty, the headline is used.';
       const ERRF = { title: 'title', date: 'date', start: 'start', end: 'end', label: 'label', body: 'body', range: 'end', name: 'name', bg: 'bg', fg: 'fg', checkoutUrl: 'checkoutUrl', options: 'options' }; // error key -> the field it belongs to
       const money = (n) => Number(n).toLocaleString('en-US');
@@ -379,8 +379,12 @@
           sub: (x) => [x.price, x.options.length && 'Options: ' + x.options.join(', ')].filter(Boolean).join(' · ') },
         taps: { title: 'Beers on tap', one: 'beer tap', add: 'Add a beer', empty: 'No beers on tap yet.', more: ' The row of taps on the home page stays hidden until a beer is on the website.', gone: 'It will be gone for good. To keep it but take it off the website, choose Hide instead.', fields: [
           ['name', 'Name of the beer', 'text', null, null, { hint: 'Up to 40 characters, like Yuengling.' }], ['bg', 'Badge colour', 'color', null, null, { half: true }], ['fg', 'Text colour', 'color', null, null, { half: true }],
+          ['accent', 'Accent colour', 'color', null, null, { half: true }],
+          ['shape', 'Badge shape', 'select', [['oval', 'Oval'], ['circle', 'Circle'], ['shield', 'Shield'], ['banner', 'Banner'], ['crest', 'Crest']], null, { half: true }],
+          ['sub', 'Small label under the name', 'text', null, null, { optional: true, hint: 'Up to 16 characters, like Light or Lager.' }],
           ['preview', 'How the badge will look', 'preview'], ['enabled', 'Show on the website', 'check']],
-          blank: { name: '', bg: '#c8102e', fg: '#ffffff', enabled: true },
+          blank: { name: '', bg: '#c8102e', fg: '#ffffff', accent: '#ffffff', shape: 'oval', sub: '', enabled: true },
+          pre: (v) => ({ ...v, accent: v.accent || v.fg, shape: v.shape || 'oval', sub: v.sub || '' }),
           line: (x) => x.name, chips: (x) => h('span', { class: 'chip', style: `background:${x.bg};color:${x.fg}` }, x.name), sub: (x) => `Badge ${x.bg}, text ${x.fg}` },
       };
       const thumbOf = (n) => '/media/photos/' + (S.photos.find((p) => p.name === n)?.thumb || n);
@@ -436,7 +440,7 @@
         if (type === 'check') return h('label', { class: 'check wide' }, h('input', { type: 'checkbox', name: k, checked: !!v[k] }), label);
         if (type === 'photo') return photoField(f, v, form);
         if (type === 'preview') {
-          const chip = h('span', { class: 'chip' }), upd = () => { const e = form.elements; chip.textContent = e.name.value || 'Beer name'; chip.style.background = e.bg.value; chip.style.color = e.fg.value; };
+          const chip = h('span', { class: 'chip' }), upd = () => { const e = form.elements; chip.textContent = e.name.value || 'Beer name'; chip.style.background = e.bg.value; chip.style.color = e.fg.value; chip.style.borderColor = e.accent.value; chip.style.borderStyle = 'solid'; chip.style.borderWidth = '2px'; chip.style.borderRadius = { circle: '999px', oval: '999px', shield: '4px 4px 50% 50%', banner: '2px', crest: '14px 14px 50% 50%' }[e.shape.value]; if (e.sub.value) chip.textContent += ' · ' + e.sub.value; };
           form.addEventListener('input', upd); queueMicrotask(upd);
           return h('div', { class: 'fld wide' }, h('label', {}, label), chip);
         }

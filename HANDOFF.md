@@ -21,7 +21,6 @@ Two machines work on this repo at the same time. Live coordination happens on th
 
 ### Now working on
 - **Laptop:** #7 Join the post page (new src/pages/join.astro; src/pages/about.astro join section; the About tabs and footer EXTRA list in src/lib/site.ts or Footer.astro; join links in VisitBlock.astro, events/first-visit.astro and contact.astro; sitemap.xml.ts).
-- **Desktop:** beer tap refresh: badges closer to each brand, a bar backdrop behind the tower, a more fluid pour (src/components/BeerTaps.astro, src/content/taps.json, the .taps block in global.css, src/scripts/pour.ts, and the taps validator, marker and admin fields only in state.js and admin.astro).
 
 ## Status (handoff, 2026-10-20)
 **The site is feature-complete on the preview. The next steps are the owner's choices.**
@@ -79,9 +78,9 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Admin:** Volunteers, Help requests and Site settings views. Public forms have rate limits, origin checks, a honeypot and size caps.
 
 ### Beer taps on the home page (2026-10-20)
-- A tap tower sits above the food snapshots (`src/components/BeerTaps.astro`, styles in the `.taps` block of global.css). Each handle has an oval name badge in the brand's colours; no logo artwork.
-- Pressing a handle pours beer (`src/scripts/pour.ts`, a canvas overlay). It splashes on the photos, the menu card and other boxes, runs off the nearest edge, and leaves the bottom of the screen. It only runs on desktop with a mouse (900px or wider) and is off with reduced motion; phones don't get the tower at all.
-- The taps are placeholders (9 common drafts). Staff edit them in Admin > Beers on tap: name, badge colours, Show on website, order. Marker `taps`.
+- A tap tower sits above the food snapshots (`src/components/BeerTaps.astro`, styles in the `.taps` block of global.css). Each handle has a name badge evoking the brand (colours, type style, shape: oval, circle, shield, banner or crest; an accent ring and a sub-label), on a back-bar backdrop of wood, smoky mirror, bottle shelf and amber glow. No logo artwork is copied.
+- Pressing a handle pours beer (`src/scripts/pour.ts`, a canvas overlay drawn as merging liquid through an SVG blur-and-threshold filter, with a tapered stream and foam). It splashes on the photos, the menu card and other boxes, runs off the nearest edge, and leaves the bottom of the screen. It only runs on desktop with a mouse (900px or wider) and is off with reduced motion; phones don't get the tower at all.
+- The taps are placeholders (9 common drafts). Staff edit them in Admin > Beers on tap: name, badge and text colours, accent, shape, sub-label, Show on website, order. Saved taps from before these fields default to an oval. Marker `taps`.
 
 ### Post shop `/shop` (2026-10-20)
 - Products are added in Admin > Shop: name, price, description, sizes, picture (same upload as news), Show on website, Move up/down. With no products it shows "Coming soon".

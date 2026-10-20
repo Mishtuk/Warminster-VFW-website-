@@ -11,7 +11,7 @@ const ok = { name: 'Yuengling', bg: '#C8102E', fg: '#ffffff' };
 
 test('validateTap: one assert per error code, colours strict', () => {
   const v = validateTap(ok).value;
-  assert.deepEqual(v, { id: v.id, name: 'Yuengling', bg: '#c8102e', fg: '#ffffff', enabled: true });
+  assert.deepEqual(v, { id: v.id, name: 'Yuengling', bg: '#c8102e', fg: '#ffffff', shape: 'oval', accent: '#ffffff', sub: '', enabled: true });
   assert.equal(validateTap({ ...ok, name: ' ' }).error, 'name');
   assert.equal(validateTap({ ...ok, name: 'x'.repeat(41) }).value.name.length, 40); // text() trims to 40
   for (const c of ['red', '#fff', '#12345g', 'red;background:url(x)', '#ffffff"onload="x', '#1234567', undefined, 5]) {
@@ -19,15 +19,26 @@ test('validateTap: one assert per error code, colours strict', () => {
     assert.equal(validateTap({ ...ok, fg: c }).error, 'fg', String(c));
   }
   assert.equal(validateTap({ ...ok, enabled: false }).value.enabled, false);
+  for (const sh of ['oval', 'circle', 'shield', 'banner', 'crest']) assert.equal(validateTap({ ...ok, shape: sh }).value.shape, sh);
+  for (const sh of ['star', 'OVAL', 5]) assert.equal(validateTap({ ...ok, shape: sh }).error, 'shape', String(sh));
+  for (const c of ['red', '#fff', 'red;x:y', '#12345g', 5]) assert.equal(validateTap({ ...ok, accent: c }).error, 'accent', String(c));
+  assert.equal(validateTap({ ...ok, accent: '#ABCDEF' }).value.accent, '#abcdef');
+  assert.equal(validateTap({ ...ok, fg: '#112233' }).value.accent, '#112233'); // default = fg
+  assert.equal(validateTap({ ...ok, sub: '  Light  ' }).value.sub, 'Light');
+  assert.equal(validateTap({ ...ok, sub: 'x'.repeat(30) }).value.sub.length, 16);
 });
 
 test('taps marker: exact markup, escaped, hidden skipped, empty when none shown', () => {
   const taps = [{ id: 'a1', name: '<img src=x onerror=1> "Ale" & Co', bg: '#112233', fg: '#ffffff', enabled: true }, { id: 'b2', name: 'Hidden', bg: '#000000', fg: '#ffffff', enabled: false }, { id: 'c3', name: 'Bad', bg: 'red;x:y', fg: '#ffffff' }];
   const html = tapsHtml(taps);
-  assert.ok(html.startsWith('<ul class="tap-row"><li class="tap" style="--tap-bg:#112233;--tap-fg:#ffffff"><button type="button" class="tap-handle" aria-label="Pour a &lt;img'));
+  assert.ok(html.startsWith('<ul class="tap-row"><li class="tap" data-shape="oval" style="--tap-bg:#112233;--tap-fg:#ffffff;--tap-accent:#ffffff"><button type="button" class="tap-handle" aria-label="Pour a &lt;img'));
   assert.ok(!html.includes('<img') && !html.includes('Hidden') && !html.includes('red;x'));
   assert.equal((html.match(/<li /g) ?? []).length, 1);
   assert.ok(html.endsWith('<span class="tap-nozzle" aria-hidden="true"></span></li></ul>'));
+  const rich = tapsHtml([{ ...taps[0], name: 'Lite', shape: 'shield', accent: '#ff0000', sub: '<b>Light</b>' }, { ...taps[0], shape: 'evil"', accent: 'red;x', sub: '' }]);
+  assert.ok(rich.includes('<li class="tap" data-shape="shield" style="--tap-bg:#112233;--tap-fg:#ffffff;--tap-accent:#ff0000">'));
+  assert.ok(rich.includes('<span class="tap-name">Lite</span><span class="tap-sub">&lt;b&gt;Light&lt;/b&gt;</span></span>'));
+  assert.ok(rich.includes('data-shape="oval" style="--tap-bg:#112233;--tap-fg:#ffffff;--tap-accent:#ffffff"') && !rich.includes('evil') && !rich.includes('red;x') && (rich.match(/tap-sub/g) ?? []).length === 1);
   assert.equal(tapsHtml([]), '');
   assert.equal(tapsHtml([{ ...taps[0], enabled: false }]), '');
   assert.equal(injectMarkers('<div class="taps"><!--vfw:taps-->seed<!--/vfw:taps--></div>', { taps: [] }, '2026-01-01'), '<div class="taps"></div>');

@@ -89,18 +89,23 @@ export function validateNews(b, { photos } = {}) {
 }
 
 const HEX = /^#[0-9a-f]{6}$/i;
-/** A beer tap on the home page (admin): name up to 40 characters, badge colour bg and text colour fg as strict #rrggbb. */
+export const TAP_SHAPES = ['oval', 'circle', 'shield', 'banner', 'crest'];
+/** A beer tap on the home page (admin): name up to 40 characters, badge colour bg and text colour fg as strict #rrggbb; optional shape (default oval), accent (#rrggbb, default fg), sub-label up to 16 characters. */
 export function validateTap(b) {
   b = b ?? {};
   const name = text(b.name, 40);
   if (!name) return { error: 'name' };
   for (const k of ['bg', 'fg']) if (typeof b[k] !== 'string' || !HEX.test(b[k])) return { error: k };
-  return { value: { id: id(b.id), name, bg: b.bg.toLowerCase(), fg: b.fg.toLowerCase(), enabled: flag(b.enabled) } };
+  const shape = b.shape == null || b.shape === '' ? 'oval' : b.shape;
+  if (!TAP_SHAPES.includes(shape)) return { error: 'shape' };
+  if (b.accent != null && b.accent !== '' && (typeof b.accent !== 'string' || !HEX.test(b.accent))) return { error: 'accent' };
+  const fg = b.fg.toLowerCase(), accent = b.accent ? b.accent.toLowerCase() : fg;
+  return { value: { id: id(b.id), name, bg: b.bg.toLowerCase(), fg, shape, accent, sub: typeof b.sub === 'string' ? text(b.sub, 16) : '', enabled: flag(b.enabled) } };
 }
 /** The beer taps (marker: taps): the ul.tap-row inside div.taps[data-pour]. Hidden taps are skipped; none enabled gives '' so the tower hides. */
 export function tapsHtml(taps = []) {
   const list = taps.filter((t) => t.enabled !== false && HEX.test(t.bg) && HEX.test(t.fg));
-  return list.length ? `<ul class="tap-row">${list.map((t) => `<li class="tap" style="--tap-bg:${t.bg};--tap-fg:${t.fg}"><button type="button" class="tap-handle" aria-label="Pour a ${esc(t.name)}"><span class="tap-badge"><span class="tap-name">${esc(t.name)}</span></span></button><span class="tap-nozzle" aria-hidden="true"></span></li>`).join('')}</ul>` : '';
+  return list.length ? `<ul class="tap-row">${list.map((t) => `<li class="tap" data-shape="${TAP_SHAPES.includes(t.shape) ? t.shape : 'oval'}" style="--tap-bg:${t.bg};--tap-fg:${t.fg};--tap-accent:${HEX.test(t.accent) ? t.accent : t.fg}"><button type="button" class="tap-handle" aria-label="Pour a ${esc(t.name)}"><span class="tap-badge"><span class="tap-name">${esc(t.name)}</span>${t.sub ? `<span class="tap-sub">${esc(t.sub)}</span>` : ''}</span></button><span class="tap-nozzle" aria-hidden="true"></span></li>`).join('')}</ul>` : '';
 }
 
 /** A shop product (admin). options = choices like sizes, an array or one per line. checkoutUrl = optional https payment link. */
