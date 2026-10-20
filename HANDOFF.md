@@ -21,6 +21,7 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Task issues:** work is handed out as GitHub issues labeled `laptop` or `desktop`, each a full brief with a "Done when" checklist. Check `gh issue list -l <your machine> --state open` at the start of a session and about every 15 minutes while idle. Take the lowest number, comment "Started", claim it below, and close it with the commit hash when done.
 
 ### Now working on
+- **Laptop:** social share cards: Open Graph and Twitter tags per page (the head of src/layouts/Base.astro, PageHead props, a default share image in public/media/).
 - **Laptop:** #10 What's going on photos (src/lib/event-photos.js, featuredHtml in src/lib/state.js, the whats-on style block in src/pages/index.astro, maybe a small src/scripts/ script for the cycling bundles).
 
 ## Status (handoff, 2026-10-20)
