@@ -17,7 +17,10 @@ const sources = ['hero-portrait.mp4', 'hero-720.mp4', 'hero.av1.mp4', 'hero.mp4'
 <section class="welcome" aria-labelledby="welcome-title">
   <div class="welcome-media" aria-hidden="true">
     <picture>
+      <source media="(max-width: 700px) and (orientation: portrait)" type="image/avif" srcset={`${href('/media/hero-poster-portrait-m.avif')} 540w, ${href('/media/hero-poster-portrait.avif')} 1080w`} sizes="100vw" />
+      <source media="(max-width: 700px) and (orientation: portrait)" type="image/webp" srcset={`${href('/media/hero-poster-portrait-m.webp')} 540w, ${href('/media/hero-poster-portrait.webp')} 1080w`} sizes="100vw" />
       <source media="(max-width: 700px) and (orientation: portrait)" srcset={`${href('/media/hero-poster-portrait-m.jpg')} 540w, ${href('/media/hero-poster-portrait.jpg')} 1080w`} sizes="100vw" />
+      <source type="image/avif" srcset={`${href('/media/hero-poster-m.avif')} 960w, ${href('/media/hero-poster.avif')} 1920w`} sizes="100vw" />
       <img class="welcome-poster" src={href('/media/hero-poster.jpg')} srcset={`${href('/media/hero-poster-m.jpg')} 960w, ${href('/media/hero-poster.jpg')} 1920w`} sizes="100vw" alt="" width="1024" height="576" fetchpriority="high" decoding="async" />
     </picture>
     <video id="hero-video" muted loop playsinline preload="none"
@@ -57,8 +60,9 @@ const sources = ['hero-portrait.mp4', 'hero-720.mp4', 'hero.av1.mp4', 'hero.mp4'
     const b = document.querySelector('.video-toggle');
     const label = b && b.querySelector('.sr-only');
     const sync = () => { if (!b) return; b.dataset.paused = String(v.paused); label.textContent = v.paused ? 'Play the background video' : 'Pause the background video'; };
-    const still = matchMedia('(prefers-reduced-motion: reduce)').matches || (navigator.connection && navigator.connection.saveData);
-    // The poster image paints first. The video file is chosen and fetched only after the page has loaded.
+    const c = navigator.connection;
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches || (c && (c.saveData || /^(slow-2g|2g|3g)$/.test(c.effectiveType)));
+    // The poster image paints first. The video file is chosen and fetched only after the page has loaded (never on Save-Data or a 3g or slower link: the poster stays).
     const start = () => {
       const phone = matchMedia('(max-width: 700px)').matches, portrait = matchMedia('(orientation: portrait)').matches;
       const d = v.dataset;

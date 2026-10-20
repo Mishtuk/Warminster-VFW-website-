@@ -12,8 +12,8 @@ const hallGallery = JSON.stringify(HALL_PHOTOS.map((p) => ({ src: photo(p.name).
 ---
 <Base title={`${POST.name}, ${POST.city}, PA`}>
   <Fragment slot="head">
-    <link rel="preload" as="image" imagesrcset={`${href('/media/hero-poster-portrait-m.jpg')} 540w, ${href('/media/hero-poster-portrait.jpg')} 1080w`} imagesizes="100vw" href={href('/media/hero-poster-portrait-m.jpg')} media="(max-width: 700px) and (orientation: portrait)" fetchpriority="high" />
-    <link rel="preload" as="image" imagesrcset={`${href('/media/hero-poster-m.jpg')} 960w, ${href('/media/hero-poster.jpg')} 1920w`} imagesizes="100vw" href={href('/media/hero-poster.jpg')} media="not all and (max-width: 700px) and (orientation: portrait)" fetchpriority="high" />
+    <link rel="preload" as="image" imagesrcset={`${href('/media/hero-poster-portrait-m.avif')} 540w, ${href('/media/hero-poster-portrait.avif')} 1080w`} imagesizes="100vw" href={href('/media/hero-poster-portrait-m.avif')} type="image/avif" media="(max-width: 700px) and (orientation: portrait)" fetchpriority="high" />
+    <link rel="preload" as="image" imagesrcset={`${href('/media/hero-poster-m.avif')} 960w, ${href('/media/hero-poster.avif')} 1920w`} imagesizes="100vw" href={href('/media/hero-poster.avif')} type="image/avif" media="not all and (max-width: 700px) and (orientation: portrait)" fetchpriority="high" />
   </Fragment>
   <Hero />
   <section class="section whats-on" aria-labelledby="on-title">

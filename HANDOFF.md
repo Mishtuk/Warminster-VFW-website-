@@ -21,7 +21,6 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Task issues:** work is handed out as GitHub issues labeled `laptop` or `desktop`, each a full brief with a "Done when" checklist. Check `gh issue list -l <your machine> --state open` at the start of a session and about every 15 minutes while idle. Take the lowest number, comment "Started", claim it below, and close it with the commit hash when done.
 
 ### Now working on
-- **Laptop:** #12 hero poster for faster first paint on phones (src/components/Hero.astro, the hero preload links in src/pages/index.astro head slot, public/media/hero-poster-*).
 - **Laptop:** full-site check, measuring only; findings filed as issues.
 
 ## Status (handoff, 2026-10-20)
@@ -31,6 +30,7 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Pages:** 11 pages in the cozy "Canteen" look, plus a light/dark theme.
   - The theme switch is a small moon/sun button at the bottom right (`ThemeFab.astro`). It follows the system setting and is remembered per visitor.
 - **Home:**
+  - Hero posters come as AVIF (portrait 15 KB / 35 KB, landscape 32 KB / 130 KB) with WebP and JPEG fallbacks in `<picture>`; only the AVIF is preloaded. The hero video starts after load and is skipped with Save-Data or on 2g and 3g.
   - The hero has a background video and a polaroid stack showing a random 9 from a 150-photo bank (`HeroCarousel.astro`, `src/lib/hero-photos.ts`). The page carries 9 spread-out bank photos; the full bank is `/media/hero-bank.json` (`src/pages/media/hero-bank.json.ts`, built by `src/lib/hero-bank.ts`), fetched after load to reshuffle slides 2 to 9. `BeerTaps.astro` loads `pour-loader.ts`, which imports `pour.ts` on the first touch of a tap. On phones the stack is a strip below the hero.
   - Then "What's going on at the post": the next special event within 30 days, else the next event, plus 4 compact cards (`featuredHtml` in `state.js`, marker `events-featured`). Each event gets real post photos by title, else by category (`src/lib/event-photos.js`; a rule can list several photos). Events with 3 or more photos cycle slowly (`src/scripts/event-cycle.ts`: one shared timer, paused off-screen, on hover or focus and with reduced motion). Card photos are 192x144 on desktop and full width on phones. Details and card titles link to `/events#ev-...` (`anchorOf` in `state.js`): one-off events anchor in the calendar month list, repeating nights on their weekly card.
   - Then New here?, food snapshots with the specials menu card, the hall band (2 photos that open a 14-photo gallery, `src/lib/hall-photos.ts`), the namesakes plaque and post news.
