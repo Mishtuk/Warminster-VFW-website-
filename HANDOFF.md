@@ -19,6 +19,7 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Commits** are authored as Mish (see the top of this file).
 
 ### Now working on
+- **Laptop:** printable monthly flyer (new src/pages/events/flyer.astro and src/scripts/flyer.ts, a link in src/pages/events.astro, one line in src/pages/sitemap.xml.ts).
 
 ## Status (handoff, 2026-10-20)
 **The site is feature-complete on the preview. The next steps are the owner's choices.**
