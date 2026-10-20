@@ -21,7 +21,6 @@ Two machines work on this repo at the same time. Live coordination happens on th
 
 ### Now working on
 - **Laptop:** beer pour flow (src/scripts/pour.ts only).
-- **Laptop:** event Details links open on that event (featuredHtml in src/lib/state.js, the event list and calendar renderers in state.js that print event ids, src/pages/events.astro).
 
 ## Status (handoff, 2026-10-20)
 **The site is feature-complete on the preview. The next steps are the owner's choices.**
@@ -31,7 +30,7 @@ Two machines work on this repo at the same time. Live coordination happens on th
   - The theme switch is a small moon/sun button at the bottom right (`ThemeFab.astro`). It follows the system setting and is remembered per visitor.
 - **Home:**
   - The hero has a background video and a polaroid stack showing a random 9 from a 150-photo bank (`HeroCarousel.astro`, `src/lib/hero-photos.ts`). On phones the stack is a strip below the hero.
-  - Then "What's going on at the post": the next special event within 30 days, else the next event, plus 4 compact cards (`featuredHtml` in `state.js`, marker `events-featured`). Each event gets a real post photo by title, else by category (`src/lib/event-photos.js`); add a title rule there when a new kind of event gets its own photo.
+  - Then "What's going on at the post": the next special event within 30 days, else the next event, plus 4 compact cards (`featuredHtml` in `state.js`, marker `events-featured`). Each event gets a real post photo by title, else by category (`src/lib/event-photos.js`); add a title rule there when a new kind of event gets its own photo. Details and card titles link to `/events#ev-...` (`anchorOf` in `state.js`): one-off events anchor in the calendar month list, repeating nights on their weekly card.
   - Then New here?, food snapshots with the specials menu card, the hall band (2 photos that open a 14-photo gallery, `src/lib/hall-photos.ts`), the namesakes plaque and post news.
 - **Info pages:**
   - Join the post `/join` (under the About tabs, `ABOUT_TABS` in `site.ts`): who can join, three paths (VFW, Auxiliary, Home Association) with official links or Call the post, how to join, renewing and meetings. Facts are from vfw.org and vfwauxiliary.org (sources in a code comment). The Home Association price shows Call the post until `homePrice` in `join.astro` is set to `POST.joinPrice` (the $35 in post.js has no source in research.md).
