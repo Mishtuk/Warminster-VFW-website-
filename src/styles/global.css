@@ -254,7 +254,11 @@ a.card:hover h3 { text-decoration: underline 2px var(--gold); text-underline-off
   box-shadow: var(--shadow); transform: rotate(var(--tilt, 0deg));
 }
 .snap img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
-.snap figcaption { padding: 0.55rem 0.25rem 0.7rem; color: #2a2119; font-size: var(--step--1); font-weight: 600; line-height: 1.35; }
+.snap figcaption { padding: 0.6rem 0.25rem 0.7rem; color: #952f32; font-family: 'Special Elite', 'Courier New', monospace; font-size: var(--step--1); font-weight: 400; line-height: 1.35; letter-spacing: 0.01em; transform: rotate(-0.6deg); mix-blend-mode: multiply; }
+/* Rubber-stamp captions in rotating inks, all AA on the photo paper: red, navy, green, brass. */
+:nth-child(4n+2) > .snap figcaption, .snap:nth-child(4n+2) figcaption { color: #1f3a5f; transform: rotate(0.5deg); }
+:nth-child(4n+3) > .snap figcaption, .snap:nth-child(4n+3) figcaption { color: #2f5d3a; transform: rotate(-0.3deg); }
+:nth-child(4n+4) > .snap figcaption, .snap:nth-child(4n+4) figcaption { color: #6e5418; transform: rotate(0.8deg); }
 .snap:not(:has(figcaption)) { padding-bottom: 8px; }
 @media (prefers-reduced-motion: reduce) { .snap { transform: none; } }
 .media, .frame { position: relative; overflow: hidden; background: var(--stone); border: 8px solid var(--snap); box-shadow: var(--shadow); }

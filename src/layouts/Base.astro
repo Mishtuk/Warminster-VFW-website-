@@ -37,6 +37,7 @@ const fontCss = [
   // Archivo: one variable file (wght 100-900, wdth 62-125). Headings use font-stretch 80%, UI 100%.
   `@font-face{font-family:'Archivo';font-style:normal;font-weight:100 900;font-stretch:62% 125%;font-display:swap;src:url(${base}/fonts/archivo.woff2) format('woff2');${range}}`,
   face('Literata', 'normal', '200 900', 'literata'),
+  face('Special Elite', 'normal', '400', 'special-elite'), // stamp-style photo captions
   // Size-matched local fallbacks limit layout shift during swap (measured with fontTools).
   "@font-face{font-family:'Archivo Fallback';src:local('Arial Bold'),local('Arial-BoldMT'),local('Arial');size-adjust:94.7%;ascent-override:92.8%;descent-override:22.2%;line-gap-override:0%}",
   "@font-face{font-family:'Literata Fallback';src:local('Georgia');size-adjust:108.3%;ascent-override:108.7%;descent-override:28.4%;line-gap-override:0%}",

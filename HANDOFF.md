@@ -185,7 +185,7 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
     - event categories as ribbon stripes
     - a namesakes plaque with the six branches and POW/MIA
   - The official red and gold are accents only.
-- **Fonts:** Literata for sign-style headings and Archivo for body text, both self-hosted OFL.
+- **Fonts:** Literata for sign-style headings and Archivo for body text, both self-hosted OFL. Photo captions use Special Elite (Apache 2.0, `public/fonts/special-elite.woff2`) as rubber stamps in rotating inks: red, navy, green and brass, all AA on the photo paper.
 - **Logo:** the post's official VFW design, rebuilt as outlined vectors in `public/brand/`:
   - red "VFW" with gold bars, "NO ONE DOES MORE FOR VETERANS." and "Post 6493"
   - `logo.svg`: full colour
