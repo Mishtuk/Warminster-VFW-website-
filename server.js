@@ -5,9 +5,10 @@ import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, normalize, sep } from 'node:path';
 import { createHash, randomBytes } from 'node:crypto';
 import { brotliCompressSync, constants as zc, gzipSync } from 'node:zlib';
-import { openDb, getState, setState, backup } from './src/db.js';
+import { openDb, getState, setState, backup, purgeInquiries, retentionDays } from './src/db.js';
+import { clean, createAudit } from './src/audit.js';
 import {
-  allow, adminRow, checkLogin, clearFailures, clientIp, cookieHeader, defaultInUse, locked, readCookie, recordFailure, sameOrigin, seedAdmin, setPassword,
+  allow, adminRow, checkLogin, clearFailures, clientIp, cookieHeader, dataDirProblem, defaultInUse, locked, readCookie, recordFailure, sameOrigin, seedAdmin, setPassword,
   signSession, startupProblem, verifySession, SESSION_DAYS,
 } from './src/auth.js';
 import { etDay, injectMarkers, validateEvent, validateMenu, validateNews, validateSpecial } from './src/lib/state.js';
@@ -28,9 +29,17 @@ const DIST = env.DIST_DIR || join(ROOT, 'dist');
 const DATA = env.DATA_DIR || (PROD ? '/home/data' : join(ROOT, '.data'));
 const log = (...a) => console.log(new Date().toISOString(), ...a);
 
+const dirProblem = dataDirProblem(DATA, DIST, join(ROOT, '.env'));
+if (dirProblem) { console.error(`Refusing to start: ${dirProblem}`); process.exit(1); }
+
 const db = openDb(DATA);
+const audit = createAudit({ db, log });
 const stats = createStats({ db, log });
-const submitInquiry = createInquiryHandler({ db, env, dataDir: DATA, log });
+const submitInquiry = createInquiryHandler({ db, env, dataDir: DATA, log, audit: audit.event });
+const RETENTION = retentionDays(env.INQUIRY_RETENTION_DAYS);
+const purge = () => { try { const n = purgeInquiries(db, RETENTION); if (n) audit.event('inquiries_purged', 'system', '', `${n} older than ${RETENTION} days`); } catch (e) { log('purge failed', e.message); } };
+purge();
+setInterval(purge, 24 * 3600e3).unref();
 
 // First run: the admin account, and seed content from src/content/*.json. Never invented here.
 const first = seedAdmin(db, { allowDefault: env.ALLOW_DEFAULT_ADMIN === '1', password: env.ADMIN_PASSWORD });
@@ -115,6 +124,10 @@ function notFound(nreq, nres, url) {
 }
 async function serveStatic(nreq, nres, url) {
   const p = url.pathname;
+  // Dotfiles and dot-folders (.env, .git, .data ...) are never served; only /.well-known/ is allowed.
+  let decoded = p;
+  try { decoded = decodeURIComponent(p); } catch { return notFound(nreq, nres, url); }
+  if (decoded.split('/').some((seg, i, all) => seg.startsWith('.') && !(seg === '.well-known' && i === 1 && all.length > 2))) return notFound(nreq, nres, url);
   let file = resolveFile(p);
   let st = file && statSafe(file);
   if (st?.isDirectory()) {
@@ -181,13 +194,15 @@ async function login(req, url) {
   const ip = clientIp(req);
   // Lockout with backoff, per address and per username+address. Not per username alone: a stranger could lock the real admin out that way.
   const keys = [`ip:${ip}`, `user:${username}|${ip}`];
-  if (keys.some((k) => locked(k))) return json({ error: 'locked', message: 'Too many tries. Wait a few minutes, then try again.' }, 429);
+  if (keys.some((k) => locked(k))) { audit.event('login_blocked', username, ip, 'locked out, try refused'); return json({ error: 'locked', message: 'Too many tries. Wait a few minutes, then try again.' }, 429); }
   if (!(await checkLogin(db, username, String(b?.password ?? '').slice(0, 200)))) { // async scrypt: same cost for unknown names, never blocks other requests
     keys.forEach((k) => recordFailure(k));
+    audit.event('login_fail', username, ip, 'wrong username or password');
+    if (keys.some((k) => locked(k))) audit.event('lockout', username, ip, 'too many wrong tries, backing off');
     return json({ error: 'wrong', message: WRONG }, 401);
   }
   keys.forEach((k) => clearFailures(k));
-  log('admin signed in');
+  audit.event('login_ok', username, ip);
   return json({ ok: true }, 200, { 'Set-Cookie': sessionCookie(url) });
 }
 
@@ -214,7 +229,8 @@ async function route(req, url) {
   if (p === '/api/login' && req.method === 'POST') return login(req, url);
   if (p === '/api/logout' && req.method === 'POST') {
     if (!sameOrigin(req, ...origins(url))) return bad('origin', 403);
-    if (signedIn(req, url)) db.prepare('UPDATE admin SET session_v = session_v + 1 WHERE id = 1').run(); // ends every session, so a copied cookie dies too
+    const who = signedIn(req, url);
+    if (who) { db.prepare('UPDATE admin SET session_v = session_v + 1 WHERE id = 1').run(); audit.event('logout', who, clientIp(req), 'all sessions ended'); } // ends every session, so a copied cookie dies too
     return json({ ok: true }, 200, { 'Set-Cookie': cookieHeader('', { secure: secure(url), maxAge: 0 }) });
   }
   if (p.startsWith('/api/admin/')) {
@@ -233,18 +249,22 @@ async function adminApi(req, url, user) {
   const state = getState(db);
   const list = (name) => (state[name] ??= []);
   const emptyMenu = { hours: '', sections: [] };
+  const ip = clientIp(req);
+  const note = (what, detail = '') => audit.event(what, user, ip, detail); // who = the signed-in admin
 
   if (key === 'GET state') return json({ user, defaultPassword: defaultInUse(db), events: list('events'), specials: list('specials'), news: list('news'), menu: state.menu ?? emptyMenu, today: etDay(new Date()) });
   if (key === 'GET stats') return json(stats.summary(url.searchParams.get('range') ?? '30d'));
+  if (key === 'GET security') return json({ events: audit.recent(50) });
 
   if (Object.hasOwn(FIELDS, section) && ['PUT', 'DELETE'].includes(req.method)) { // /api/admin/<events|specials|news>/<id or "new">
     const items = list(section);
     if (a1 !== 'new' && !items.some((x) => x.id === a1)) return bad('not_found', 404);
-    if (req.method === 'DELETE') { state[section] = items.filter((x) => x.id !== a1); setState(db, state); return json({ ok: true, items: state[section] }); }
+    if (req.method === 'DELETE') { state[section] = items.filter((x) => x.id !== a1); setState(db, state); note(`${section}_delete`, `id ${a1}`); return json({ ok: true, items: state[section] }); }
     const v = FIELDS[section]({ ...body, id: a1 === 'new' ? undefined : a1 });
     if (v.error) return bad(v.error);
     state[section] = [...items.filter((x) => x.id !== v.value.id), v.value].sort(SORT[section]);
     setState(db, state);
+    note(`${section}_${a1 === 'new' ? 'create' : 'update'}`, `id ${v.value.id}${v.value.enabled === false ? ' (hidden)' : ''}`);
     return json({ item: v.value, items: state[section] });
   }
   if (key === 'PUT menu') {
@@ -252,21 +272,23 @@ async function adminApi(req, url, user) {
     if (v.error) return bad(v.error);
     state.menu = v.value;
     setState(db, state);
+    note('menu_update', `${v.value.sections.length} sections`);
     return json({ menu: v.value });
   }
 
   if (key === 'GET inquiries') return json({ inquiries: db.prepare('SELECT * FROM inquiries ORDER BY id DESC LIMIT 500').all().map((r) => ({ ...r, handled: Boolean(r.handled), emailed: Boolean(r.emailed) })) });
   if ((key === 'PUT inquiries' || key === 'DELETE inquiries') && /^\d{1,12}$/.test(a1 ?? '')) {
     const r = req.method === 'PUT' ? db.prepare('UPDATE inquiries SET handled = ? WHERE id = ?').run(body?.handled ? 1 : 0, +a1) : db.prepare('DELETE FROM inquiries WHERE id = ?').run(+a1);
+    if (r.changes) note(req.method === 'PUT' ? 'inquiry_update' : 'inquiry_delete', `id ${a1}${req.method === 'PUT' ? (body?.handled ? ' handled' : ' new') : ''}`);
     return r.changes ? json({ ok: true }) : bad('not_found', 404);
   }
 
   if (key === 'POST password') { // change password: prove it's you first
-    if (!allow(`pw:${clientIp(req)}`, 10)) return bad('rate', 429);
-    if (!(await checkLogin(db, user, body?.current))) return bad('current');
+    if (!allow(`pw:${ip}`, 10)) { note('password_change_blocked', 'rate limit'); return bad('rate', 429); }
+    if (!(await checkLogin(db, user, body?.current))) { note('password_change_fail', 'current password wrong'); return bad('current'); }
     const r = setPassword(db, body?.password);
     if (r.error) return bad(r.error);
-    log('admin password changed');
+    note('password_change', 'other sessions ended'); // session_v + 1 rotates the session; the cookie below is the new one
     return json({ ok: true }, 200, { 'Set-Cookie': sessionCookie(url) }); // other sessions just ended (new session version); keep this one
   }
   return bad('not_found', 404);
@@ -301,7 +323,7 @@ const server = createServer(async (nreq, nres) => {
     const body = ['GET', 'HEAD'].includes(nreq.method) ? undefined : await readBody(nreq);
     await send(nreq, nres, url, await route(new Request(url, { method: nreq.method, headers, body }), url));
   } catch (e) {
-    if (e.status !== 413) log('error', nreq.method, url.pathname, e.stack ?? e);
+    if (e.status !== 413) log('error', clean(nreq.method, 10), clean(url.pathname, 200), clean(e.stack ?? e, 2000));
     if (!nres.headersSent) { nres.writeHead(e.status ?? 500, { ...baseHeaders(url), 'Content-Type': 'application/json' }); nres.end(JSON.stringify({ error: e.status === 413 ? 'too_large' : 'server' })); }
   }
 });

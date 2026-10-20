@@ -190,6 +190,37 @@ test('L1 sign out ends the session even for a copied cookie', async () => {
   assert.equal((await call('GET', '/api/admin/state', null, { Cookie: c })).status, 401);
 });
 
+test('dotfiles are never served, even if present in dist/', async () => {
+  writeFileSync(join(dist, '.env'), 'SECRET=1');
+  mkdirSync(join(dist, '.git'), { recursive: true });
+  writeFileSync(join(dist, '.git', 'config'), 'x');
+  for (const p of ['/.env', '/.git/config', '/%2eenv', '/.data/vfw.db', '/a/.env']) assert.equal((await call('GET', p)).status, 404, p);
+});
+
+test('refuses to start when DATA_DIR is inside the web root', async () => {
+  const code = await new Promise((ok) => spawn(process.execPath, ['server.js'], { cwd: REPO, env: { ...process.env, DIST_DIR: dist, DATA_DIR: join(dist, 'data'), PORT: '0', NODE_ENV: 'test' } }).on('exit', ok));
+  assert.equal(code, 1);
+});
+
+test('security log: sign-in failure, edits and deletes are recorded; passwords never are', async () => {
+  const bad = await call('POST', '/api/login', { username: 'ad' + String.fromCharCode(13, 10) + 'min', password: 'secret-wrong-pass' }, { Origin: origin, 'X-Forwarded-For': '9.9.9.9' });
+  assert.equal(bad.status, 401);
+  const login = await call('POST', '/api/login', { username: 'admin', password: 'a-better-password' }, { Origin: origin });
+  const c = login.headers.get('set-cookie').split(';')[0];
+  const as = (m, p, b) => call(m, `/api/admin/${p}`, b, { Origin: origin, Cookie: c });
+  const { item } = await (await as('PUT', 'news/new', { title: 'Log me', date: '2026-10-01', body: 'x' })).json();
+  await as('DELETE', `news/${item.id}`);
+  const events = (await (await as('GET', 'security')).json()).events;
+  const types = events.map((e) => e.type);
+  for (const t of ['login_fail', 'login_ok', 'news_create', 'news_delete']) assert.ok(types.includes(t), t);
+  const fail = events.find((e) => e.type === 'login_fail');
+  assert.equal(fail.who, 'ad min'); // CR/LF flattened
+  assert.ok(!JSON.stringify(events).includes('secret-wrong-pass') && !JSON.stringify(events).includes('a-better-password'));
+  assert.ok(events.find((e) => e.type === 'news_create').detail.startsWith('id '));
+  assert.notEqual(fail.ip, '9.9.9.9'); // X-Forwarded-For is ignored without TRUST_PROXY
+  await call('POST', '/api/logout', null, { Origin: origin, Cookie: c });
+});
+
 test('login lockout: 5 wrong tries lock the account', async () => {
   let last;
   for (let i = 0; i < 6; i++) last = await call('POST', '/api/login', { username: 'admin', password: `nope${i}` }, { Origin: origin });

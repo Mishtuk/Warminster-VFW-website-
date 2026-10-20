@@ -43,3 +43,10 @@ PORT, PUBLIC_URL, SESSION_SECRET (required when NODE_ENV=production), POST_EMAIL
 
 ## Needs from the site (owner of package.json / astro.config.mjs)
 None. Scaffolding there is the Riverside copy (astro + nodemailer); `npm run build` works with only admin.astro present. shell.astro was not created: the server makes no HTML pages of its own.
+
+## For the site
+Privacy line to show under the hall inquiry form (exact sentence, in hall.astro):
+
+> We use what you send only to answer your hall rental question. Inquiries are kept for up to 12 months and then deleted; call the post any time to have yours removed.
+
+The server deletes inquiries older than INQUIRY_RETENTION_DAYS (default 365, so "12 months" matches the default; if the env var is changed, change this sentence too).

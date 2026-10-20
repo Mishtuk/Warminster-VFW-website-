@@ -118,12 +118,12 @@ test('M2 client address: header ignored unless TRUST_PROXY=1', () => {
 });
 
 test('M3 production refuses weak startup settings', () => {
-  assert.match(startupProblem({ ALLOW_DEFAULT_ADMIN: '1' }, true), /ALLOW_DEFAULT_ADMIN/);
+  assert.match(startupProblem({ ALLOW_DEFAULT_ADMIN: '1', SESSION_SECRET: 'x'.repeat(32) }, true), /ALLOW_DEFAULT_ADMIN/);
   assert.equal(startupProblem({ ALLOW_DEFAULT_ADMIN: '1' }, false), null);
-  assert.match(startupProblem({ ADMIN_PASSWORD: 'elevenchars' }, true), /ADMIN_PASSWORD/);
-  assert.equal(startupProblem({ ADMIN_PASSWORD: 'twelve-chars' }, true), null);
+  assert.match(startupProblem({ ADMIN_PASSWORD: 'elevenchars', SESSION_SECRET: 'x'.repeat(32) }, true), /ADMIN_PASSWORD/);
+  assert.equal(startupProblem({ ADMIN_PASSWORD: 'twelve-chars', SESSION_SECRET: 'x'.repeat(32) }, true), null);
   assert.match(startupProblem({ ADMIN_PASSWORD: 'admin' }, false), /ADMIN_PASSWORD/);
-  assert.equal(startupProblem({}, true), null);
+  assert.equal(startupProblem({ SESSION_SECRET: 'x'.repeat(32) }, true), null);
 });
 
 test('L9 cookie: host-locked name over https, plain name otherwise; the other name is not read', () => {

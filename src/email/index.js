@@ -29,13 +29,13 @@ export const inquiryText = (v) => `New hall rental inquiry\n\n${row('Name', v.na
   + `${row('Event type', v.eventType)}${row('Guests', v.guests)}${v.message ? `\nMessage:\n${v.message}\n` : ''}`;
 
 /** Returns async (fields, ip) => { status, body }. fields = parsed JSON or form values. Never throws: mail trouble is logged, the inquiry is kept. */
-export function createInquiryHandler({ db, env, dataDir, log = () => {}, send = createMailer({ env, dataDir, log }), now = () => new Date() }) {
+export function createInquiryHandler({ db, env, dataDir, log = () => {}, audit = () => {}, send = createMailer({ env, dataDir, log }), now = () => new Date() }) {
   return async function submit(fields, ip) {
-    if (String(fields?.[HONEYPOT] ?? '').trim()) return { status: 200, body: { ok: true } }; // a bot filled the hidden field: look successful, store nothing
+    if (String(fields?.[HONEYPOT] ?? '').trim()) { audit('inquiry_honeypot', 'visitor', ip, 'hidden field filled, nothing stored'); return { status: 200, body: { ok: true } }; } // a bot filled the hidden field: look successful, store nothing
     const v = validateInquiry(fields);
     if (v.error) return { status: 400, body: { error: v.error } };
     // Rate limits count only well-formed posts, so junk can't use up the hourly allowance of real inquiries.
-    if (!allow(`inquiry:ip:${ip}`, 5) || !allow('inquiry:all', 100)) return { status: 429, body: { error: 'rate' } };
+    if (!allow(`inquiry:ip:${ip}`, 5) || !allow('inquiry:all', 100)) { audit('inquiry_rate_limited', 'visitor', ip, 'too many inquiries'); return { status: 429, body: { error: 'rate' } }; }
     const q = v.value;
     const at = now();
     const r = db.prepare('INSERT INTO inquiries (at, day, name, phone, email, event_date, event_type, guests, message) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')

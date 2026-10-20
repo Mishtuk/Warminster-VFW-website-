@@ -15,9 +15,16 @@ export function openDb(dir) {
       email TEXT NOT NULL DEFAULT '', event_date TEXT NOT NULL DEFAULT '', event_type TEXT NOT NULL DEFAULT '', guests INTEGER, message TEXT NOT NULL DEFAULT '',
       handled INTEGER NOT NULL DEFAULT 0, emailed INTEGER NOT NULL DEFAULT 0);
     CREATE TABLE IF NOT EXISTS stats_daily (day TEXT NOT NULL, metric TEXT NOT NULL, item TEXT NOT NULL DEFAULT '', n INTEGER NOT NULL,
-      PRIMARY KEY (day, metric, item)) WITHOUT ROWID;`);
+      PRIMARY KEY (day, metric, item)) WITHOUT ROWID;
+    CREATE TABLE IF NOT EXISTS security_events (id INTEGER PRIMARY KEY, at INTEGER NOT NULL, type TEXT NOT NULL, who TEXT NOT NULL DEFAULT '',
+      ip TEXT NOT NULL DEFAULT '', detail TEXT NOT NULL DEFAULT '');`);
   return db;
 }
+
+/** Days to keep hall inquiries (INQUIRY_RETENTION_DAYS, default 365). Anything that is not a positive whole number means the default. */
+export const retentionDays = (v) => (/^[1-9][0-9]{0,4}$/.test(String(v ?? '')) ? Number(v) : 365);
+/** Deletes inquiries older than `days`. Returns how many. Daily backups can hold an older copy for up to 7 more days. */
+export const purgeInquiries = (db, days, now = Date.now()) => Number(db.prepare('DELETE FROM inquiries WHERE at < ?').run(now - days * 864e5).changes);
 
 export const getState = (db) => JSON.parse(db.prepare("SELECT value FROM kv WHERE key = 'state'").get()?.value ?? '{}');
 export const setState = (db, state) => db.prepare("INSERT INTO kv (key, value) VALUES ('state', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(JSON.stringify(state));

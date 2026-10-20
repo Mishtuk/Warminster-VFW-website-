@@ -1,6 +1,7 @@
 // One admin account (username + password), signed session cookie, rate limits. No third-party login.
 import { createHmac, randomBytes, scrypt, scryptSync, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
+import { resolve, sep } from 'node:path';
 
 export const COOKIE = 'vfw_admin';
 export const SECURE_COOKIE = '__Host-vfw_admin'; // over https the cookie is host-locked: a sibling subdomain can't plant or overwrite it
@@ -10,9 +11,10 @@ export const SESSION_DAYS = 7;
 const b64u = (b) => Buffer.from(b).toString('base64url');
 const mac = (secret, data) => createHmac('sha256', secret).update(data).digest();
 
-/** Cookie value: base64url("name.exp.version") + "." + base64url(HMAC). The version is admin.session_v: a new password ends every session. */
+/** Cookie value: base64url("name.exp.version.nonce") + "." + base64url(HMAC-SHA256). The nonce is 128 random bits from crypto.randomBytes, so every
+ *  session value is unique. The version is admin.session_v: a new password or a sign-out ends every session. */
 export const signSession = (name, exp, secret, version = 0) => {
-  const data = b64u(`${name}.${exp}.${version}`);
+  const data = b64u(`${name}.${exp}.${version}.${randomBytes(16).toString('hex')}`);
   return `${data}.${b64u(mac(secret, data))}`;
 };
 
@@ -24,6 +26,7 @@ export function verifySession(value, secret, known, now = Date.now()) {
   const got = Buffer.from(sig, 'base64url');
   if (got.length !== want.length || !timingSafeEqual(got, want)) return null;
   const parts = Buffer.from(data, 'base64url').toString().split('.');
+  if (!/^[0-9a-f]{32}$/.test(parts.pop() ?? '')) return null; // nonce
   const version = Number(parts.pop());
   const exp = Number(parts.pop());
   const name = parts.join('.');
@@ -136,7 +139,17 @@ export function setPassword(db, pw, now = Date.now()) {
 
 /** Reasons to refuse to start (checked before the server opens), or null. */
 export function startupProblem(env, prod) {
+  if (prod && String(env.SESSION_SECRET ?? '').length < 32) return 'SESSION_SECRET must be at least 32 characters (use 32 random bytes as hex).';
   if (prod && env.ALLOW_DEFAULT_ADMIN === '1') return 'ALLOW_DEFAULT_ADMIN is for testing only; remove it in production.';
   if (env.ADMIN_PASSWORD && (prod ? env.ADMIN_PASSWORD.length < 12 : passwordProblem(env.ADMIN_PASSWORD))) return 'ADMIN_PASSWORD is too weak (production needs at least 12 characters).';
+  return null;
+}
+
+/** The data folder (database, backups, outbox) and .env must never be inside the folder the web server serves. Returns a reason or null. */
+export function dataDirProblem(dataDir, distDir, envFile) {
+  const inside = (child, parent) => child === parent || child.startsWith(parent + sep);
+  const d = resolve(dataDir), w = resolve(distDir);
+  if (inside(d, w)) return `DATA_DIR (${d}) is inside the web root (${w}).`;
+  if (envFile && inside(resolve(envFile), w)) return `.env is inside the web root (${w}).`;
   return null;
 }

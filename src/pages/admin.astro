@@ -286,13 +286,18 @@ const NAV = [['dashboard', 'Dashboard'], ['events', 'Events'], ['specials', 'Dri
         const d = r.data;
         const pick = h('select', { 'aria-label': 'Time range', onchange: (e) => renderDashboard(e.target.value) }, [['7d', 'Last 7 days'], ['30d', 'Last 30 days'], ['90d', 'Last 90 days'], ['365d', 'Last year']].map(([v, t]) => h('option', { value: v, selected: v === d.range }, t)));
         const tile = (n, t) => h('div', { class: 'tile' }, h('b', {}, money(n)), t);
+        const ev = h('div');
         const top = (items, key, empty) => (items.length ? h('ol', { class: 'top' }, items.map((i) => h('li', {}, `${i[key]} (${money(i.n)})`))) : h('p', { class: 'meta' }, empty));
         sec.replaceChildren(h('h1', {}, 'Dashboard'),
           h('label', {}, 'Show', pick),
           h('div', { class: 'tiles' }, tile(d.visitors, 'Visitors'), tile(d.views, 'Page views'), tile(d.inquiries.inRange, 'Hall inquiries'), tile(d.inquiries.new, 'Inquiries not handled yet')),
           h('div', { class: 'card' }, h('h2', {}, 'Visitors per day'), chart(d.series), h('p', { class: 'meta' }, 'Counted without cookies. Your own visits while signed in are not counted.')),
           h('div', { class: 'grid2' }, h('div', { class: 'card' }, h('h2', {}, 'Top pages'), top(d.pages, 'path', 'No visits counted yet.')),
-            h('div', { class: 'card' }, h('h2', {}, 'Where visitors came from'), top(d.referrers, 'host', 'No referring sites yet.'))));
+            h('div', { class: 'card' }, h('h2', {}, 'Where visitors came from'), top(d.referrers, 'host', 'No referring sites yet.'))),
+          h('div', { class: 'card' }, h('h2', {}, 'Security log (last 50)'), h('p', { class: 'meta' }, 'Sign-ins, lockouts, password changes and every change made in this admin. Read only.'), ev));
+        const sr = await api('GET', 'admin/security');
+        if (sr.ok) ev.replaceChildren(...(sr.data.events.length ? sr.data.events.map((e) => h('div', { class: 'item' }, h('div', { class: 'what' }, h('strong', {}, e.type.replace(/_/g, ' ')), ' ', e.who, e.detail && ' · ' + e.detail),
+          h('div', { class: 'meta' }, new Date(e.at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) + (e.ip ? ' · ' + e.ip : '')))) : [h('p', {}, 'Nothing logged yet.')]));
       }
 
       // ---------- account ----------
