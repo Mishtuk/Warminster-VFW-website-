@@ -94,7 +94,6 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
   - a memorial plaque for the namesakes, with the six branches (Space Force included) and POW/MIA
   - no phone bottom bar
 - **Fonts:** Archivo (condensed sans) and Literata (serif), both self-hosted OFL.
-- **Design notes:** kept locally only, in `.claude/team/redesign.md`.
 - **Logo:** the post's official VFW design, rebuilt as outlined vectors in `public/brand/`:
   - red "VFW" with gold bars, "NO ONE DOES MORE FOR VETERANS." and "Post 6493"
   - `logo.svg`: full colour
