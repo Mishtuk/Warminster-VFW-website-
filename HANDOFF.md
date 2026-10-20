@@ -11,21 +11,31 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
   - `source/fb/` holds the Facebook group photos, videos and flyers.
 
 ## Status
-**2026-10-20:** original redesign live (885daba).
+**2026-10-20:** the Canteen redesign is live on every page (8adbf02). Final QA is in progress.
 - **Live on the preview:**
-  - the full site: 11 pages, with the admin panel in `server.js`
-  - real content from the Facebook group: bar hours, specials, kitchen menu, recurring and dated events, officers, programs and post news
-  - the official VFW Post 6493 logo
-  - VA-first veteran news
-- **Tests and audits:** `npm test` passes 30/30. Lighthouse accessibility is 100, with no horizontal scroll at 360px.
-- **Next: hero video and Facebook photos.**
-  - Chrome is allowed to auto-download from facebook.com, but its download folder must point at `V:\WarminsterVFW\source\fb` (nothing goes on the C: drive).
-  - Then save photos and videos from the group's whole history, cut `public/media/hero*.mp4`, and add photos to pages.
-  - The home hero currently uses a hall photo as its poster.
-- **Later:**
-  - a merch store using the logo (keep a Store tab in mind)
-  - hosting and domain
-  - SMTP for real inquiry email
+  - **Pages:** 11 pages in the cozy "Canteen" look. Each has a dark/light theme toggle in the header (on phones it is in the Menu sheet). The theme follows the system setting and is remembered per visitor.
+  - **Home:** a background-video hero, real food snapshots beside a printed menu card of specials, a large hall-rental band, What's on with event photos, the namesakes plaque (six branches and POW/MIA), and post news.
+  - **Hero video:** cut from the post's own Facebook clips (the Memorial Day parade and line dancing in the hall), upscaled with Real-ESRGAN, and encoded to `public/media/hero*.mp4`. The re-cut scripts are local only.
+  - **Content:** real content from the Facebook group, the official VFW Post 6493 logo, and veteran news led by VA News.
+- **Security:** hardened 2026-10-20.
+  - **Logins:** per-address login backoff, and the server refuses to start in production with the default or a weak admin password.
+  - **Headers:** a strict CSP with per-page script hashes, plus security headers on every response.
+  - **Requests:** same-site form redirects; set `TRUST_PROXY=1` only behind a real proxy.
+  - **Deploy:** a least-privilege deploy workflow pinned to commit SHAs.
+  - **Checks:** `npm audit` is clean and there are no secrets in history.
+  - **Verified:** `npm test` passes 41/41. The admin has been checked in a browser under the CSP.
+- **Rules for editing code:**
+  - Keep every asset self-hosted (the CSP blocks other origins).
+  - Use no inline `on*=` handlers; use `addEventListener`.
+  - After editing regex-heavy code, grep for raw control bytes, because an editor slip once turned a regex escape into a backspace byte.
+- **Media:** 45 photos and 23 videos from the Facebook group are in `source/fb/` (local only).
+  - Food photos exist; drink photos don't, because the post posts drink specials as text, so drinks are shown typographically.
+  - Facebook only serves SD video (640x360).
+- **Waiting on the owner:**
+  - The Reddit security thread the owner linked can't be fetched automatically. Paste its text to cross-check it against the audit.
+  - Hosting and domain.
+  - SMTP for real inquiry email.
+- **Later:** a merch store using the logo (keep a Store tab in mind).
 
 ## The post (facts; never invent others)
 - **Name:**
@@ -72,7 +82,7 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
   - post news from the admin panel
   - veteran-world news and new resources from public feeds (VA News, DVIDS and others) read at build time
 - **About**, **History** (national VFW and Post 6493) and **Contact**.
-- **Admin panel:** reached from the "Staff login" link at the very bottom of the footer, as on the Riverside site. It shows site statistics and lets staff:
+- **Admin panel:** reached from the "Admin login" link at the very bottom of the footer, as on the Riverside site. It shows site statistics and lets staff:
   - add, edit and disable events
   - edit drink specials
   - edit the food menu
@@ -101,7 +111,7 @@ A new website for **VFW Post 6493 & Auxiliary** in Warminster, PA. The post has 
   - `logo-mark(-reverse).svg`: small sizes (the header)
   - `logo-1c.svg` and `logo-mono.svg`: one colour, for merch
   - Red is `#952f32` and gold is `#a58c52`. The VFW marks are VFW National trademarks, so check their licensing rules before selling merch.
-- **Hero:** a muted, looping background video made from the post's own Facebook photos and videos, with a pause button and a poster image, as on the Riverside site.
+- **Hero:** a muted, looping, AI-enhanced background video made from the post's own Facebook clips, with a pause button, posters and reduced-motion handling.
 - **Photos:** real photos only, from the post's Facebook group and the hall-rental listing. No stock or AI images.
 - **Quality bar:** the user's Riverside site (`V:\RiversideWebsite`, https://mishtuk.github.io/Riverside-Website/), with the same stack and patterns.
 
