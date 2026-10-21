@@ -334,7 +334,7 @@ const empty = (msg) => `<p class="vfw-empty">${esc(msg)}</p>`;
 const galleryHtml = (o, id, base = '/media/photos/') => {
   const list = eventGallery(o);
   if (!list.length) return '';
-  const imgs = list.map((x) => `<li><img src="${esc(base + x.name)}-800.webp" alt="${esc(x.alt)}" width="800" height="600" loading="lazy" decoding="async"></li>`).join('');
+  const imgs = list.map((x) => `<li><img src="${esc(base + x.name)}-400.webp" srcset="${esc(base + x.name)}-400.webp 400w, ${esc(base + x.name)}-800.webp 800w" sizes="9rem" alt="${esc(x.alt)}" width="800" height="600" loading="lazy" decoding="async"></li>`).join('');
   const data = JSON.stringify(list.map((x) => ({ src: `${base}${x.name}.webp`, alt: x.alt, cap: x.alt }))).replace(/</g, '\u003c');
   return `<div class="vfw-evg" data-gallery="${id}"><ul class="gallery vfw-evg-row" aria-label="Photos: ${esc(o.title)}">${imgs}</ul><script type="application/json" data-gallery-list="${id}">${data}</script></div>`;
 };
@@ -512,7 +512,7 @@ const evImg = (o, base, cls, sizes, decorative = false, turn = 0) => {
   return list.map((p, i) => {
     const src = `${base}${p.name}`;
     const still = decorative || i > 0; // only the first photo of a bundle speaks, so a screen reader hears one description
-    return `<img class="${esc(cls)}${i === 0 && list.length > 1 ? ' is-on' : ''}" src="${esc(src)}-800.webp" srcset="${esc(src)}-800.webp 800w, ${esc(src)}.webp 1024w" sizes="${esc(sizes)}" alt="${still ? '' : esc(p.alt)}"${i > 0 ? ' aria-hidden="true"' : ''} width="800" height="600" loading="lazy" decoding="async">`;
+    return `<img class="${esc(cls)}${i === 0 && list.length > 1 ? ' is-on' : ''}" src="${esc(src)}-800.webp" srcset="${esc(src)}-400.webp 400w, ${esc(src)}-800.webp 800w, ${esc(src)}.webp 1024w" sizes="${esc(sizes)}" alt="${still ? '' : esc(p.alt)}"${i > 0 ? ' aria-hidden="true"' : ''} width="800" height="600" loading="lazy" decoding="async">`;
   }).join('');
 };
 const cycleAttr = (o) => (eventPhotos(o).length >= 3 ? ' data-cycle' : '');
