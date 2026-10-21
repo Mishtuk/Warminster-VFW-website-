@@ -340,9 +340,9 @@ const galleryHtml = (o, id, base = '/media/photos/') => {
 };
 
 /** opts.today mutes past one-off events; opts.brief drops the description of recurring nights (shown once in regularHtml). */
-const eventItem = (o, { today, brief, anchor } = {}) => `<li${anchor ? ` id="${anchorOf(o)}"` : ''} class="vfw-event vfw-cat-${slug(o.category)}${today && o.recurring === 'none' && o.date < today ? ' vfw-past' : ''}"><time class="vfw-event-date" datetime="${o.date}">${esc(shortDay(o.date))}</time>`
+const eventItem = (o, { today, brief, anchor, photoBase } = {}) => `<li${anchor ? ` id="${anchorOf(o)}"` : ''} class="vfw-event vfw-cat-${slug(o.category)}${today && o.recurring === 'none' && o.date < today ? ' vfw-past' : ''}"><time class="vfw-event-date" datetime="${o.date}">${esc(shortDay(o.date))}</time>`
   + `${o.start ? ` <span class="vfw-event-time">${esc(timeLabel(o.start, o.end))}</span>` : ''} <strong class="vfw-event-title">${esc(o.title)}</strong>`
-  + ` <span class="vfw-event-cat">${esc(o.category)}</span>${o.description && !(brief && o.recurring !== 'none') ? `<p class="vfw-event-desc">${esc(o.description)}</p>` : ''}${anchor ? galleryHtml(o, `evg-${anchorOf(o)}`) : ''}</li>`;
+  + ` <span class="vfw-event-cat">${esc(o.category)}</span>${o.description && !(brief && o.recurring !== 'none') ? `<p class="vfw-event-desc">${esc(o.description)}</p>` : ''}${anchor ? galleryHtml(o, `evg-${anchorOf(o)}`, photoBase) : ''}</li>`;
 
 /** Next events from today: <ul class="vfw-events">. opts: limit (5), days (120), empty. */
 export function upcomingHtml(events, today, { limit = 5, days = 120, empty: none = `No upcoming events are listed right now. ${CALL}` } = {}) {
@@ -352,7 +352,7 @@ export function upcomingHtml(events, today, { limit = 5, days = 120, empty: none
 
 /** Full-year calendar, 12 month grids with event days marked, plus each month's list of one-off events and a pointer to the regular nights. Works with no JS.
  *  opts: nav (previous/next year links as ?year=N, for the live server), empty. */
-export function calendarHtml(events, year, today, { nav = false } = {}) {
+export function calendarHtml(events, year, today, { nav = false, photoBase = '/media/photos/' } = {}) {
   const all = expand(events, `${year}-01-01`, `${year}-12-31`);
   const head = DAYS.map((d) => `<th scope="col" abbr="${d}">${d.slice(0, 3)}</th>`).join('');
   const months = Array.from({ length: 12 }, (_, m) => {
@@ -375,7 +375,7 @@ export function calendarHtml(events, year, today, { nav = false } = {}) {
     const label = new Date(Date.UTC(year, m, 1)).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
     return `<section class="vfw-month" id="month-${m + 1}"><h3 class="vfw-month-title">${label}</h3><table class="vfw-grid"><caption class="vfw-sr">${label}</caption>`
       + `<thead><tr>${head}</tr></thead><tbody>${rows.join('')}</tbody></table>`
-      + (oneOff.length ? `<ul class="vfw-month-list vfw-events">${oneOff.map((o) => eventItem(o, { today, brief: true, anchor: true })).join('')}</ul>` : '')
+      + (oneOff.length ? `<ul class="vfw-month-list vfw-events">${oneOff.map((o) => eventItem(o, { today, brief: true, anchor: true, photoBase })).join('')}</ul>` : '')
       + (evs.length === oneOff.length ? '' : '<p class="vfw-month-regular">Plus the regular nights: <a href="#regular">see Every week and every month</a>.</p>')
       + (evs.length ? '' : '<p class="vfw-month-none">No events listed this month.</p>') + '</section>';
   });
@@ -392,7 +392,7 @@ const scheduleLabel = (e) => {
 };
 const list = (a) => (a.length < 3 ? a.join(' and ') : `${a.slice(0, -1).join(', ')} and ${a.at(-1)}`);
 /** Regular nights (anything that repeats), each described once: <ul class="vfw-events vfw-regular">. Same title, time and text merge into one row. */
-export function regularHtml(events = [], { empty: none = 'No regular nights are listed right now.', guide = '/events/first-visit' } = {}) {
+export function regularHtml(events = [], { empty: none = 'No regular nights are listed right now.', guide = '/events/first-visit', photoBase = '/media/photos/' } = {}) {
   const guideLink = (t) => { const g = /bingo/i.test(t) ? 'bingo' : /line danc/i.test(t) ? 'line-dancing' : ''; return g ? `<a class="vfw-guide-link" href="${esc(guide)}#${g}">First time? What to expect</a>` : ''; };
   const rows = new Map();
   for (const e of events.filter((x) => x.enabled !== false && x.recurring !== 'none')) {
@@ -411,7 +411,7 @@ export function regularHtml(events = [], { empty: none = 'No regular nights are 
   const anchorId = (e) => { const a = anchorOf(e, lead); return seen.has(a) ? '' : (seen.add(a), ` id="${a}"`); };
   return `<ul class="vfw-events vfw-regular">${[...rows.values()].map(({ e, labels }) => { const idAttr = anchorId(e); return `<li${idAttr} class="vfw-event vfw-cat-${slug(e.category)}"><strong class="vfw-event-date">${esc(labels.join(', '))}</strong>`
     + `${e.start ? ` <span class="vfw-event-time">${esc(timeLabel(e.start, e.end))}</span>` : ''} <strong class="vfw-event-title">${esc(e.title)}</strong>`
-    + ` <span class="vfw-event-cat">${esc(e.category)}</span>${e.description ? `<p class="vfw-event-desc">${esc(e.description)}</p>` : ''}${guideLink(e.title)}${idAttr ? galleryHtml(e, `evg-${anchorOf(e, lead)}`) : ''}</li>`; }).join('')}</ul>`;
+    + ` <span class="vfw-event-cat">${esc(e.category)}</span>${e.description ? `<p class="vfw-event-desc">${esc(e.description)}</p>` : ''}${guideLink(e.title)}${idAttr ? galleryHtml(e, `evg-${anchorOf(e, lead)}`, photoBase) : ''}</li>`; }).join('')}</ul>`;
 }
 
 /** Daily first, then weekly Monday to Sunday, then monthly, then seasonal; ties by name. */
@@ -476,9 +476,9 @@ export function injectMarkers(html, state, today, year, { photos, photoBase, shi
   const y = Number.isInteger(+year) && year >= 2000 && year <= 2100 ? +year : +today.slice(0, 4);
   const parts = {
     'events-upcoming': () => upcomingHtml(state.events, today),
-    'events-regular': () => regularHtml(state.events),
+    'events-regular': () => regularHtml(state.events, { photoBase }),
     'events-featured': () => featuredHtml(state.events, today),
-    calendar: () => calendarHtml(state.events, y, today, { nav: true }),
+    calendar: () => calendarHtml(state.events, y, today, { nav: true, photoBase }),
     specials: () => specialsHtml(state.specials, today),
     menu: () => menuHtml(state.menu),
     news: () => newsHtml(state.news, { photos, photoBase }),

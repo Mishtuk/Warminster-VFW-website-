@@ -15,8 +15,8 @@ const wrap = (name: string, html: string) => `<!--vfw:${name}-->${html}<!--/vfw:
 export const seed = {
   upcoming: wrap('events-upcoming', upcomingHtml(events, today, { empty })),
   featured: wrap('events-featured', featuredHtml(events, today, { empty, photoBase: href('/media/photos/'), eventsHref: href('/events') })),
-  regular: wrap('events-regular', regularHtml(events, { guide: href('/events/first-visit') })),
-  calendar: wrap('calendar', calendarHtml(events, year, today)),
+  regular: wrap('events-regular', regularHtml(events, { guide: href('/events/first-visit'), photoBase: href('/media/photos/') })),
+  calendar: wrap('calendar', calendarHtml(events, year, today, { photoBase: href('/media/photos/') })),
   specials: wrap('specials', specialsHtml(specials, today, { empty })),
   menu: wrap('menu', menuHtml(menu, { empty })),
   news: wrap('news', newsHtml(news, { empty: 'No post news yet. Check back soon.' })),
