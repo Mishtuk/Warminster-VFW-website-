@@ -21,6 +21,15 @@ const tabs = ABOUT_TABS;
     </div>
   </InfoSection>
 
+  <InfoSection id="getting-here" title="Getting here" summary={`${POST.address}.`} panel>
+    <dl class="rows">
+      {POST.gettingHere.map((r) => (
+        <div><dt>{r.label}</dt><dd>{r.text}{r.text && ' '}<a href={POST.tel}>{r.ask}</a></dd></div>
+      ))}
+    </dl>
+    <p><a class="btn btn-outline" href={POST.mapsUrl} rel="noopener">Directions</a></p>
+  </InfoSection>
+
   <InfoSection id="hours" title="Hours" summary="The bar, the kitchen and the office keep different hours." band="stone">
     <div class="hours-grid">
       <div class="panel info-body">

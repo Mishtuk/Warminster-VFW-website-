@@ -46,3 +46,10 @@ POST.callText = `Call the post ${POST.phone}`;
 POST.hoursText = POST.hours.map(([d, h]) => `${d} ${h}`).join('. ');
 POST.hallMail = `mailto:${POST.hallEmail}`;
 POST.mail = `mailto:${POST.email}`;
+// Getting here: text is sourced (Mar 2022 grant for parking-lot resurfacing; barRule). ask = unknown, shown with the tel link.
+POST.gettingHere = [
+  { label: 'Parking', text: 'The post has its own parking lot.', ask: 'Call the post to ask about space and overflow parking.' },
+  { label: 'Entrance', text: null, ask: 'Call the post to ask which door to use.' },
+  { label: 'Step-free access', text: null, ask: 'Call the post to ask about step-free access.' },
+  { label: 'At the door', text: POST.barRule, ask: 'Call the post to ask about guests.' },
+];

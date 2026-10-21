@@ -23,6 +23,7 @@ const { office = false } = Astro.props;
           <p>{POST.street}<br />{POST.city}, {POST.region} {POST.zip}</p>
           <p><a class="btn btn-outline" href={POST.mapsUrl} rel="noopener">Directions</a></p>
           <p><a class="visit-tel" href={POST.tel}>{POST.phone}</a></p>
+          <p class="hint">Parking on site. Call ahead about step-free access. <a href={href('/contact#getting-here')}>Getting here</a></p>
           {office && <p>Office: {POST.officeHours}.</p>}
         </div>
       </div>
