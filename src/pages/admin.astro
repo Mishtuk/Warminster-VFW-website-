@@ -70,6 +70,8 @@
       .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; font: inherit; font-weight: 700; min-height: 48px; padding: .5rem 1.1rem; border-radius: 6px; border: 2px solid var(--night); background: var(--night); color: var(--on-dark); cursor: pointer; text-decoration: none; }
       .btn.alt { background: var(--card); color: var(--ink); border-color: var(--ink); }
       .btn.danger { background: var(--card); color: var(--red-ink); border-color: var(--red-ink); }
+      .btn.del { background: none; border-color: transparent; color: var(--red-ink); text-decoration: underline; font-weight: 600; font-size: .9rem; min-height: 44px; padding: .5rem .8rem; margin-left: auto; }
+      .acts .btn.del { flex: 0 0 auto; }
       .btn.quiet { background: none; border-color: transparent; color: var(--ink); text-decoration: underline; }
       .row, .acts { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
       .chip { display: inline-block; font-size: .85rem; font-weight: 700; padding: .15rem .55rem; border-radius: 999px; background: var(--stone); color: var(--ink-2); line-height: 1.4; vertical-align: middle; }
@@ -185,7 +187,7 @@
         .main { padding: 1rem; }
         .btn { min-height: 52px; }
         .head .btn.add, .formbar .btn:not(.quiet), .sbody > .btn { width: 100%; }
-        .acts { width: 100%; } .acts .btn { flex: 1; }
+        .acts { width: 100%; } .acts .btn { flex: 1; } .btn.del { min-height: 48px; }
         .tiles, .two, .ff, .mline { grid-template-columns: 1fr 1fr; }
         .two, .mline { grid-template-columns: 1fr; }
         .ff { grid-template-columns: 1fr 1fr; }
@@ -382,7 +384,7 @@
           ['title', 'Headline', 'text'], ['date', 'Date', 'date'], ['body', 'News text', 'textarea', null, null, { hint: 'Leave an empty line between paragraphs.' }], ['photo', 'Picture', 'photo'],
           ['alt', 'Describe the picture', 'text', null, null, { optional: true, hint: 'For people who cannot see it, for example: Members at the 60th anniversary dinner. If you leave it empty, the headline is used.' }], ['enabled', 'Show on the website', 'check']],
           blank: { title: '', date: '', body: '', photo: '', alt: '', enabled: true }, line: (n) => n.title, sub: (n) => [short(n.date), ((t) => (t.length > 90 ? t.slice(0, t.lastIndexOf(' ', 90)) + '…' : t))(n.body.replace(/\s+/g, ' '))].filter(Boolean).join(' · ') },
-        products: { title: 'Shop', sec: 'shop', one: 'product', add: 'Add a product', empty: 'No products yet.', more: ' The shop page says Coming soon until a product is on the website.', gone: 'It will be gone for good. Orders already sent keep its name. To keep it but take it off the website, choose Hide instead.', fields: [
+        products: { title: 'Shop', sec: 'shop', one: 'product', add: 'Add a product', empty: 'No products yet.', more: ' The shop page says Coming soon until a product is on the website.', gone: 'This can\'t be undone. Orders already sent keep its name. Use Hide to keep it but take it off the website.', fields: [
           ['name', 'Product name', 'text', null, null, { hint: 'Like Post T-shirt.' }], ['price', 'Price', 'text', null, null, { optional: true, hint: 'Write it the way it should look, like $20 or $15 to $25.' }],
           ['description', 'Description', 'textarea', null, null, { optional: true, rows: 3, max: 300, hint: 'One or two sentences. Up to 300 characters.' }],
           ['options', 'Sizes or choices', 'textarea', null, null, { optional: true, rows: 4, hint: 'One per line, like S, M, L. Leave empty if there is only one kind.' }],
@@ -393,7 +395,7 @@
           pre: (v) => ({ ...v, options: (v.options || []).join('\n') }), post: (o) => ({ ...o, options: o.options.split('\n') }),
           line: (x) => x.name, chips: (x) => (x.checkoutUrl ? h('span', { class: 'chip edit' }, 'Buy online') : h('span', { class: 'chip muted' }, 'Pay at pickup')),
           sub: (x) => [x.price, x.options.length && 'Options: ' + x.options.join(', ')].filter(Boolean).join(' · ') },
-        taps: { title: 'Beers on tap', one: 'beer tap', add: 'Add a beer', empty: 'No beers on tap yet.', more: ' The row of taps on the home page stays hidden until a beer is on the website.', gone: 'It will be gone for good. To keep it but take it off the website, choose Hide instead.', fields: [
+        taps: { title: 'Beers on tap', one: 'beer tap', add: 'Add a beer', empty: 'No beers on tap yet.', more: ' The row of taps on the home page stays hidden until a beer is on the website.', gone: 'This can\'t be undone. Use Hide to keep it but take it off the website.', fields: [
           ['name', 'Name of the beer', 'text', null, null, { hint: 'Up to 40 characters, like Yuengling.' }], ['bg', 'Badge colour', 'color', null, null, { half: true }], ['fg', 'Text colour', 'color', null, null, { half: true }],
           ['accent', 'Accent colour', 'color', null, null, { half: true }],
           ['liquid', 'Beer colour', 'color', null, null, { half: true, optional: true, hint: 'The colour of the beer when it pours down the page.' }],
@@ -404,7 +406,7 @@
           blank: { name: '', bg: '#c8102e', fg: '#ffffff', accent: '#ffffff', liquid: '#e7bf43', shape: 'oval', sub: '', logo: '', enabled: true },
           pre: (v) => ({ ...v, accent: v.accent || v.fg, liquid: v.liquid || '#e7bf43', shape: v.shape || 'oval', sub: v.sub || '', logo: v.logo || '' }),
           line: (x) => x.name, chips: (x) => h('span', { class: 'chip', style: `background:${x.bg};color:${x.fg}` }, x.name), sub: (x) => `Badge ${x.bg}, text ${x.fg}` },
-        honor: { title: 'Wall of Honor', one: 'entry', add: 'Add a veteran', empty: 'No veterans yet.', more: ' The Wall of Honor page says Coming soon until an entry is on the website.', gone: 'It will be gone for good. To keep it but take it off the website, choose Hide instead.', fields: [
+        honor: { title: 'Wall of Honor', one: 'entry', add: 'Add a veteran', empty: 'No veterans yet.', more: ' The Wall of Honor page says Coming soon until an entry is on the website.', gone: 'This can\'t be undone. Use Hide to keep it but take it off the website.', fields: [
           ['name', 'Name', 'text'], ['branch', 'Branch', 'select', [['', 'Choose a branch'], ...['Army', 'Navy', 'Air Force', 'Marine Corps', 'Coast Guard', 'Space Force', 'Merchant Marine'].map((b) => [b, b])], null, { half: true }],
           ['era', 'Era', 'text', null, null, { optional: true, half: true, hint: 'Like Vietnam War.' }], ['served', 'Years served', 'text', null, null, { optional: true, hint: 'Like 1968 to 1970.' }],
           ['note', 'A few words about them', 'textarea', null, null, { optional: true, rows: 3, max: 400, hint: 'Up to 400 characters.' }], ['photo', 'Picture', 'photo'],
@@ -486,7 +488,7 @@
             ordered && mvb(it, i, -1), ordered && mvb(it, i, 1),
             h('button', { class: 'btn alt', type: 'button', onclick: () => edit(it) }, 'Edit'),
             h('button', { class: 'btn alt', type: 'button', onclick: () => setOn(it.id, !it.enabled) }, it.enabled ? 'Hide' : 'Show'),
-            h('button', { class: 'btn danger', type: 'button', onclick: () => remove(it) }, 'Delete')));
+            h('button', { class: 'btn del', type: 'button', onclick: () => remove(it) }, 'Delete')));
         const past = name === 'events' ? items.filter((e) => e.recurring === 'none' && e.date < S.today) : [];
         const body = !items.length ? h('div', { class: 'card' }, h('p', { class: 'big' }, c.empty), h('p', {}, `Choose ${c.add} to make the first one.` + (c.more || '')))
           : name === 'events' ? [h('h2', {}, 'Coming up'), h('div', { class: 'card' }, items.length > past.length ? items.filter((e) => !past.includes(e)).map(row) : h('p', { class: 'meta' }, 'Nothing is coming up.')),
@@ -515,7 +517,7 @@
           toast(on ? 'Showing on the website.' : 'Hidden from the website.', { label: 'Undo', fn: () => setOn(id, !on) });
         }
         async function remove(it) {
-          if (!(await ask(`Delete ${c.line(it)}?`, c.gone || 'It will be gone for good. To keep it but take it off the website, choose Hide instead.', 'Delete it'))) return;
+          if (!(await ask(`Delete ${c.line(it)}?`, c.gone || "This can't be undone. Use Hide to keep it but take it off the website.", 'Delete it'))) return;
           const r = await api('DELETE', `admin/${name}/${it.id}`);
           if (r.ok) { S[name] = r.data.items; renderCrud(name); toast('Deleted.'); } else toast(say(r));
         }
@@ -633,7 +635,7 @@
             h('div', { class: 'row' },
               h('button', { class: 'btn alt', type: 'button', onclick: async () => { await api('PUT', 'admin/inquiries/' + q.id, { handled: !q.handled }); renderInquiries(); } }, q.handled ? 'Mark as new' : 'Mark as handled'),
               q.event_date && q.event_date >= S.today && h('button', { class: 'btn alt', type: 'button', onclick: () => markHallBooked(q) }, 'Mark this date booked'),
-              h('button', { class: 'btn danger', type: 'button', onclick: async () => { if (await ask(`Delete the message from ${q.name}?`, 'It will be gone for good.', 'Delete it')) { await api('DELETE', 'admin/inquiries/' + q.id); renderInquiries(); } } }, 'Delete')))) : h('div', { class: 'card' }, h('p', { class: 'big' }, 'No inquiries yet.'), h('p', {}, 'Messages from the hall rental form will show up here.')));
+              h('button', { class: 'btn del', type: 'button', onclick: async () => { if (await ask(`Delete the message from ${q.name}?`, 'It will be gone for good.', 'Delete it')) { await api('DELETE', 'admin/inquiries/' + q.id); renderInquiries(); } } }, 'Delete')))) : h('div', { class: 'card' }, h('p', { class: 'big' }, 'No inquiries yet.'), h('p', {}, 'Messages from the hall rental form will show up here.')));
       }
 
       // ---------- shop orders ----------
@@ -654,7 +656,7 @@
             q.note && h('div', { class: 'priv' }, q.note),
             h('div', { class: 'row', style: 'margin-top:1rem' },
               h('button', { class: 'btn alt', type: 'button', onclick: async () => { await api('PUT', 'admin/orders/' + q.id, { handled: !q.handled }); renderShopOrders(); } }, q.handled ? 'Mark as new' : 'Mark as handled'),
-              h('button', { class: 'btn danger', type: 'button', onclick: async () => { if (await ask(`Delete the order from ${q.name}?`, 'It will be gone for good.', 'Delete it')) { await api('DELETE', 'admin/orders/' + q.id); renderShopOrders(); } } }, 'Delete'))))
+              h('button', { class: 'btn del', type: 'button', onclick: async () => { if (await ask(`Delete the order from ${q.name}?`, 'It will be gone for good.', 'Delete it')) { await api('DELETE', 'admin/orders/' + q.id); renderShopOrders(); } } }, 'Delete'))))
             : h('div', { class: 'card' }, h('p', { class: 'big' }, 'No orders yet.'), h('p', {}, 'Orders from the shop page will show up here.')));
       }
 
@@ -682,7 +684,7 @@
               h('button', { type: 'button', class: 'btn alt whobtn', 'aria-expanded': String(openId === s.id), onclick: (e) => { who.hidden = !who.hidden; e.currentTarget.setAttribute('aria-expanded', String(!who.hidden)); } }, 'Who signed up'),
               h('button', { class: 'btn alt', type: 'button', onclick: () => edit(s) }, 'Edit'),
               h('button', { class: 'btn alt', type: 'button', onclick: () => setOn(s) }, s.enabled ? 'Hide' : 'Show'),
-              h('button', { class: 'btn danger', type: 'button', onclick: () => remove(s) }, 'Delete')), who);
+              h('button', { class: 'btn del', type: 'button', onclick: () => remove(s) }, 'Delete')), who);
         };
         const up = list.filter((s) => s.date >= S.today), past = list.filter((s) => s.date < S.today);
         put(sec, h('div', { class: 'head' }, h('h1', {}, 'Volunteer shifts'), h('button', { class: 'btn add', type: 'button', onclick: () => edit(null) }, '+ Add a shift')),
@@ -755,7 +757,7 @@
             q.message && h('div', { class: 'priv' }, q.message),
             h('div', { class: 'row', style: 'margin-top:1rem' },
               h('button', { class: 'btn alt', type: 'button', onclick: async () => { await api('PUT', 'admin/help/' + q.id, { handled: !q.handled }); renderHelp(); } }, q.handled ? 'Mark as new' : 'Mark as handled'),
-              h('button', { class: 'btn danger', type: 'button', onclick: async () => { if (await ask(`Delete the request from ${q.name}?`, 'It will be gone for good.', 'Delete it')) { await api('DELETE', 'admin/help/' + q.id); renderHelp(); } } }, 'Delete')))) : h('div', { class: 'card' }, h('p', { class: 'big' }, 'No help requests yet.'), h('p', {}, 'Requests from the Ask for help form will show up here.')));
+              h('button', { class: 'btn del', type: 'button', onclick: async () => { if (await ask(`Delete the request from ${q.name}?`, 'It will be gone for good.', 'Delete it')) { await api('DELETE', 'admin/help/' + q.id); renderHelp(); } } }, 'Delete')))) : h('div', { class: 'card' }, h('p', { class: 'big' }, 'No help requests yet.'), h('p', {}, 'Requests from the Ask for help form will show up here.')));
       }
 
       // ---------- site settings ----------
