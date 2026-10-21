@@ -139,7 +139,7 @@ export function setPassword(db, pw, now = Date.now()) {
 
 /** Reasons to refuse to start (checked before the server opens), or null. */
 export function startupProblem(env, prod) {
-  if (prod && String(env.SESSION_SECRET ?? '').length < 32) return 'SESSION_SECRET must be at least 32 characters (use 32 random bytes as hex).';
+  if (prod && env.SESSION_SECRET && env.SESSION_SECRET.length < 32) return 'SESSION_SECRET must be at least 32 characters (use 32 random bytes as hex), or leave it unset.';
   if (prod && env.ALLOW_DEFAULT_ADMIN === '1') return 'ALLOW_DEFAULT_ADMIN is for testing only; remove it in production.';
   if (env.ADMIN_PASSWORD && (prod ? env.ADMIN_PASSWORD.length < 12 : passwordProblem(env.ADMIN_PASSWORD))) return 'ADMIN_PASSWORD is too weak (production needs at least 12 characters).';
   return null;

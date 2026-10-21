@@ -24,11 +24,18 @@ const env = process.env;
 const PORT = env.PORT === undefined ? 8080 : Number(env.PORT);
 const startup = startupProblem(env, PROD);
 if (startup) { console.error(`Refusing to start: ${startup}`); process.exit(1); }
-if (PROD && !env.SESSION_SECRET) { console.error('Refusing to start: set SESSION_SECRET.'); process.exit(1); }
 const PUBLIC_URL = (env.PUBLIC_URL || `http://localhost:${PORT}`).replace(/\/$/, '');
-const SESSION_SECRET = env.SESSION_SECRET || randomBytes(32).toString('hex'); // dev: new secret each start, so sessions end on restart
 const DIST = env.DIST_DIR || join(ROOT, 'dist');
 const DATA = env.DATA_DIR || (PROD ? '/home/data' : join(ROOT, '.data'));
+/** Production with no SESSION_SECRET set: a random key made on first start and kept in the data folder (never served), so nobody has to type one in. */
+function keptSecret(f) {
+  try { const s = readFileSync(f, 'utf8').trim(); if (s.length >= 32) return s; } catch {}
+  mkdirSync(DATA, { recursive: true });
+  const s = randomBytes(32).toString('hex');
+  writeFileSync(f, s, { mode: 0o600 });
+  return s;
+}
+const SESSION_SECRET = env.SESSION_SECRET || (PROD ? keptSecret(join(DATA, 'session-secret')) : randomBytes(32).toString('hex')); // dev: new secret each start, so sessions end on restart
 const log = (...a) => console.log(new Date().toISOString(), ...a);
 
 // News photos: the built ones in dist/media/photos plus admin uploads in DATA/photos (dist is wiped on every build). Folders are read when

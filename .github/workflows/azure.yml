@@ -1,0 +1,46 @@
+# Deploys the whole project to Azure App Service (Linux). Staff edits rebuild the site on the server (src/site-build.js), so it
+# needs src/, public/ and node_modules, not just dist/ (docs/azure.md). Signs in with OpenID Connect: GitHub stores no Azure
+# password or key, only the IDs below as repository variables. Does nothing until the variable AZURE_WEBAPP_NAME is set.
+name: Deploy to Azure
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: azure
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: vars.AZURE_WEBAPP_NAME != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # the short-lived sign-in token for Azure
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ vars.NODE_VERSION || '22' }} # match the App Service runtime
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+        env:
+          SITE: ${{ vars.SITE_URL }}
+      - name: Package
+        run: zip -qr site.zip . -x '.git/*' '.github/*' 'test/*' '.env' '.data/*'
+      - uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3.1.0
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - uses: azure/webapps-deploy@02a81bead70021f5284939794bcec79c271ab383 # v3.0.8
+        with:
+          app-name: ${{ vars.AZURE_WEBAPP_NAME }}
+          package: site.zip

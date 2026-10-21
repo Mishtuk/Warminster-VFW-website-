@@ -2,7 +2,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { existsSync, mkdtempSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -183,6 +183,21 @@ test('L2 directory redirect stays on this site', async () => {
 test('M3 production refuses to start with ALLOW_DEFAULT_ADMIN=1', async () => {
   const code = await new Promise((ok) => spawn(process.execPath, ['server.js'], { cwd: REPO, env: { ...process.env, NODE_ENV: 'production', SESSION_SECRET: 'x', ALLOW_DEFAULT_ADMIN: '1', DATA_DIR: join(tmp, 'prod'), PORT: '0' } }).on('exit', ok));
   assert.equal(code, 1);
+});
+
+test('production with no SESSION_SECRET makes one, keeps it in the data folder and reuses it', async () => {
+  const dir = join(tmp, 'prod-secret');
+  const start = () => new Promise((ok, fail) => {
+    const c = spawn(process.execPath, ['server.js'], { cwd: REPO, env: { ...process.env, NODE_ENV: 'production', SESSION_SECRET: '', ALLOW_DEFAULT_ADMIN: '', ADMIN_PASSWORD: '', DATA_DIR: dir, PORT: '0' } });
+    let out = '';
+    c.stdout.on('data', (d) => { out += d; if (/site on/.test(out)) { c.kill(); ok(); } });
+    c.on('exit', (code) => fail(new Error(`exited ${code}: ${out}`)));
+  });
+  await start();
+  const key = readFileSync(join(dir, 'session-secret'), 'utf8');
+  assert.match(key, /^[0-9a-f]{64}$/);
+  await start();
+  assert.equal(readFileSync(join(dir, 'session-secret'), 'utf8'), key, 'same key after a restart');
 });
 
 test('L1 sign out ends the session even for a copied cookie', async () => {

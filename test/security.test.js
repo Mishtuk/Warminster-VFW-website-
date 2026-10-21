@@ -47,6 +47,7 @@ test('web root: DATA_DIR and .env may not be inside dist/', () => {
 test('production needs a 32+ character SESSION_SECRET', () => {
   assert.match(startupProblem({ SESSION_SECRET: 'short' }, true), /SESSION_SECRET/);
   assert.equal(startupProblem({ SESSION_SECRET: 'x'.repeat(32) }, true), null);
+  assert.equal(startupProblem({}, true), null, 'unset: the server makes and keeps its own');
 });
 
 test('retention: default 365, bad values fall back; purge deletes only older inquiries', () => {
