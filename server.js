@@ -38,7 +38,7 @@ const photoFiles = () => new Set([...ls(join(DIST, 'media', 'photos')), ...ls(PH
 // Uploads are re-encoded with sharp when it loads (it ships with astro, but is not our dependency), otherwise only validated.
 const sharp = (await import('sharp').catch(() => null))?.default ?? null;
 log(sharp ? 'upload: sharp found, re-encoding pictures to WebP' : 'upload: sharp missing, validate-only');
-const pickablePhotos = (set) => [...set].filter((f) => !f.includes('-800.') && !f.includes('-full.')).sort();
+const pickablePhotos = (set) => [...set].filter((f) => !f.includes('-400.') && !f.includes('-800.') && !f.includes('-full.')).sort();
 
 const dirProblem = dataDirProblem(DATA, DIST, join(ROOT, '.env'));
 if (dirProblem) { console.error(`Refusing to start: ${dirProblem}`); process.exit(1); }

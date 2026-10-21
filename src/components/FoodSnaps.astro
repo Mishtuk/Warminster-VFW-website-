@@ -20,7 +20,7 @@ const CAPTIONS: Record<string, string> = {
 };
 const dir = path.join(process.cwd(), 'public/media/photos');
 const food = fs.readdirSync(dir)
-  .filter((f) => /^food-.+\.webp$/.test(f) && !/-(800|full).webp$/.test(f))
+  .filter((f) => /^food-.+\.webp$/.test(f) && !/-(400|800|full).webp$/.test(f))
   .map((f) => f.replace('.webp', ''))
   .sort()
   .slice(0, limit);
