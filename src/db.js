@@ -61,6 +61,11 @@ export function purgeShifts(db, cutoff) {
 export const getSettings = (db) => ({ ...DEFAULT_SETTINGS, ...JSON.parse(db.prepare("SELECT value FROM kv WHERE key = 'settings'").get()?.value ?? '{}') });
 export const setSettings = (db, v) => db.prepare("INSERT INTO kv (key, value) VALUES ('settings', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(JSON.stringify(v));
 
+// Staff-edited site content (src/lib/content.js): kv keys "content:<name>", like content:post for Admin > Post details.
+// Never part of "state" or the public data script; the static pages get it through a rebuild (src/site-build.js).
+export const getContent = (db) => Object.fromEntries(db.prepare("SELECT key, value FROM kv WHERE key LIKE 'content:%'").all().map((r) => [r.key.slice(8), JSON.parse(r.value)]));
+export const setContent = (db, name, v) => db.prepare('INSERT INTO kv (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').run(`content:${name}`, JSON.stringify(v));
+
 /** Shifts with how many people signed up. */
 export const shiftsWithCounts = (db) => db.prepare('SELECT s.*, (SELECT COUNT(*) FROM shift_signups g WHERE g.shift_id = s.id) AS filled FROM shifts s ORDER BY s.date, s.start_time, s.title').all()
   .map((r) => ({ id: r.id, title: r.title, date: r.date, start: r.start_time, end: r.end_time, slots: r.slots, notes: r.notes, enabled: Boolean(r.enabled), filled: r.filled }));

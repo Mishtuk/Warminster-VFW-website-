@@ -34,7 +34,7 @@ test('hall-calendar marker: three months, text labels, no notes, seed note witho
   assert.ok(later.includes('January 2027') && later.includes('?cal=2026-10#open-dates'));
   assert.ok(hallCalendarHtml([], T, { month: 'junk' }).includes('October 2026') && hallCalendarHtml([], T, { month: '2020-01' }).includes('October 2026'));
   const seed = hallCalendarHtml(undefined, '');
-  assert.ok(seed.includes('Send an inquiry or call the post to check a date') && seed.includes('href="tel:2157730693"') && !seed.includes('data-date'));
+  assert.ok(seed.includes('Send an inquiry or call the post to check a date') && seed.includes('href="tel:+12157730693"') && !seed.includes('data-date'));
   const state = { events: [], specials: [], news: [], menu: { sections: [] } };
   const page = injectMarkers('<!--vfw:hall-calendar-->OLDSEED<!--/vfw:hall-calendar--><!--vfw:data-->', state, T, null, { hall: { bookings: [{ date: '2026-10-30', status: 'booked', note: 'SECRET NOTE' }], month: null } });
   assert.ok(page.includes('vfw-hall') && !page.includes('OLDSEED') && !page.includes('SECRET NOTE') && !/hall|booking/i.test(page.match(/id="vfw-data">([^<]*)/)[1]));

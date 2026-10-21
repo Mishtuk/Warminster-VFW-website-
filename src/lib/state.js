@@ -5,7 +5,7 @@
 import { POST } from './post.js';
 import { eventGallery, eventPhotos } from './event-photos.js';
 import { BRANCHES, honorHtml } from './honor.js';
-const CALL = `Call the post at ${POST.phone}.`;
+const CALL = () => `Call the post at ${POST.phone}.`;
 
 export const TZ = 'America/New_York';
 export const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -366,7 +366,7 @@ const eventItem = (o, { today, brief, anchor, photoBase = '/media/photos/', medi
 
 /** Next events from today, each with a photo (or its date stamped on paper) beside it: <ul class="vfw-events vfw-upcoming">.
  *  The next special (one-off) event with photos within 30 days leads, larger, like the home page feature. opts: limit (5), days (120), empty, photoBase. */
-export function upcomingHtml(events, today, { limit = 5, days = 120, empty: none = `No upcoming events are listed right now. ${CALL}`, photoBase = '/media/photos/' } = {}) {
+export function upcomingHtml(events, today, { limit = 5, days = 120, empty: none = `No upcoming events are listed right now. ${CALL()}`, photoBase = '/media/photos/' } = {}) {
   const list = expand(events, today, addDays(today, days)).slice(0, limit);
   const top = list.find((o) => (o.recurring ?? 'none') === 'none' && o.date <= addDays(today, 30) && evSet(o).length);
   const used = new Set();
@@ -447,7 +447,7 @@ const rank = (s) => ({ daily: 0, weekly: 1, monthly: 8, seasonal: 9 })[s.period]
 export const specialOrder = (a, b) => rank(a) - rank(b) || a.label.localeCompare(b.label);
 const PERIOD_LABEL = (s) => (s.period === 'weekly' ? `Every ${DAYS[s.weekday]}` : { daily: 'Daily', monthly: 'This month', seasonal: 'Seasonal' }[s.period]);
 /** Specials that are enabled and in their date range today: <ul class="vfw-specials">. */
-export function specialsHtml(specials = [], today, { empty: none = `No specials are posted right now. ${CALL}` } = {}) {
+export function specialsHtml(specials = [], today, { empty: none = `No specials are posted right now. ${CALL()}` } = {}) {
   const live = specials.filter((s) => s.enabled !== false && (!s.start || s.start <= today) && (!s.end || today <= s.end));
   return live.length ? `<ul class="vfw-specials">${live.sort(specialOrder).map((s) => `<li class="vfw-special"><strong class="vfw-special-label">${esc(s.label)}</strong>`
     + `${s.price ? ` <span class="vfw-special-price">${esc(s.price)}</span>` : ''} <span class="vfw-special-period">${esc(PERIOD_LABEL(s))}</span>`
@@ -455,7 +455,7 @@ export function specialsHtml(specials = [], today, { empty: none = `No specials 
 }
 
 /** The food menu: sections of available items, plus the kitchen hours text. */
-export function menuHtml(menu, { empty: none = `The menu has not been posted yet. ${CALL}` } = {}) {
+export function menuHtml(menu, { empty: none = `The menu has not been posted yet. ${CALL()}` } = {}) {
   const hours = menu?.hours ? `<p class="vfw-menu-hours"><strong>Kitchen hours:</strong> ${esc(menu.hours)}</p>` : '';
   const sections = (menu?.sections ?? []).map((s) => ({ ...s, items: s.items.filter((i) => i.available !== false) })).filter((s) => s.items.length);
   if (!sections.length) return hours + empty(none);
@@ -573,12 +573,12 @@ const phoneEmail = (p, who) => `<div class="field"><label for="${p}-phone">Phone
 const spotsLeft = (s) => (s.left <= 0 ? 'Full, thank you' : s.left === 1 ? '1 spot left' : `${s.left} of ${s.slots} spots left`);
 
 /** The sign-up form: shifts are radio cards (work with no JS). shifts = public shape [{id,title,date,start,end,notes,slots,left}], already sorted. */
-const VOL_NONE = `No volunteer shifts are posted right now. Want to help? ${CALL}`;
-export function volunteerHtml(shifts = [], { empty: none = VOL_NONE } = {}) {
+const VOL_NONE = () => `No volunteer shifts are posted right now. Want to help? ${CALL()}`;
+export function volunteerHtml(shifts = [], { empty: none = VOL_NONE() } = {}) {
   if (!shifts.length) {
-    if (none !== VOL_NONE) return empty(none);
+    if (none !== VOL_NONE()) return empty(none);
     return `<div class="panel vfw-empty vfw-vol-empty"><h3>Want to help? Call the post</h3><p>No shifts are posted right now, but hands are always welcome. Helpers pitch in with flags on veterans' graves, Memorial Day, poppy sales, drives and veterans home visits. Call ${POST.phone} and tell the post what you would like to do.</p>`
-      + `<p class="btn-row"><a class="btn" href="tel:${tel}">Call ${POST.phone}</a></p></div>`;
+      + `<p class="btn-row"><a class="btn" href="${POST.tel}">Call ${POST.phone}</a></p></div>`;
   }
   const cards = shifts.map((s) => `<label class="vfw-shift${s.left <= 0 ? ' vfw-full' : ''}"><input type="radio" name="shift" value="${esc(s.id)}" required${s.left <= 0 ? ' disabled' : ''}>`
     + `${dateBox(s.date)}<span class="vfw-shift-body"><strong class="vfw-shift-title">${esc(s.title)}</strong>${s.start ? ` <span class="vfw-event-time">${esc(timeLabel(s.start, s.end))}</span>` : ''}`
@@ -591,12 +591,11 @@ export function volunteerHtml(shifts = [], { empty: none = VOL_NONE } = {}) {
     + '<p><button class="btn" type="submit">Sign me up</button></p></form>';
 }
 
-const tel = POST.phone.replace(/\D/g, '');
 /** The help request form plus its "what happens next" column, or the call-the-post panel when the form is off. */
 export function helpFormHtml(settings = {}) {
   if (!settings.helpEnabled || !settings.responderName) {
     return `<div class="panel vfw-help-off"><h3>Call the post and ask for help for a veteran</h3><p>Call the post and tell them what you need. They can point you to free help like VFW Service Officers, who help with benefits and VA claims at no cost.</p>`
-      + `<p class="btn-row"><a class="btn" href="tel:${tel}">Call ${POST.phone}</a><a class="btn btn-outline" href="/resources">See the Resources page</a></p></div>`;
+      + `<p class="btn-row"><a class="btn" href="${POST.tel}">Call ${POST.phone}</a><a class="btn btn-outline" href="/resources">See the Resources page</a></p></div>`;
   }
   const who = settings.responderName + (settings.responderRole ? `, ${settings.responderRole}` : '');
   const kinds = Object.entries(HELP_KINDS).map(([k, v], i) => `<label class="vfw-choice"><input type="radio" name="kind" value="${k}"${i ? '' : ' required'}><span>${esc(v)}</span></label>`).join('');
@@ -614,18 +613,18 @@ export function helpFormHtml(settings = {}) {
     + `<li><span class="when">Step 1</span><div class="what"><p>Your request goes to ${esc(who)}.</p></div></li>`
     + '<li><span class="when">Step 2</span><div class="what"><p>They will call or email you back to talk it through.</p></div></li>'
     + '<li><span class="when">Step 3</span><div class="what"><p>The post can\'t give medical or legal advice, but can point you to free help like VFW Service Officers. <a href="/resources">See the Resources page</a>.</p></div></li></ol>'
-    + `<p class="btn-row"><a class="btn btn-outline" href="tel:${tel}">Rather talk now? Call ${POST.phone}</a></p></div></div>`;
+    + `<p class="btn-row"><a class="btn btn-outline" href="${POST.tel}">Rather talk now? Call ${POST.phone}</a></p></div></div>`;
 }
 
 /** The Donate button, only when the admin has set an https link. */
 export const donateHtml = (settings = {}) => (settings.donateUrl
   ? `<p class="btn-row"><a class="btn" href="${esc(settings.donateUrl)}" rel="noopener noreferrer">${esc(settings.donateLabel || 'Donate online')}</a></p><p class="hint">Opens our payment service's secure page. The post never sees your card.</p>` : '');
 
-const SOON = `<div class="panel vfw-shop-soon"><h3>Coming soon</h3><p>Post merchandise will be listed here. Want something now? Call the post at <a href="tel:${tel}">${POST.phone}</a>.</p></div>`;
+const SOON = () => `<div class="panel vfw-shop-soon"><h3>Coming soon</h3><p>Post merchandise will be listed here. Want something now? Call the post at <a href="${POST.tel}">${POST.phone}</a>.</p></div>`;
 /** The post shop (marker: shop): product cards, then the pickup order form when any product has no checkout link. Only enabled products; order data never comes through here. */
 export function shopHtml(products = [], { photos, photoBase = '/media/photos/' } = {}) {
   const list = products.filter((p) => p.enabled !== false);
-  if (!list.length) return SOON;
+  if (!list.length) return SOON();
   const pickup = list.filter((p) => !p.checkoutUrl);
   const card = (p) => `<li class="vfw-prod panel" id="p-${esc(p.id)}">${photoFigure(p, photos, photoBase, 'vfw-prod-photo') || '<div class="vfw-prod-photo vfw-prod-ph" aria-hidden="true"></div>'}`
     + `<h3 class="vfw-prod-name">${esc(p.name)}</h3>${p.price ? `<p class="vfw-prod-price">${esc(p.price)}</p>` : ''}`
@@ -691,7 +690,7 @@ export function validateHallBooking(date, b, today) {
 const HALL_LABEL = { open: 'Open', booked: 'Booked', hold: 'On hold' };
 /** bookings = [{date, status}] only (undefined = no server, so the static seed note). opts.month = YYYY-MM to start from, default this month. */
 export function hallCalendarHtml(bookings, today, { month } = {}) {
-  if (!Array.isArray(bookings)) return `<p class="vfw-empty vfw-hall-note">Send an inquiry or call the post to check a date. <a href="tel:${tel}">${esc(POST.phone)}</a></p>`;
+  if (!Array.isArray(bookings)) return `<p class="vfw-empty vfw-hall-note">Send an inquiry or call the post to check a date. <a href="${POST.tel}">${esc(POST.phone)}</a></p>`;
   const cur = today.slice(0, 7), last = addDays(today, 270).slice(0, 7);
   const first = /^\d{4}-(0[1-9]|1[0-2])$/.test(month ?? '') && month > cur ? (month < last ? month : last) : cur;
   const at = (ym, n) => { const d = new Date(Date.UTC(+ym.slice(0, 4), +ym.slice(5) - 1 + n, 1)); return fmtDay(d).slice(0, 7); };

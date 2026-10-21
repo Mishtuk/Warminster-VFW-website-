@@ -5,7 +5,7 @@ import { createReadStream, existsSync, mkdirSync, readFileSync, readdirSync, sta
 import { extname, join, normalize, sep } from 'node:path';
 import { createHash, randomBytes } from 'node:crypto';
 import { brotliCompressSync, constants as zc, gzipSync } from 'node:zlib';
-import { openDb, getState, setState, backup, purgeInquiries, retentionDays, purgeHelp, purgeOrders, purgeShifts, purgeHall, getSettings, setSettings, shiftsWithCounts } from './src/db.js';
+import { openDb, getState, setState, backup, purgeInquiries, retentionDays, purgeHelp, purgeOrders, purgeShifts, purgeHall, getSettings, setSettings, shiftsWithCounts, getContent, setContent } from './src/db.js';
 import { clean, createAudit } from './src/audit.js';
 import {
   allow, adminRow, checkLogin, clearFailures, clientIp, cookieHeader, dataDirProblem, defaultInUse, locked, readCookie, recordFailure, sameOrigin, seedAdmin, setPassword,
@@ -14,6 +14,8 @@ import {
 import { etDay, HELP_KINDS, injectMarkers, specialOrder, validateEvent, validateHallBooking, validateHelp, validateHonor, validateMenu, validateNews, validateOrder, validateProduct, validateSettings, validateShift, validateSignup, validateSpecial, validateTap } from './src/lib/state.js';
 import { createInquiryHandler, createMailer, HONEYPOT } from './src/email/index.js';
 import { createStats } from './src/stats/index.js';
+import { createSiteBuilder } from './src/site-build.js';
+import { POST_DEFAULTS, POST_FIELDS, setPost, validatePost } from './src/lib/post.js';
 
 const ROOT = import.meta.dirname;
 const PROD = process.env.NODE_ENV === 'production';
@@ -34,7 +36,7 @@ const log = (...a) => console.log(new Date().toISOString(), ...a);
 // ponytail: one readdir per folder per page view (about 100 names); cache by folder mtime if the folders ever get large.
 const PHOTOS = join(DATA, 'photos');
 const ls = (d) => { try { return readdirSync(d); } catch { return []; } };
-const photoFiles = () => new Set([...ls(join(DIST, 'media', 'photos')), ...ls(PHOTOS)]);
+const photoFiles = () => new Set([...ls(join(site.live(), 'media', 'photos')), ...ls(PHOTOS)]);
 // Uploads are re-encoded with sharp when it loads (it ships with astro, but is not our dependency), otherwise only validated.
 const sharp = (await import('sharp').catch(() => null))?.default ?? null;
 log(sharp ? 'upload: sharp found, re-encoding pictures to WebP' : 'upload: sharp missing, validate-only');
@@ -44,6 +46,18 @@ const dirProblem = dataDirProblem(DATA, DIST, join(ROOT, '.env'));
 if (dirProblem) { console.error(`Refusing to start: ${dirProblem}`); process.exit(1); }
 
 const db = openDb(DATA);
+// Staff edits to baked-in content (Admin > Post details): saved in the database, then the site is rebuilt into DATA/site and served
+// from there (src/site-build.js). Until a rebuild has finished, the deployed dist/ is served. POST is refreshed in memory at once.
+const site = createSiteBuilder({ root: ROOT, data: DATA, dist: DIST, log, getContent: () => getContent(db) });
+setPost(getContent(db).post);
+site.start();
+/** Saves one content key, refreshes what the server renders live, and rebuilds the static pages. For every self-service view. */
+function saveContent(name, value) {
+  setContent(db, name, value);
+  if (name === 'post') setPost(value);
+  site.rebuild();
+  return site.status();
+}
 const audit = createAudit({ db, log });
 const stats = createStats({ db, log });
 const submitInquiry = createInquiryHandler({ db, env, dataDir: DATA, log, audit: audit.event });
@@ -133,11 +147,11 @@ const statSafe = (f) => { try { return statSync(f); } catch { return null; } };
 function resolveFile(pathname) {
   let p;
   try { p = decodeURIComponent(pathname); } catch { return null; }
-  const file = normalize(join(DIST, p));
-  return file === DIST || file.startsWith(DIST + sep) ? file : null;
+  const root = site.live(), file = normalize(join(root, p));
+  return file === root || file.startsWith(root + sep) ? file : null;
 }
 function notFound(nreq, nres, url) {
-  const f = join(DIST, '404.html');
+  const f = join(site.live(), '404.html');
   const body = existsSync(f) ? readFileSync(f) : undefined;
   nres.writeHead(404, { ...baseHeaders(url, body?.toString('utf8')), 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' }); // hashes the 404 page's own inline scripts
   nres.end(nreq.method === 'HEAD' ? undefined : body);
@@ -525,6 +539,17 @@ async function adminApi(req, url, user) {
     setSettings(db, v.value);
     note('settings_update', [v.value.helpEnabled ? 'help form on' : 'help form off', v.value.donateUrl ? 'donation link set' : 'no donation link'].join(', '));
     return json({ settings: v.value });
+  }
+
+  if (key === 'GET build') return json(site.status());
+  if (key === 'GET content' && a1 === 'post') return json({ fields: POST_FIELDS, defaults: POST_DEFAULTS, value: { ...POST_DEFAULTS, ...getContent(db).post }, build: site.status() });
+  if (key === 'PUT content' && a1 === 'post') {
+    const v = validatePost(body);
+    if (v.error) return json({ error: v.error, message: v.why }, 400);
+    const before = { ...POST_DEFAULTS, ...getContent(db).post };
+    const changed = Object.keys(v.value).filter((k) => JSON.stringify(v.value[k]) !== JSON.stringify(before[k]));
+    note('post_details_update', changed.length ? changed.join(', ') : 'no changes');
+    return json({ value: v.value, build: changed.length ? saveContent('post', v.value) : site.status() });
   }
 
   if (key === 'POST password') { // change password: prove it's you first

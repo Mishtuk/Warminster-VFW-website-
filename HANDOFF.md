@@ -266,3 +266,12 @@ Staff only: `/admin` (noindex, blocked in robots.txt). Bar TV: `/tv` (linked now
 - Beer taps: decoration by the owner's choice, not a claim about what's pouring.
 - Shop and Wall of Honor: each shows a Coming soon panel until staff put an item on the website.
 - No sample data in the seeded pages; local test entries live only in `.data`, which is never deployed.
+
+## Staff-edited content and the site rebuild (#28)
+Facts baked into the static pages (phone, hours, address, names and so on) can be changed by staff without a developer:
+- **Store:** `setContent(db, name, value)` / `getContent(db)` in `src/db.js` (kv keys `content:<name>`, so the nightly backup has them). Never part of `state` or the public data script.
+- **Build time:** `content(name, fallback)` from `src/lib/content.js`. `astro.config.mjs` reads the file named by `VFW_CONTENT` into `__VFW_CONTENT__`. With no file (CI, Pages, tests), every caller gets its default.
+- **Server:** `saveContent(name, value)` in server.js stores the value, refreshes POST in memory for `name === 'post'`, and calls `site.rebuild()` (`src/site-build.js`): `astro build --outDir DATA/site/<time>`, live only after a clean finish, one build at a time with one queued, old builds pruned. A restart serves the newest finished build, unless a deploy made `dist/` newer, and then it rebuilds. About 3 s here.
+- **Admin:** `GET /api/admin/build` gives `{ building, last: { ok, at } }` for an "Updating the website…" note.
+- **New self-service views:** validate at the boundary (plain words, no `<` or `>`), pick your own `name` (`photos` for #29, `pages` for #30), call `saveContent`, and read it at build time with `content(name, default)`.
+- **Runtime renderers must not freeze POST values at import:** state.js `CALL`, `VOL_NONE` and `SOON` are functions now; use `POST.tel` at call time.
