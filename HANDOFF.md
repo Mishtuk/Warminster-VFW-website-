@@ -21,6 +21,7 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Task issues:** work is handed out as GitHub issues labeled `laptop` or `desktop`, each a full brief with a "Done when" checklist. Check `gh issue list -l <your machine> --state open` at the start of a session and about every 15 minutes while idle. Take the lowest number, comment "Started", claim it below, and close it with the commit hash when done.
 
 ### Now working on
+- **Laptop:** #19 Bar open now badge (src/components/TodayHours.astro, new src/lib/bar-hours.js and src/scripts/bar-status.ts, test/bar-hours.test.js; the TodayHours spot in Header.astro only if needed).
 - **Desktop:** hall booking calendar (owner approved): an admin view of booked dates and an availability calendar on /hall (a new hall-dates section in server.js, db.js, state.js and admin.astro; hall.astro).
 
 ## Status (handoff, 2026-10-20)
