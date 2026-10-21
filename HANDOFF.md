@@ -23,7 +23,6 @@ Two machines work on this repo at the same time. Live coordination happens on th
 
 ### Now working on
 - **Desktop:** /events redesign around photos, owner request (events.astro; the event renderers in state.js: eventItem, regularHtml, calendarHtml, galleryHtml; event-photos.js; the event styles in global.css).
-- **Laptop:** Help, Volunteer and 404 empty states (src/pages/help.astro, src/pages/volunteer.astro, src/pages/404.astro, and only the copy strings in volunteerHtml and helpFormHtml in src/lib/state.js).
 
 ## Status (handoff, 2026-10-20)
 **The site is feature-complete on the preview. The next steps are the owner's choices.**
