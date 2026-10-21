@@ -22,7 +22,7 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Task issues:** work is handed out as GitHub issues labeled `laptop` or `desktop`, each a full brief with a "Done when" checklist. Check `gh issue list -l <your machine> --state open` at the start of a session and about every 15 minutes while idle. Take the lowest number, comment "Started", claim it below, and close it with the commit hash when done.
 
 ### Now working on
-- **Desktop:** #28 Post details and the content engine: src/lib/content.js, src/lib/post.js, server.js (new content and rebuild block), admin.astro (new Post details view), test/content*.test.js.
+- **Desktop:** nothing claimed.
 
 ## Status (handoff, 2026-10-20)
 **The site is feature-complete on the preview. The next steps are the owner's choices.**
@@ -272,6 +272,7 @@ Facts baked into the static pages (phone, hours, address, names and so on) can b
 - **Store:** `setContent(db, name, value)` / `getContent(db)` in `src/db.js` (kv keys `content:<name>`, so the nightly backup has them). Never part of `state` or the public data script.
 - **Build time:** `content(name, fallback)` from `src/lib/content.js`. `astro.config.mjs` reads the file named by `VFW_CONTENT` into `__VFW_CONTENT__`. With no file (CI, Pages, tests), every caller gets its default.
 - **Server:** `saveContent(name, value)` in server.js stores the value, refreshes POST in memory for `name === 'post'`, and calls `site.rebuild()` (`src/site-build.js`): `astro build --outDir DATA/site/<time>`, live only after a clean finish, one build at a time with one queued, old builds pruned. A restart serves the newest finished build, unless a deploy made `dist/` newer, and then it rebuilds. About 3 s here.
+- **Admin > Post details** (`renderPost` in admin.astro) edits every field in `POST_FIELDS` (post.js): plain boxes, lists with Move up, Move down, Remove and Add a line, a Put back the original button on any changed field, and a status line while the site updates.
 - **Admin:** `GET /api/admin/build` gives `{ building, last: { ok, at } }` for an "Updating the website…" note.
 - **New self-service views:** validate at the boundary (plain words, no `<` or `>`), pick your own `name` (`photos` for #29, `pages` for #30), call `saveContent`, and read it at build time with `content(name, default)`.
 - **Runtime renderers must not freeze POST values at import:** state.js `CALL`, `VOL_NONE` and `SOON` are functions now; use `POST.tel` at call time.

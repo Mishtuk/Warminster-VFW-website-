@@ -57,7 +57,7 @@ import { href } from '../lib/site';
       .fld > label { display: block; font-weight: 600; }
       .opt { font-size: .85rem; font-weight: 500; color: var(--ink-2); margin-left: .5rem; }
       .hint { display: block; }
-      input[type=text], input[type=password], input[type=date], input[type=time], input[type=number], input[type=email], input[type=url], select, textarea {
+      input[type=text], input[type=password], input[type=date], input[type=time], input[type=number], input[type=email], input[type=url], input[type=tel], select, textarea {
         display: block; width: 100%; min-height: 52px; margin-top: .3rem; padding: .55rem .7rem; font: inherit; color: inherit; background: var(--card); border: 2px solid var(--field); border-radius: 6px; }
       textarea { min-height: 8rem; }
       .fld.bad input, .fld.bad select, .fld.bad textarea { border-color: var(--red-ink); }
@@ -138,6 +138,7 @@ import { href } from '../lib/site';
       .mitem { border: 1px solid var(--line); border-radius: 6px; padding: .9rem; margin: 0 0 .75rem; display: grid; gap: .75rem; }
       .mitem .fld { margin: 0; }
       .mline { display: grid; grid-template-columns: 1fr 9rem; gap: .75rem; }
+      .pd-row { padding: .7rem 0; border-top: 1px solid var(--line); } .pd-row .row { margin-top: .5rem; } .pd-cells.mline { grid-template-columns: 1fr 1fr; }
       .mtools { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
       .mitem.off input[type=text] { opacity: .6; }
       .bar { position: sticky; bottom: 0; z-index: 6; background: var(--night); color: var(--on-dark); padding: .75rem 1rem calc(.75rem + env(safe-area-inset-bottom)); border-radius: 6px; display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; }
@@ -190,7 +191,7 @@ import { href } from '../lib/site';
         .head .btn.add, .formbar .btn:not(.quiet), .sbody > .btn { width: 100%; }
         .acts { width: 100%; } .acts .btn { flex: 1; } .btn.del { min-height: 48px; }
         .tiles, .two, .ff, .mline { grid-template-columns: 1fr 1fr; }
-        .two, .mline { grid-template-columns: 1fr; }
+        .two, .mline, .pd-cells.mline { grid-template-columns: 1fr; }
         .ff { grid-template-columns: 1fr 1fr; }
         .num { font-size: 2.2rem; }
         .formbar { position: sticky; bottom: 0; background: var(--card); padding: .6rem 0 calc(.6rem + env(safe-area-inset-bottom)); }
@@ -246,6 +247,7 @@ import { href } from '../lib/site';
         <section data-section="hall" hidden></section>
         <section data-section="help" hidden></section>
         <section data-section="security" hidden></section>
+        <section data-section="post" hidden></section>
         <section data-section="settings" hidden></section>
         <section data-section="account" hidden></section>
       </main>
@@ -352,7 +354,7 @@ import { href } from '../lib/site';
         start();
       });
       const NAV = [['dashboard', 'Dashboard', 'home'], ['events', 'Events', 'calendar'], ['specials', 'Drink specials', 'glass'], ['taps', 'Beers on tap', 'glass'], ['honor', 'Wall of Honor', 'shield'], ['menu', 'Food menu', 'plate'], ['news', 'News', 'news'], ['shop', 'Shop', 'bag'],
-        ['volunteers', 'Volunteers', 'hand'], ['inquiries', 'Hall inquiries', 'mail'], ['hall', 'Hall bookings', 'calendar'], ['help', 'Help requests', 'lifebuoy'], ['security', 'Security log', 'shield'], ['settings', 'Site settings', 'gear'], ['account', 'Account', 'person']];
+        ['volunteers', 'Volunteers', 'hand'], ['inquiries', 'Hall inquiries', 'mail'], ['hall', 'Hall bookings', 'calendar'], ['help', 'Help requests', 'lifebuoy'], ['security', 'Security log', 'shield'], ['post', 'Post details', 'pencil'], ['settings', 'Site settings', 'gear'], ['account', 'Account', 'person']];
       const navLinks = () => NAV.map(([id, t, i]) => h('a', { href: '#' + id, 'data-view': id }, ico(i), h('span', {}, t), (id === 'inquiries' || id === 'help' || id === 'shop') && h('span', { class: 'count', 'data-count': id === 'inquiries' ? '' : id, hidden: true })));
       const navTail = () => [h('a', { href: '/', target: '_blank', rel: 'noopener' }, ico('ext'), 'View the website'), h('button', { class: 'linkbtn', type: 'button', onclick: signOut }, 'Sign out')];
       const setCount = (n, k = '') => document.querySelectorAll(`[data-count="${k}"]`).forEach((c) => { c.textContent = n; c.hidden = !n; });
@@ -796,6 +798,90 @@ import { href } from '../lib/site';
         put(sec, h('h1', {}, 'Site settings'), h('p', {}, 'Turn parts of the website on or off. Nothing changes until you choose Save settings.'), form);
       }
 
+      // ---------- Post details: the facts on every page (phone, hours, address, officers). Saving rebuilds the website. ----------
+      async function renderPost() {
+        guard = null;
+        const sec = $('[data-section=post]');
+        const r = await api('GET', 'admin/content/post');
+        if (!r.ok) return put(sec, h('h1', {}, 'Post details'), h('div', { class: 'card' }, h('p', { class: 'big' }, say(r))));
+        const { fields } = r.data;
+        // Lists are edited as rows of boxes, so one-column lists (like the public nights) become one-box rows here.
+        const kinds = Object.fromEntries(fields.flatMap(([, fs]) => fs.map(([k, , t]) => [k, t])));
+        const norm = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, kinds[k] === 'rows' ? (v || []).map((x) => (Array.isArray(x) ? [...x] : [x])) : v ?? '']));
+        const D = norm(r.data.defaults);
+        let V = norm(r.data.value), init = JSON.stringify(V);
+        guard = () => JSON.stringify(V) !== init && 'Your changes to the post details have not been saved.';
+        const same = (k) => JSON.stringify(V[k]) === JSON.stringify(D[k]);
+        const ctl = {}, err = h('p', { class: 'err', role: 'alert', hidden: true }), status = h('p', { class: 'hint', role: 'status' });
+        const form = h('form', { novalidate: true });
+        const back = (k, id) => !same(k) && h('button', { class: 'btn quiet', type: 'button', onclick: () => { V[k] = structuredClone(D[k]); draw(id); } }, 'Put back the original');
+        const one = (k, label, type, o) => {
+          const id = 'pd-' + k;
+          const c = type === 'long' ? h('textarea', { rows: 3, maxlength: o.max, value: V[k] })
+            : h('input', { type: { phone: 'tel', email: 'email', url: 'url' }[type] || 'text', maxlength: o.max || { zip: 5, state: 2 }[type] || 120, value: V[k], autocomplete: 'off' });
+          c.addEventListener('input', () => { V[k] = c.value; });
+          ctl[k] = c;
+          const f = fld(id, label, c, { optional: o.may, hint: o.hint });
+          f.append(back(k, id) || '');
+          return f;
+        };
+        const rows = (k, label, o) => {
+          const list = V[k], id = 'pd-' + k, hint = o.hint && h('span', { class: 'hint', id: id + '-h' }, o.hint);
+          const line = (cells, i) => h('div', { class: 'pd-row' },
+            h('div', { class: o.cols.length > 1 ? 'mline pd-cells' : 'pd-cells' }, o.cols.map((col, j) => {
+              const c = h('input', { type: 'text', id: `${id}-${i}-${j}`, value: cells[j] ?? '', 'aria-label': `${col}, line ${i + 1}`, maxlength: o.max || 120, autocomplete: 'off' });
+              if (hint) c.setAttribute('aria-describedby', id + '-h');
+              c.addEventListener('input', () => { cells[j] = c.value; });
+              if (!i && !j) ctl[k] = c;
+              return c;
+            })),
+            h('div', { class: 'row' },
+              i > 0 && h('button', { class: 'btn alt', type: 'button', onclick: () => { [list[i - 1], list[i]] = [list[i], list[i - 1]]; draw(`${id}-up-${i - 1}`, `${id}-${i - 1}-0`); }, id: `${id}-up-${i}` }, ico('up'), 'Move up'),
+              i < list.length - 1 && h('button', { class: 'btn alt', type: 'button', onclick: () => { [list[i + 1], list[i]] = [list[i], list[i + 1]]; draw(`${id}-dn-${i + 1}`, `${id}-${i + 1}-0`); }, id: `${id}-dn-${i}` }, ico('down'), 'Move down'),
+              h('button', { class: 'btn danger', type: 'button', onclick: () => { const [gone] = list.splice(i, 1); draw(`${id}-add`); toast('Removed the line.', { label: 'Undo', fn: () => { list.splice(i, 0, gone); draw(); } }); } }, 'Remove')));
+          const d = h('div', { class: 'fld wide' }, h('label', { for: list.length ? `${id}-0-0` : `${id}-add` }, label), hint,
+            list.map(line),
+            h('div', { class: 'row' }, h('button', { class: 'btn alt', type: 'button', id: `${id}-add`, onclick: () => { list.push(o.cols.map(() => '')); draw(`${id}-${list.length - 1}-0`); } }, 'Add a line'), back(k, `${id}-add`)),
+            h('p', { class: 'ferr', role: 'alert', hidden: true }));
+          if (!list.length) ctl[k] = $(`#${id}-add`, d);
+          d.addEventListener('input', () => clearErr(d));
+          return d;
+        };
+        function draw(focus, alt) {
+          put(form, fields.map(([group, fs]) => h('div', { class: 'card' }, h('h2', {}, group), fs.map(([k, label, type, o = {}]) => (type === 'rows' ? rows(k, label, o) : one(k, label, type, o))))),
+            err, h('div', { class: 'formbar' }, h('button', { class: 'btn', type: 'submit' }, 'Save the post details')), status);
+          if (focus) ($('#' + focus, form) || (alt && $('#' + alt, form)))?.focus();
+        }
+        async function waitBuild() {
+          status.textContent = 'Updating the website. This takes a minute or two; you can keep working.';
+          for (let i = 0; i < 150; i++) {
+            await new Promise((ok) => setTimeout(ok, 2000));
+            const b = await api('GET', 'admin/build');
+            if (!b.ok) { status.textContent = ''; return; }
+            if (!b.data.building) {
+              status.textContent = b.data.last?.ok ? 'Done. Every page on the website shows your changes.' : 'Your changes are saved, but the website could not be updated. Choose Save again in a few minutes. If it still does not work, call for help.';
+              return;
+            }
+          }
+        }
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault(); err.hidden = true;
+          form.querySelectorAll('.fld.bad').forEach(clearErr);
+          const x = await api('PUT', 'admin/content/post', V);
+          if (!x.ok) {
+            const c = ctl[x.data.error];
+            if (c?.closest?.('.fld')) { markErr(c, say(x)); c.focus(); } else { err.textContent = say(x); err.hidden = false; }
+            return;
+          }
+          V = norm(x.data.value); init = JSON.stringify(V); draw();
+          if (x.data.build.building) { toast('Saved.'); waitBuild(); } else { toast('Saved.'); status.textContent = 'Nothing had changed, so the website stays as it is.'; }
+        });
+        draw();
+        put(sec, h('h1', {}, 'Post details'),
+          h('p', {}, 'The facts shown across the website: the phone number, hours, address, officers and more. Change what you need and choose Save the post details at the bottom. Every page updates together.'),
+          form);
+      }
+
       // ---------- dashboard ----------
       let range = '30d';
       const RANGES = [['7d', '7 days', 'the 7 days before'], ['30d', '30 days', 'the 30 days before'], ['90d', '90 days', 'the 90 days before'], ['365d', 'Year', 'the year before']];
@@ -868,7 +954,7 @@ import { href } from '../lib/site';
         volunteer_signup: ['Someone signed up for a shift', 'edit', 'hand'], signup_remove: ['Removed a volunteer from a shift', 'edit', 'bin'], shifts_purged: ['Old volunteer shifts cleared automatically', 'muted', 'clock'],
         help_request: ['A help request arrived', 'edit', 'lifebuoy'], help_update: ['Marked a help request', 'edit'], help_delete: ['Deleted a help request', 'edit', 'bin'], help_purged: ['Old help requests cleared automatically', 'muted', 'clock'],
         help_honeypot: ['Stopped a spam message on the help form', 'warn'], volunteer_honeypot: ['Stopped a spam message on the volunteer form', 'warn'],
-        help_rate_limited: ['Too many messages from one visitor', 'warn'], volunteer_rate_limited: ['Too many messages from one visitor', 'warn'], settings_update: ['Changed the site settings', 'edit', 'gear'],
+        help_rate_limited: ['Too many messages from one visitor', 'warn'], volunteer_rate_limited: ['Too many messages from one visitor', 'warn'], settings_update: ['Changed the site settings', 'edit', 'gear'], post_details_update: ['Changed the post details', 'edit', 'pencil'],
         shop_order: ['A shop order arrived', 'edit', 'bag'], order_delete: ['Deleted a shop order', 'edit', 'bin'], orders_purged: ['Old shop orders cleared automatically', 'muted', 'clock'],
         shop_honeypot: ['Stopped a spam message on the shop form', 'warn'], shop_rate_limited: ['Too many shop orders from one visitor', 'warn'], products_reorder: ['Reordered the shop products', 'muted', 'bag'], taps_reorder: ['Reordered the beers on tap', 'muted', 'glass'], honor_reorder: ['Reordered the Wall of Honor', 'muted', 'shield'],
         hall_booking_set: ['Changed a hall date', 'edit', 'calendar'], hall_booking_open: ['Opened a hall date', 'edit', 'calendar'], hall_purged: ['Old hall dates cleared automatically', 'muted', 'clock'] };
@@ -984,7 +1070,7 @@ import { href } from '../lib/site';
       }
 
       // ---------- navigation ----------
-      const VIEWS = { dashboard: renderDashboard, events: () => renderCrud('events'), specials: () => renderCrud('specials'), taps: () => renderCrud('taps'), honor: () => renderCrud('honor'), menu: renderMenu, news: () => renderCrud('news'), shop: () => renderCrud('products'), 'shop-orders': renderShopOrders, volunteers: renderVolunteers, inquiries: renderInquiries, hall: renderHall, help: renderHelp, security: renderSecurity, settings: renderSettings, account: renderAccount };
+      const VIEWS = { dashboard: renderDashboard, events: () => renderCrud('events'), specials: () => renderCrud('specials'), taps: () => renderCrud('taps'), honor: () => renderCrud('honor'), menu: renderMenu, news: () => renderCrud('news'), shop: () => renderCrud('products'), 'shop-orders': renderShopOrders, volunteers: renderVolunteers, inquiries: renderInquiries, hall: renderHall, help: renderHelp, security: renderSecurity, post: renderPost, settings: renderSettings, account: renderAccount };
       let cur = '', restoring = false;
       function show() {
         const v = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'dashboard';
