@@ -22,7 +22,6 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Task issues:** work is handed out as GitHub issues labeled `laptop` or `desktop`, each a full brief with a "Done when" checklist. Check `gh issue list -l <your machine> --state open` at the start of a session and about every 15 minutes while idle. Take the lowest number, comment "Started", claim it below, and close it with the commit hash when done.
 
 ### Now working on
-- **Laptop:** #23 bar status strip on phones (src/components/Header.astro masthead, src/components/TodayHours.astro).
 
 ## Status (handoff, 2026-10-20)
 **The site is feature-complete on the preview. The next steps are the owner's choices.**
@@ -30,9 +29,10 @@ Two machines work on this repo at the same time. Live coordination happens on th
 ### What's live
 - **Pages:** 11 pages in the cozy "Canteen" look, plus a light/dark theme.
   - The theme switch is a small moon/sun button at the bottom right (`ThemeFab.astro`). It follows the system setting and is remembered per visitor.
-- **Bar open now badge:** `TodayHours.astro` shows today's hours at build time, then `src/scripts/bar-status.ts` switches every instance to the live state each minute from `barStatus()` in `src/lib/bar-hours.js` (parses `POST.hours`, Eastern time, a 12 AM close belongs to the night before; tested in `test/bar-hours.test.js`). The masthead, menu sheet and /tv show a dot; on phones the masthead has no room, so it shows in the Menu sheet and the home hero.
+- **Bar open now badge:** `TodayHours.astro` shows today's hours at build time, then `src/scripts/bar-status.ts` switches every instance to the live state each minute from `barStatus()` in `src/lib/bar-hours.js` (parses `POST.hours`, Eastern time, a 12 AM close belongs to the night before; tested in `test/bar-hours.test.js`). The masthead (900px and up), menu sheet and /tv show a dot; under 900px a 32px strip under the masthead (`.mast-strip` in `Header.astro`) shows it.
 - **Getting here:** `POST.gettingHere` in `post.js` (parking, entrance, step-free access, at the door) renders on /contact#getting-here; only the parking lot is sourced, the rest say Call the post until the owner gives facts. The home VisitBlock links to it.
 - **Privacy:** `/privacy` states what each form keeps and for how long, from the code (hall inquiries and orders 12 months, help requests 90 days, volunteer sign-ups a week after the shift, daily backups 7 days, security log 500 entries; the visitor count stores daily totals only). **If a retention period or the stats code changes, update the page**; its source comment maps each claim to a code line.
+- **Search listing data:** JSON-LD from `src/lib/jsonld.js` through Base's `jsonLd` prop: a LocalBusiness for the post on home and Contact, and the next 10 one-off events on /events (links via the exported `eventHref` in `state.js`). Built from the seed at build time, so admin-added events are not in it until a live marker is added. The post should claim its map listing.
 - **Home:**
   - Hero posters come as AVIF (portrait 15 KB / 35 KB, landscape 32 KB / 130 KB) with WebP and JPEG fallbacks in `<picture>`; only the AVIF is preloaded. The hero video starts after load and is skipped with Save-Data or on 2g and 3g.
   - The hero has a background video and a polaroid stack showing a random 9 from a 150-photo bank (`HeroCarousel.astro`, `src/lib/hero-photos.ts`). The page carries 9 spread-out bank photos; the full bank is `/media/hero-bank.json` (`src/pages/media/hero-bank.json.ts`, built by `src/lib/hero-bank.ts`), fetched after load to reshuffle slides 2 to 9. `BeerTaps.astro` loads `pour-loader.ts`, which imports `pour.ts` on the first touch of a tap. On phones the stack is a strip below the hero.
