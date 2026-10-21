@@ -22,6 +22,7 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Task issues:** work is handed out as GitHub issues labeled `laptop` or `desktop`, each a full brief with a "Done when" checklist. Check `gh issue list -l <your machine> --state open` at the start of a session and about every 15 minutes while idle. Take the lowest number, comment "Started", claim it below, and close it with the commit hash when done.
 
 ### Now working on
+- **Laptop:** small fixes: news placeholder tiles, hero pause labels and a Join link, About and Join dedupe, youth confirm (src/pages/news.astro, src/components/Hero.astro, src/components/HeroCarousel.astro, src/pages/about.astro, src/pages/join.astro, src/pages/youth.astro, src/lib/resources.js youth copy).
 - **Desktop:** /events redesign around photos, owner request (events.astro; the event renderers in state.js: eventItem, regularHtml, calendarHtml, galleryHtml; event-photos.js; the event styles in global.css).
 
 ## Status (handoff, 2026-10-20)
