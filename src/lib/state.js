@@ -587,6 +587,7 @@ export function volunteerHtml(shifts = [], { empty: none = VOL_NONE } = {}) {
     + `<fieldset class="vfw-shifts"><legend>1. Pick a shift</legend>${cards}</fieldset>`
     + `<fieldset class="vfw-details"><legend>2. Your details</legend><div class="field"><label for="vol-name">Your name</label><input id="vol-name" name="name" type="text" autocomplete="name" required maxlength="80"></div>${phoneEmail('vol', 'the organizer')}${hp}</fieldset>`
     + '<p class="hint">We keep your name and phone or email only to organize this shift, and delete them a week after it. Call the post to be taken off sooner.</p>'
+    + '<p class="hint"><a href="/privacy">How we use your details</a></p>'
     + '<p><button class="btn" type="submit">Sign me up</button></p></form>';
 }
 
@@ -608,7 +609,7 @@ export function helpFormHtml(settings = {}) {
     + `<fieldset class="field vfw-kinds"><legend>What can we help with?</legend>${kinds}</fieldset>`
     + '<div class="field"><label for="help-msg">Tell us a little more <span class="opt">Optional</span></label><textarea id="help-msg" name="message" rows="4" maxlength="1000" aria-describedby="help-msg-hint"></textarea><p class="hint" id="help-msg-hint">Who it\'s for and what\'s going on, in a few words.</p></div>'
     + `${hp}<p><button class="btn" type="submit">Send my request</button></p>`
-    + '<p class="hint">Only the post\'s help volunteer and the website admin can read this. Please don\'t include medical details or Social Security or VA claim numbers. Requests are deleted after 90 days; call the post to have yours removed sooner.</p></form></div>'
+    + '<p class="hint">Only the post\'s help volunteer and the website admin can read this. Please don\'t include medical details or Social Security or VA claim numbers. Requests are deleted after 90 days; call the post to have yours removed sooner.</p><p class="hint"><a href="/privacy">How we use your details</a></p></form></div>'
     + '<div class="panel"><h3>What happens next</h3><ol class="tl">'
     + `<li><span class="when">Step 1</span><div class="what"><p>Your request goes to ${esc(who)}.</p></div></li>`
     + '<li><span class="when">Step 2</span><div class="what"><p>They will call or email you back to talk it through.</p></div></li>'
@@ -641,7 +642,7 @@ export function shopHtml(products = [], { photos, photoBase = '/media/photos/' }
     + phoneEmail('shop', 'the post')
     + '<div class="field"><label for="shop-note">Pickup note <span class="opt">Optional</span></label><textarea id="shop-note" name="note" rows="3" maxlength="500" aria-describedby="shop-note-hint"></textarea><p class="hint" id="shop-note-hint">Like when you\'d like to pick it up.</p></div>'
     + `${hp}<p><button class="btn" type="submit">Send my order</button></p>`
-    + '<p class="hint">We use your name and phone or email only for this order, and delete them after 12 months. Call the post to have yours removed sooner.</p></form></div>' : '';
+    + '<p class="hint">We use your name and phone or email only for this order, and delete them after 12 months. Call the post to have yours removed sooner.</p><p class="hint"><a href="/privacy">How we use your details</a></p></form></div>' : '';
   return `<ul class="vfw-shop">${list.map(card).join('')}</ul>${list.some((p) => p.checkoutUrl) ? '<p class="hint">Buy online opens our payment service\'s secure page. The post never sees your card.</p>' : ''}`
     + `<p class="hint">Items with the official VFW emblem are made by VFW-licensed vendors.</p>${form}`;
 }

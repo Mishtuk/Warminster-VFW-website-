@@ -39,6 +39,7 @@ export const EXTRA = [
   { label: 'Volunteer', path: '/volunteer' },
   { label: 'Support the Post', path: '/support' },
   { label: 'Ask for help', path: '/help' },
+  { label: 'Privacy', path: '/privacy' },
 ] as const;
 
 /** Subnav shared by Programs, Youth contests, Volunteer, Support, Resources and Ask for help. */

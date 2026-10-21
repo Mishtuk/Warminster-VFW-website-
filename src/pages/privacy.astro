@@ -1,0 +1,140 @@
+---
+/*
+ * Every statement here comes from the code, so change this page when the code changes:
+ *   Hall inquiries   server.js RETENTION (INQUIRY_RETENTION_DAYS, default 365), src/db.js purgeInquiries, src/email/index.js
+ *   Volunteer shifts server.js purge (a week after the shift date), src/db.js purgeShifts
+ *   Help requests    src/db.js HELP_DAYS = 90; server.js helpRequest (the message text is never emailed)
+ *   Shop orders      server.js SHOP_RETENTION (SHOP_RETENTION_DAYS, default 365), src/db.js purgeOrders
+ *   Visitor counting src/stats/index.js (cookieless, daily totals, salt kept in memory for one day)
+ *   Security log     src/audit.js KEEP = 500
+ *   Backups          src/db.js backup (7 daily copies)
+ *   Cookies          server.js sessionCookie (admin sign-in only); theme choice in localStorage (Base.astro, ThemeFab.astro)
+ *   Payments         state.js donateHtml and shopHtml (outside payment link)
+ */
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import InfoSection from '../components/info/InfoSection.astro';
+import OnThisPage from '../components/info/OnThisPage.astro';
+import KeyFacts from '../components/info/KeyFacts.astro';
+import { POST } from '../lib/site';
+const sections = [
+  { id: 'short', label: 'The short version' },
+  { id: 'forms', label: 'Forms and how long we keep them' },
+  { id: 'visitors', label: 'Counting visitors' },
+  { id: 'cookies', label: 'Cookies and your device' },
+  { id: 'payments', label: 'Card payments' },
+  { id: 'remove', label: 'Ask us to remove your details' },
+];
+---
+<Base title="Privacy" description={`How ${POST.name} uses the details you send through this website, and how long they are kept.`}>
+  <PageHead title="Privacy" lede="What this website collects, who can see it, how long we keep it and how to have it removed." />
+  <OnThisPage items={sections} />
+
+  <InfoSection id="short" title="The short version" summary="We collect only what you type into a form. We do not sell your details or share them.">
+    <div class="info-two">
+      <div class="panel info-body">
+        <ul>
+          <li>We use what you send only to answer you or to organize what you asked for.</li>
+          <li>Only post staff and volunteers who handle your request can read it. They see it in the website admin and in an email to the post.</li>
+          <li>We do not sell your details, and we do not share them with advertisers or anyone else.</li>
+          <li>There are no advertising or tracking cookies, and the visitor count does not follow you from one day to the next.</li>
+          <li>Card payments happen on an outside payment page. This website never sees your card.</li>
+        </ul>
+        <p class="hint">Last updated: October 2026</p>
+      </div>
+      <KeyFacts title="Questions or removal" office email />
+    </div>
+  </InfoSection>
+
+  <InfoSection id="forms" title="Forms and how long we keep them" summary="Each form below keeps only the details it asks for. Every form also has a hidden field that catches automated spam, and anything caught that way is not stored." band="stone">
+    <div class="privacy-grid">
+      <article class="panel info-body">
+        <h3>Hall rental inquiry</h3>
+        <dl class="rows">
+          <div><dt>What we collect</dt><dd>Your name, and the phone or email you give. If you fill them in, your event date, event type, number of guests and message.</dd></div>
+          <div><dt>Why</dt><dd>To call or write back about renting the hall.</dd></div>
+          <div><dt>Who sees it</dt><dd>Post staff in the website admin. The whole inquiry, message included, is also emailed to the post.</dd></div>
+          <div><dt>How long</dt><dd>Up to 12 months, then it is deleted automatically.</dd></div>
+        </dl>
+      </article>
+      <article class="panel info-body">
+        <h3>Volunteer sign-up</h3>
+        <dl class="rows">
+          <div><dt>What we collect</dt><dd>Your name, the shift you picked, and the phone or email you give.</dd></div>
+          <div><dt>Why</dt><dd>To organize that shift and reach you about it.</dd></div>
+          <div><dt>Who sees it</dt><dd>The volunteer organizer and the website admin.</dd></div>
+          <div><dt>How long</dt><dd>Deleted about a week after the shift date. The shift is removed together with its sign-ups.</dd></div>
+        </dl>
+      </article>
+      <article class="panel info-body">
+        <h3>Ask for help</h3>
+        <dl class="rows">
+          <div><dt>What we collect</dt><dd>Your name, the kind of help you want, the phone or email you give, and if you choose, a best time to reach you and a short message.</dd></div>
+          <div><dt>Why</dt><dd>So the post's help volunteer can get back to you.</dd></div>
+          <div><dt>Who sees it</dt><dd>The post's help volunteer and the website admin. An email to the post tells them a request came in, with your first name, the kind of help and your phone or email. Your message is never put in the email.</dd></div>
+          <div><dt>How long</dt><dd>90 days, then it is deleted automatically.</dd></div>
+        </dl>
+      </article>
+      <article class="panel info-body">
+        <h3>Shop pickup order</h3>
+        <dl class="rows">
+          <div><dt>What we collect</dt><dd>Your name, what you ordered and how many, the phone or email you give, and an optional pickup note.</dd></div>
+          <div><dt>Why</dt><dd>To get your order ready and let you know when to pick it up. You pay at the post.</dd></div>
+          <div><dt>Who sees it</dt><dd>Post staff in the website admin. The order is also emailed to the post, with your first name, the order, your phone or email and your note.</dd></div>
+          <div><dt>How long</dt><dd>12 months, then it is deleted automatically.</dd></div>
+        </dl>
+      </article>
+    </div>
+    <div class="panel info-body">
+      <h3>Good to know</h3>
+      <ul>
+        <li>The site keeps a short security log of form sends and sign-in attempts. Each entry has the time, what happened and the IP address of the device. Only the newest 500 entries are kept.</li>
+        <li>To stop abuse, the site briefly remembers how often one IP address has sent a form in the last hour.</li>
+        <li>The site makes a copy of its data every day and keeps the last 7 copies. A record we delete can stay in those copies for up to 7 more days.</li>
+        <li>Please do not put medical details, Social Security numbers or VA claim numbers in any form.</li>
+      </ul>
+    </div>
+  </InfoSection>
+
+  <InfoSection id="visitors" title="Counting visitors" summary="We count visits to see which pages help people. The count is not tied to you." panel>
+    <dl class="rows">
+      <div><dt>What is stored</dt><dd>Daily totals only. For each day: how many page views, how many visitors, how many views each page had, and the website name a visitor came from, such as a search engine or Facebook.</dd></div>
+      <div><dt>What is not stored</dt><dd>No IP address, no browser details, no name and no cookie go into the totals. Only the site name of the link you came from is kept, never the full address.</dd></div>
+      <div><dt>How a visitor is counted</dt><dd>To avoid counting one person twice in a day, the server briefly mixes the IP address and browser into a scrambled code. The code is made with a secret that is kept only in the server's memory for one day and is never written down. The code cannot be turned back into your details or followed to another day.</dd></div>
+      <div><dt>What is skipped</dt><dd>Visits with Do Not Track or Global Privacy Control turned on, known robots, the staff admin pages, and signed-in staff.</dd></div>
+    </dl>
+  </InfoSection>
+
+  <InfoSection id="cookies" title="Cookies and your device" summary="Visitors get no cookies from this site." band="stone">
+    <div class="panel info-body">
+      <ul>
+        <li>The only cookie is the sign-in cookie for post staff using the admin pages. It is not set for visitors.</li>
+        <li>If you use the light or dark switch, your choice is saved in your own browser, under the name theme. It never leaves your device, and you can clear it in your browser settings.</li>
+        <li>This site does not use advertising or tracking scripts.</li>
+      </ul>
+    </div>
+  </InfoSection>
+
+  <InfoSection id="payments" title="Card payments" summary="This website never sees your card." panel>
+    <p>Buy online and Donate online buttons open an outside payment service's secure page. You enter your card there, not on this site. The payment service has its own privacy policy. Orders marked pay at pickup are paid at the post, and no card details are taken online.</p>
+  </InfoSection>
+
+  <InfoSection id="remove" title="Ask us to remove your details" summary="Call or email the post any time." band="stone">
+    <div class="info-two">
+      <div class="panel info-body">
+        <p>Tell us your name and which form you used, and we will delete your details. You can also ask us what we hold about you.</p>
+        <p class="btn-row"><a class="btn" href={POST.tel}>Call the post {POST.phone}</a><a class="btn btn-outline" href={POST.mail}>Email {POST.email}</a></p>
+        <p class="hint">Last updated: October 2026</p>
+      </div>
+      <KeyFacts title="Reach the post" office />
+    </div>
+  </InfoSection>
+</Base>
+
+<style>
+  .privacy-grid { display: grid; gap: clamp(1rem, 0.6rem + 1.5vw, 1.5rem); margin-bottom: clamp(1rem, 0.6rem + 1.5vw, 1.5rem); }
+  @media (min-width: 900px) { .privacy-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .privacy-grid .rows > div { grid-template-columns: 1fr; }
+  .info-body ul { padding-left: 1.2rem; }
+  .info-body ul li + li { margin-top: 0.5rem; }
+</style>

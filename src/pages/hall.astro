@@ -85,6 +85,7 @@ const gallery = JSON.stringify(HALL_PHOTOS.map((p) => ({ src: photo(p.name).src,
           <div class="hp" aria-hidden="true"><label>Leave this empty <input name="website" type="text" tabindex="-1" autocomplete="off" /></label></div>
           <p><button class="btn" type="submit">Send inquiry</button></p>
           <p class="hint">We use what you send only to answer your hall rental question. Inquiries are kept for up to 12 months and then deleted; call the post any time to have yours removed.</p>
+          <p class="hint"><a href={href('/privacy')}>How we use your details</a></p>
         </form>
       </div>
       <KeyFacts title="Ask about your date" hallEmail email note="We'll call you back to confirm dates and details." />
