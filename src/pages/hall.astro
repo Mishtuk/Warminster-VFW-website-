@@ -6,7 +6,10 @@ import { HALL_PHOTOS } from '../lib/hall-photos';
 import InfoSection from '../components/info/InfoSection.astro';
 import OnThisPage from '../components/info/OnThisPage.astro';
 import KeyFacts from '../components/info/KeyFacts.astro';
-const sections = [{ id: 'included', label: "What's included" }, { id: 'photos', label: 'Photos' }, { id: 'faq', label: 'Questions' }, { id: 'inquiry', label: 'Ask about a date' }];
+import { hallCalendarHtml } from '../lib/state.js';
+const sections = [{ id: 'included', label: "What's included" }, { id: 'photos', label: 'Photos' }, { id: 'faq', label: 'Questions' }, { id: 'open-dates', label: 'Open dates' }, { id: 'inquiry', label: 'Ask about a date' }];
+// Static seed: a short note, since a preview with no server cannot know what is booked. The server swaps in the calendar.
+const seed = `<!--vfw:hall-calendar-->${hallCalendarHtml(undefined, '')}<!--/vfw:hall-calendar-->`;
 const gallery = JSON.stringify(HALL_PHOTOS.map((p) => ({ src: photo(p.name).src, alt: p.alt, cap: p.cap })));
 ---
 <Base title="Rent the Hall" sharePhoto="hall-07" imageAlt="The rentable hall at VFW Post 6493" description={POST.hallBlurb}>
@@ -39,6 +42,10 @@ const gallery = JSON.stringify(HALL_PHOTOS.map((p) => ({ src: photo(p.name).src,
       <details><summary>Can I see the hall first?</summary><p>Yes. Tours are by phone appointment. Call <a href={POST.tel}>{POST.phone}</a>.</p></details>
       <details><summary>What does it cost? How many people fit? Is there a deposit? Parking?</summary><p>Call the post at <a href={POST.tel}>{POST.phone}</a> for price, capacity, deposit, hours and parking.</p></details>
     </div>
+  </InfoSection>
+
+  <InfoSection id="open-dates" title="Open dates" summary="See which dates are free before you ask. Tap an open date to start your inquiry." panel>
+    <Fragment set:html={seed} />
   </InfoSection>
 
   <section class="section info-sec band-stone" id="inquiry">
@@ -110,6 +117,8 @@ const gallery = JSON.stringify(HALL_PHOTOS.map((p) => ({ src: photo(p.name).src,
     })();
   </script>
 </Base>
+
+<script>import '../scripts/hall-dates.ts';</script>
 
 <style>
   .hall-cta { margin-top: 1.25rem; }

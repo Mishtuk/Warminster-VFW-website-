@@ -472,7 +472,7 @@ export const dataScript = (s, today) => `<script type="application/json" id="vfw
 // <!--vfw:name-->seed<!--/vfw:name--> and the whole region is replaced. The names are listed in docs/markers.md.
 const MARKER = /<!--vfw:([a-z-]+)-->(?:[\s\S]*?<!--\/vfw:\1-->)?/g;
 /** Fill every marker in a page. today = etDay(); year = ?year=N from the URL (calendar), default this year. */
-export function injectMarkers(html, state, today, year, { photos, photoBase, shifts = [], settings = {} } = {}) {
+export function injectMarkers(html, state, today, year, { photos, photoBase, shifts = [], settings = {}, hall } = {}) {
   const y = Number.isInteger(+year) && year >= 2000 && year <= 2100 ? +year : +today.slice(0, 4);
   const parts = {
     'events-upcoming': () => upcomingHtml(state.events, today),
@@ -490,6 +490,7 @@ export function injectMarkers(html, state, today, year, { photos, photoBase, shi
     taps: () => tapsHtml(state.taps),
     honor: () => honorHtml(state.honor, { photos, photoBase }),
     shop: () => shopHtml(state.products, { photos, photoBase }),
+    'hall-calendar': () => hallCalendarHtml(hall?.bookings, today, { month: hall?.month }),
     data: () => dataScript(state, today),
   };
   return html.replace(MARKER, (m, name) => parts[name]?.() ?? m);
@@ -642,4 +643,47 @@ export function tvHtml(state = {}, today, { shifts = [] } = {}) {
   out.push(tvList('Help wanted', 'The post needs volunteers', shifts.filter((s) => s.left > 0 && s.date >= today && s.date <= addDays(today, 14)).slice(0, 3)
     .map((s) => ({ when: shortDay(s.date), name: s.title, note: s.left === 1 ? '1 spot left' : `${s.left} spots left` })), "<p class=\"tv-note\">Sign up at the bar or on the post's website.</p>"));
   return out.join('') || tvSlide('Welcome', POST.name, `<p class="tv-note">${esc(POST.barRule)}</p>`); // never a blank screen
+}
+
+// ---------- hall booking calendar (marker: hall-calendar; staff notes never reach this code) ----------
+export const HALL_STATUSES = ['booked', 'hold'];
+/** One booking from the admin. date = YYYY-MM-DD, today = etDay(). Errors: date (not a real date, or over a year ahead), past, status, note never fails (cut to 120). */
+export function validateHallBooking(date, b, today) {
+  if (!isDate(date) || date > addDays(today, 366)) return { error: 'date' };
+  if (date < today) return { error: 'past' };
+  if (!HALL_STATUSES.includes(b?.status)) return { error: 'status' };
+  return { value: { date, status: b.status, note: text(b.note, 120) } };
+}
+const HALL_LABEL = { open: 'Open', booked: 'Booked', hold: 'On hold' };
+/** bookings = [{date, status}] only (undefined = no server, so the static seed note). opts.month = YYYY-MM to start from, default this month. */
+export function hallCalendarHtml(bookings, today, { month } = {}) {
+  if (!Array.isArray(bookings)) return `<p class="vfw-empty vfw-hall-note">Send an inquiry or call the post to check a date. <a href="tel:${tel}">${esc(POST.phone)}</a></p>`;
+  const cur = today.slice(0, 7), last = addDays(today, 270).slice(0, 7);
+  const first = /^\d{4}-(0[1-9]|1[0-2])$/.test(month ?? '') && month > cur ? (month < last ? month : last) : cur;
+  const at = (ym, n) => { const d = new Date(Date.UTC(+ym.slice(0, 4), +ym.slice(5) - 1 + n, 1)); return fmtDay(d).slice(0, 7); };
+  const by = new Map(bookings.map((x) => [x.date, x.status]));
+  const head = DAYS.map((d) => `<th scope="col" abbr="${d}">${d.slice(0, 3)}</th>`).join('');
+  const months = [0, 1, 2].map((k) => {
+    const ym = at(first, k), y = +ym.slice(0, 4), m = +ym.slice(5) - 1;
+    const label = new Date(Date.UTC(y, m, 1)).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+    const cells = [...Array(new Date(Date.UTC(y, m, 1)).getUTCDay()).fill(null), ...Array.from({ length: daysIn(y, m) }, (_, i) => i + 1)];
+    while (cells.length % 7) cells.push(null);
+    const rows = [];
+    for (let i = 0; i < cells.length; i += 7) {
+      rows.push(`<tr>${cells.slice(i, i + 7).map((d) => {
+        if (!d) return '<td class="vfw-day vfw-day-empty"></td>';
+        const date = `${ym}-${String(d).padStart(2, '0')}`, st = date < today ? 'past' : by.get(date) ?? 'open';
+        if (st === 'past') return `<td class="hc-day hc-past"><span class="hc-n">${d}</span></td>`;
+        const nice = new Date(Date.UTC(y, m, d)).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' });
+        const inner = `<span class="hc-n">${d}</span><span class="hc-s"><span class="hc-i" aria-hidden="true"></span>${HALL_LABEL[st]}</span>`;
+        return `<td class="hc-day hc-${st}${date === today ? ' hc-today' : ''}">${st === 'open' ? `<a href="#inquiry" data-date="${date}" aria-label="${nice}, open. Ask about this date">${inner}</a>` : `<div role="group" aria-label="${nice}, ${HALL_LABEL[st].toLowerCase()}">${inner}</div>`}</td>`;
+      }).join('')}</tr>`);
+    }
+    return `<section class="vfw-month"><h3 class="vfw-month-title">${label}</h3><table class="vfw-grid"><caption class="vfw-sr">${label}</caption><thead><tr>${head}</tr></thead><tbody>${rows.join('')}</tbody></table></section>`;
+  });
+  const prev = first > cur ? `<a href="?cal=${at(first, -3) < cur ? cur : at(first, -3)}#open-dates" rel="prev">Previous months</a>` : '<span class="vfw-cal-off" aria-disabled="true">Previous months</span>';
+  const next = first < last ? `<a href="?cal=${at(first, 3) > last ? last : at(first, 3)}#open-dates" rel="next">Next months</a>` : '<span class="vfw-cal-off" aria-disabled="true">Next months</span>';
+  return `<div class="vfw-hall"><nav class="vfw-cal-nav" aria-label="Choose months">${prev} ${next}</nav>`
+    + '<ul class="hc-key"><li class="hc-open"><span class="hc-i" aria-hidden="true"></span>Open</li><li class="hc-hold"><span class="hc-i" aria-hidden="true"></span>On hold</li><li class="hc-booked"><span class="hc-i" aria-hidden="true"></span>Booked</li></ul>'
+    + `<div class="hc-months">${months.join('')}</div><p class="hint">Tap an open date to ask about it. On hold means someone is thinking about it, so call the post. Dates may change before you hear back from us.</p></div>`;
 }

@@ -5,13 +5,13 @@ import { createReadStream, existsSync, mkdirSync, readFileSync, readdirSync, sta
 import { extname, join, normalize, sep } from 'node:path';
 import { createHash, randomBytes } from 'node:crypto';
 import { brotliCompressSync, constants as zc, gzipSync } from 'node:zlib';
-import { openDb, getState, setState, backup, purgeInquiries, retentionDays, purgeHelp, purgeOrders, purgeShifts, getSettings, setSettings, shiftsWithCounts } from './src/db.js';
+import { openDb, getState, setState, backup, purgeInquiries, retentionDays, purgeHelp, purgeOrders, purgeShifts, purgeHall, getSettings, setSettings, shiftsWithCounts } from './src/db.js';
 import { clean, createAudit } from './src/audit.js';
 import {
   allow, adminRow, checkLogin, clearFailures, clientIp, cookieHeader, dataDirProblem, defaultInUse, locked, readCookie, recordFailure, sameOrigin, seedAdmin, setPassword,
   signSession, startupProblem, verifySession, SESSION_DAYS,
 } from './src/auth.js';
-import { etDay, HELP_KINDS, injectMarkers, specialOrder, validateEvent, validateHelp, validateHonor, validateMenu, validateNews, validateOrder, validateProduct, validateSettings, validateShift, validateSignup, validateSpecial, validateTap } from './src/lib/state.js';
+import { etDay, HELP_KINDS, injectMarkers, specialOrder, validateEvent, validateHallBooking, validateHelp, validateHonor, validateMenu, validateNews, validateOrder, validateProduct, validateSettings, validateShift, validateSignup, validateSpecial, validateTap } from './src/lib/state.js';
 import { createInquiryHandler, createMailer, HONEYPOT } from './src/email/index.js';
 import { createStats } from './src/stats/index.js';
 
@@ -53,6 +53,7 @@ const purge = () => {
   try { const n = purgeInquiries(db, RETENTION); if (n) audit.event('inquiries_purged', 'system', '', `${n} older than ${RETENTION} days`); } catch (e) { log('purge failed', e.message); }
   try { const n = purgeShifts(db, etDay(new Date(Date.now() - 7 * 864e5))); if (n) audit.event('shifts_purged', 'system', '', `${n} shifts, a week after the date`); } catch (e) { log('shift purge failed', e.message); }
   try { const n = purgeOrders(db, SHOP_RETENTION); if (n) audit.event('orders_purged', 'system', '', `${n} older than ${SHOP_RETENTION} days`); } catch (e) { log('order purge failed', e.message); }
+  try { const n = purgeHall(db, etDay(new Date(Date.now() - 30 * 864e5))); if (n) audit.event('hall_purged', 'system', '', `${n} dates, 30 days after the date`); } catch (e) { log('hall purge failed', e.message); }
   try { const n = purgeHelp(db); if (n) audit.event('help_purged', 'system', '', `${n} older than 90 days`); } catch (e) { log('help purge failed', e.message); }
 };
 purge();
@@ -142,11 +143,14 @@ function notFound(nreq, nres, url) {
   nres.end(nreq.method === 'HEAD' ? undefined : body);
 }
 /** Public shape of the open shifts and the public part of the settings, only when the page has a marker that needs them. Never sign-ups, never responderEmail. */
-function publicExtras(html) {
+function publicExtras(html, url) {
   const out = {};
   if (/<!--vfw:(volunteer-board|tv-slides)-->/.test(html)) {
     const today = etDay();
     out.shifts = shiftsWithCounts(db).filter((s) => s.enabled && s.date >= today).map(({ filled, enabled, ...s }) => ({ ...s, left: Math.max(0, s.slots - filled) }));
+  }
+  if (/<!--vfw:hall-calendar-->/.test(html)) { // dates and status only; the staff note never leaves the database
+    out.hall = { bookings: db.prepare('SELECT date, status FROM hall_bookings WHERE date >= ? ORDER BY date').all(etDay()).map(({ date, status }) => ({ date, status })), month: url?.searchParams.get('cal') };
   }
   if (/<!--vfw:(help-form|donate-link)-->/.test(html)) { const { helpEnabled, responderName, responderRole, donateUrl, donateLabel } = getSettings(db); out.settings = { helpEnabled, responderName, responderRole, donateUrl, donateLabel }; }
   return out;
@@ -174,7 +178,7 @@ async function serveStatic(nreq, nres, url) {
     const isAdmin = p.startsWith('/admin');
     let html = readFileSync(file, 'utf8');
     const isTv = /^\/tv(\/|$)/.test(p);
-    if (!isAdmin) { try { html = injectMarkers(html, getState(db), etDay(), url.searchParams.get('year'), { photos: photoFiles(), ...publicExtras(html) }); } catch (e) { log('inject failed, serving the static page', e.message); } } // fail open: static HTML is a correct default
+    if (!isAdmin) { try { html = injectMarkers(html, getState(db), etDay(), url.searchParams.get('year'), { photos: photoFiles(), ...publicExtras(html, url) }); } catch (e) { log('inject failed, serving the static page', e.message); } } // fail open: static HTML is a correct default
     headers['Cache-Control'] = isAdmin || isTv ? 'no-store' : 'no-cache';
     if (isAdmin || isTv) headers['X-Robots-Tag'] = 'noindex, nofollow';
     Object.assign(headers, baseHeaders(url, html)); // CSP hashes for this page's inline scripts
@@ -462,6 +466,17 @@ async function adminApi(req, url, user) {
     const r = req.method === 'PUT' ? db.prepare('UPDATE shop_orders SET handled = ? WHERE id = ?').run(body?.handled ? 1 : 0, +a1) : db.prepare('DELETE FROM shop_orders WHERE id = ?').run(+a1);
     if (r.changes) note(req.method === 'PUT' ? 'order_update' : 'order_delete', what + (req.method === 'PUT' ? (body?.handled ? ' · handled' : ' · new') : ''));
     return r.changes ? json({ ok: true }) : bad('not_found', 404);
+  }
+
+  // hall booking calendar (staff only; the public page gets dates and status, never the note; dates 30 days past are purged daily)
+  if (key === 'GET hall-bookings') return json({ bookings: db.prepare('SELECT date, status, note FROM hall_bookings WHERE date >= ? AND date <= ? ORDER BY date').all(etDay(), etDay(new Date(Date.now() + 366 * 864e5))).map(({ date, status, note }) => ({ date, status, note })), today: etDay() });
+  if (key === 'PUT hall-bookings' || key === 'DELETE hall-bookings') {
+    const v = validateHallBooking(a1, req.method === 'PUT' ? body : { status: 'booked' }, etDay());
+    if (v.error) return bad(v.error);
+    if (req.method === 'PUT') db.prepare('INSERT INTO hall_bookings (date, status, note, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT(date) DO UPDATE SET status = excluded.status, note = excluded.note, updated_at = excluded.updated_at').run(v.value.date, v.value.status, v.value.note, Date.now());
+    else db.prepare('DELETE FROM hall_bookings WHERE date = ?').run(v.value.date);
+    note(req.method === 'PUT' ? 'hall_booking_set' : 'hall_booking_open', `${v.value.date} · ${req.method === 'PUT' ? v.value.status : 'open'}`);
+    return json({ ok: true });
   }
 
   // volunteer shifts and who signed up

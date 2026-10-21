@@ -83,3 +83,12 @@ Retention: orders are deleted after SHOP_RETENTION_DAYS (default 365), logged as
 |---|---|---|---|
 | honor | /honor | `honorHtml(state.honor, {photos, photoBase})`: `ul.honor-grid > li.honor-card > img, h3, p.honor-branch > span.honor-pill, p.honor-era, p.honor-served, p.honor-note`, then `p.honor-add`; with nothing to show, the `div.honor-soon` Coming soon panel. | src/content/honor.json (`[]`) |
 Only entries with `consent === true` (the boolean) and not hidden render; the rules are `honorList` in src/lib/honor.js. Unconsented entries live only in the admin state (`GET /api/admin/state` `honor`) and never reach public HTML or the `data` script. Admin API: `PUT|DELETE /api/admin/honor/<id|new>`, `PUT /api/admin/honor-order {ids}`; audit types `honor_create|update|delete|reorder`. Entry: `{id, name, branch, era, served, note, photo, consent, enabled}`.
+
+## Hall booking calendar (marker: hall-calendar)
+| NAME | Where | Output | Static seed |
+|---|---|---|---|
+| hall-calendar | /hall | `hallCalendarHtml(bookings, today, {month})`: `div.vfw-hall` with `nav.vfw-cal-nav` (Previous months, Next months as `?cal=YYYY-MM#open-dates`), `ul.hc-key`, then three `section.vfw-month` grids. Day cells are `td.hc-day.hc-open` (an `a[data-date]` to `#inquiry`), `.hc-booked`, `.hc-hold` (text label plus a shape, never colour alone) or `.hc-past` (muted, no label). | `p.vfw-hall-note`: "Send an inquiry or call the post to check a date" and the phone link |
+
+The server passes `{ hall: { bookings: [{date, status}], month } }` as dates and status only. The staff note never reaches a renderer, the `data` script or the page. `src/scripts/hall-dates.ts` reads `data-date` and fills the form's `#f-date`.
+Table `hall_bookings` (date PRIMARY KEY, status booked or hold, note up to 120 characters, updated_at). Admin API: `GET hall-bookings` (the coming year, with notes), `PUT hall-bookings/<date> {status, note}`, `DELETE hall-bookings/<date>` (opens the date). Errors: `date` (not a real date, or more than a year ahead), `past`, `status`. Audit types `hall_booking_set|hall_booking_open|hall_purged`.
+Retention: dates more than 30 days past are deleted daily.

@@ -158,6 +158,20 @@
       .who .p:first-child { border-top: 0; }
       .who .p > div { flex: 1 1 14rem; min-width: 0; overflow-wrap: anywhere; }
       .who a.tap { display: inline-flex; align-items: center; min-height: 48px; margin-right: 1rem; font-weight: 600; }
+      .hb-nav { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin-bottom: .75rem; }
+      .hb-nav h2 { margin: 0; text-align: center; }
+      .hb-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+      .hb-wd { text-align: center; font-weight: 700; font-size: .85rem; color: var(--ink-2); }
+      .hb-day { display: grid; place-items: center; align-content: center; gap: 1px; min-height: 58px; padding: 2px 0; font: inherit; color: var(--ink); background: var(--card); border: 2px solid var(--field); border-radius: 6px; cursor: pointer; }
+      .hb-day b { font-size: 1.1rem; line-height: 1.1; }
+      .hb-day small { font-size: .7rem; font-weight: 700; line-height: 1.1; }
+      .hb-day.booked { background: var(--bad-bg); color: var(--red-ink); border-color: var(--red); }
+      .hb-day.hold { background: var(--warn-bg); color: #5a4515; border-color: var(--gold-ink); }
+      .hb-day.sel { outline: 3px solid var(--ink); outline-offset: 1px; }
+      .hb-day:disabled { opacity: .45; cursor: default; background: none; border-color: var(--line); }
+      .hb-gap { min-height: 58px; }
+      .hb-row { width: 100%; justify-content: flex-start; text-align: left; margin-bottom: .5rem; flex-wrap: wrap; }
+      @media (max-width: 480px) { .hb-day small { font-size: .6rem; } .hb-nav .btn { padding: .5rem .7rem; } .hb-nav h2 { font-size: 1.15rem; } }
       .priv { white-space: pre-wrap; background: var(--stone); border-radius: 6px; padding: .75rem 1rem; }
       @media (max-width: 800px) {
         .wrap { grid-template-columns: minmax(0, 1fr); }
@@ -226,6 +240,7 @@
         <section data-section="shop-orders" hidden></section>
         <section data-section="volunteers" hidden></section>
         <section data-section="inquiries" hidden></section>
+        <section data-section="hall" hidden></section>
         <section data-section="help" hidden></section>
         <section data-section="security" hidden></section>
         <section data-section="settings" hidden></section>
@@ -334,7 +349,7 @@
         start();
       });
       const NAV = [['dashboard', 'Dashboard', 'home'], ['events', 'Events', 'calendar'], ['specials', 'Drink specials', 'glass'], ['taps', 'Beers on tap', 'glass'], ['honor', 'Wall of Honor', 'shield'], ['menu', 'Food menu', 'plate'], ['news', 'News', 'news'], ['shop', 'Shop', 'bag'],
-        ['volunteers', 'Volunteers', 'hand'], ['inquiries', 'Hall inquiries', 'mail'], ['help', 'Help requests', 'lifebuoy'], ['security', 'Security log', 'shield'], ['settings', 'Site settings', 'gear'], ['account', 'Account', 'person']];
+        ['volunteers', 'Volunteers', 'hand'], ['inquiries', 'Hall inquiries', 'mail'], ['hall', 'Hall bookings', 'calendar'], ['help', 'Help requests', 'lifebuoy'], ['security', 'Security log', 'shield'], ['settings', 'Site settings', 'gear'], ['account', 'Account', 'person']];
       const navLinks = () => NAV.map(([id, t, i]) => h('a', { href: '#' + id, 'data-view': id }, ico(i), h('span', {}, t), (id === 'inquiries' || id === 'help' || id === 'shop') && h('span', { class: 'count', 'data-count': id === 'inquiries' ? '' : id, hidden: true })));
       const navTail = () => [h('a', { href: '/', target: '_blank', rel: 'noopener' }, ico('ext'), 'View the website'), h('button', { class: 'linkbtn', type: 'button', onclick: signOut }, 'Sign out')];
       const setCount = (n, k = '') => document.querySelectorAll(`[data-count="${k}"]`).forEach((c) => { c.textContent = n; c.hidden = !n; });
@@ -617,6 +632,7 @@
             q.message && h('p', { style: 'white-space:pre-wrap' }, q.message),
             h('div', { class: 'row' },
               h('button', { class: 'btn alt', type: 'button', onclick: async () => { await api('PUT', 'admin/inquiries/' + q.id, { handled: !q.handled }); renderInquiries(); } }, q.handled ? 'Mark as new' : 'Mark as handled'),
+              q.event_date && q.event_date >= S.today && h('button', { class: 'btn alt', type: 'button', onclick: () => markHallBooked(q) }, 'Mark this date booked'),
               h('button', { class: 'btn danger', type: 'button', onclick: async () => { if (await ask(`Delete the message from ${q.name}?`, 'It will be gone for good.', 'Delete it')) { await api('DELETE', 'admin/inquiries/' + q.id); renderInquiries(); } } }, 'Delete')))) : h('div', { class: 'card' }, h('p', { class: 'big' }, 'No inquiries yet.'), h('p', {}, 'Messages from the hall rental form will show up here.')));
       }
 
@@ -851,7 +867,8 @@
         help_honeypot: ['Stopped a spam message on the help form', 'warn'], volunteer_honeypot: ['Stopped a spam message on the volunteer form', 'warn'],
         help_rate_limited: ['Too many messages from one visitor', 'warn'], volunteer_rate_limited: ['Too many messages from one visitor', 'warn'], settings_update: ['Changed the site settings', 'edit', 'gear'],
         shop_order: ['A shop order arrived', 'edit', 'bag'], order_delete: ['Deleted a shop order', 'edit', 'bin'], orders_purged: ['Old shop orders cleared automatically', 'muted', 'clock'],
-        shop_honeypot: ['Stopped a spam message on the shop form', 'warn'], shop_rate_limited: ['Too many shop orders from one visitor', 'warn'], products_reorder: ['Reordered the shop products', 'muted', 'bag'], taps_reorder: ['Reordered the beers on tap', 'muted', 'glass'], honor_reorder: ['Reordered the Wall of Honor', 'muted', 'shield'] };
+        shop_honeypot: ['Stopped a spam message on the shop form', 'warn'], shop_rate_limited: ['Too many shop orders from one visitor', 'warn'], products_reorder: ['Reordered the shop products', 'muted', 'bag'], taps_reorder: ['Reordered the beers on tap', 'muted', 'glass'], honor_reorder: ['Reordered the Wall of Honor', 'muted', 'shield'],
+        hall_booking_set: ['Changed a hall date', 'edit', 'calendar'], hall_booking_open: ['Opened a hall date', 'edit', 'calendar'], hall_purged: ['Old hall dates cleared automatically', 'muted', 'clock'] };
       for (const [a, w] of [['create', 'Added'], ['update', 'Changed'], ['delete', 'Deleted']]) EVT[`shifts_${a}`] = [`${w} a volunteer shift`, 'edit', a === 'delete' ? 'bin' : 'hand'];
       for (const [k, t] of [['events', 'an event'], ['specials', 'a drink special'], ['news', 'a news item'], ['products', 'a shop product'], ['taps', 'a beer on tap'], ['honor', 'a Wall of Honor entry']]) for (const [a, w] of [['create', 'Added'], ['update', 'Changed'], ['delete', 'Deleted']]) EVT[`${k}_${a}`] = [`${w} ${t}`, 'edit', a === 'delete' ? 'bin' : 'pencil'];
       const KIND_ICON = { ok: 'check', warn: 'warn', bad: 'bshield', edit: 'pencil', muted: 'clock' };
@@ -906,8 +923,65 @@
         put(sec, h('h1', {}, 'Account'), h('p', {}, 'Signed in as ' + S.user + '.'), form);
       }
 
+      // ---------- hall bookings ----------
+      let hallMonth = '', hallSel = '';
+      const HALL_ERR = { past: 'That date has already gone by.', date: 'Pick a date within the next year.', status: 'Pick Booked or On hold.' };
+      const HALL_WORD = { booked: 'Booked', hold: 'On hold' };
+      /** Sets a date to booked or on hold, or opens it again when status is null. Returns true when it worked. */
+      async function setHall(date, status, note = '') {
+        const r = status ? await api('PUT', 'admin/hall-bookings/' + date, { status, note }) : await api('DELETE', 'admin/hall-bookings/' + date);
+        if (!r.ok) toast(HALL_ERR[r.data.error] || say(r));
+        return r.ok;
+      }
+      async function markHallBooked(q) {
+        if (!(await setHall(q.event_date, 'booked', ('From inquiry: ' + q.name).slice(0, 120)))) return;
+        hallSel = q.event_date; hallMonth = q.event_date.slice(0, 7);
+        toast(short(q.event_date) + ' is now marked booked.', { label: 'See the calendar', fn: () => (location.hash = 'hall') });
+      }
+      async function renderHall() {
+        guard = null;
+        const sec = $('[data-section=hall]');
+        const r = await api('GET', 'admin/hall-bookings');
+        if (!r.ok) return put(sec, h('h1', {}, 'Hall bookings'), h('div', { class: 'card' }, h('p', { class: 'big' }, say(r))));
+        const today = r.data.today, B = new Map(r.data.bookings.map((b) => [b.date, b]));
+        const cur = today.slice(0, 7), lastDay = new Date(Date.parse(today + 'T12:00:00Z') + 366 * 864e5).toISOString().slice(0, 10), last = lastDay.slice(0, 7);
+        if (!hallMonth || hallMonth < cur || hallMonth > last) hallMonth = cur;
+        const step = (n) => { hallMonth = new Date(Date.UTC(+hallMonth.slice(0, 4), +hallMonth.slice(5) - 1 + n, 1)).toISOString().slice(0, 7); draw(); };
+        async function change(date, status, note) { // updates the one date and redraws without asking the server again
+          if (!(await setHall(date, status, note))) return;
+          if (status) B.set(date, { date, status, note }); else B.delete(date);
+          draw();
+        }
+        function draw() {
+          const y = +hallMonth.slice(0, 4), m = +hallMonth.slice(5) - 1, lead = new Date(Date.UTC(y, m, 1)).getUTCDay(), n = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+          const cells = [...Array(lead).fill(null).map(() => h('span', { class: 'hb-gap', 'aria-hidden': 'true' })), ...Array.from({ length: n }, (_, i) => {
+            const date = `${hallMonth}-${String(i + 1).padStart(2, '0')}`, b = B.get(date), st = b?.status ?? '';
+            return h('button', { type: 'button', class: `hb-day ${st}${date === hallSel ? ' sel' : ''}`, disabled: date < today || date > lastDay, 'aria-label': `${short(date)}, ${HALL_WORD[st] ?? 'Open'}. Tap to change.`,
+              onclick: () => { hallSel = date; change(date, st === '' ? 'booked' : st === 'booked' ? 'hold' : null, b?.note ?? ''); } }, h('b', {}, i + 1), h('small', {}, HALL_WORD[st] ?? 'Open'));
+          })];
+          const sel = B.get(hallSel), note = h('input', { type: 'text', maxlength: 120, value: sel?.note ?? '' });
+          const upcoming = [...B.values()].sort((a, b) => (a.date < b.date ? -1 : 1));
+          put(sec, h('h1', {}, 'Hall bookings'), h('p', {}, 'Tap a date to change it: Open, then Booked, then On hold, then Open again. Renters see these dates on the Rent the Hall page. They never see your notes.'),
+            h('div', { class: 'card' },
+              h('div', { class: 'hb-nav' }, h('button', { class: 'btn alt', type: 'button', disabled: hallMonth <= cur, onclick: () => step(-1) }, ico('back'), 'Previous'),
+                h('h2', { 'aria-live': 'polite' }, UTC(hallMonth + '-01', { month: 'long', year: 'numeric' })),
+                h('button', { class: 'btn alt', type: 'button', disabled: hallMonth >= last, onclick: () => step(1) }, 'Next')),
+              h('div', { class: 'hb-grid' }, ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => h('div', { class: 'hb-wd' }, d)), cells)),
+            hallSel && h('div', { class: 'card' }, h('h2', {}, short(hallSel), ' ', h('span', { class: sel ? (sel.status === 'booked' ? 'chip bad' : 'chip warn') : 'chip muted' }, sel ? HALL_WORD[sel.status] : 'Open')),
+              sel ? [h('div', { class: 'fld wide' }, h('label', { for: 'hb-note' }, 'Note for the staff', h('span', { class: 'opt' }, 'Optional')), h('span', { class: 'hint', id: 'hb-note-h' }, 'Only staff see this. It never shows on the website.'), Object.assign(note, { id: 'hb-note' })),
+                h('div', { class: 'row' }, h('button', { class: 'btn', type: 'button', onclick: async () => { if (await setHall(hallSel, sel.status, note.value)) { toast('Note saved.'); B.set(hallSel, { ...sel, note: note.value.trim() }); draw(); } } }, 'Save the note'),
+                  h('button', { class: 'btn alt', type: 'button', onclick: () => change(hallSel, null) }, 'Mark this date open'))]
+                : h('p', {}, 'This date is open. Tap it on the calendar to mark it booked, then you can add a note.')),
+            h('h2', {}, 'Coming up'),
+            upcoming.length ? upcoming.map((b) => h('button', { class: 'btn alt hb-row', type: 'button', onclick: () => { hallSel = b.date; hallMonth = b.date.slice(0, 7); draw(); } },
+              h('strong', {}, short(b.date)), h('span', { class: b.status === 'booked' ? 'chip bad' : 'chip warn' }, HALL_WORD[b.status]), b.note && h('span', {}, b.note)))
+              : h('div', { class: 'card' }, h('p', { class: 'big' }, 'Nothing is booked yet.'), h('p', {}, 'Every date shows as open to renters until you mark it.')));
+        }
+        draw();
+      }
+
       // ---------- navigation ----------
-      const VIEWS = { dashboard: renderDashboard, events: () => renderCrud('events'), specials: () => renderCrud('specials'), taps: () => renderCrud('taps'), honor: () => renderCrud('honor'), menu: renderMenu, news: () => renderCrud('news'), shop: () => renderCrud('products'), 'shop-orders': renderShopOrders, volunteers: renderVolunteers, inquiries: renderInquiries, help: renderHelp, security: renderSecurity, settings: renderSettings, account: renderAccount };
+      const VIEWS = { dashboard: renderDashboard, events: () => renderCrud('events'), specials: () => renderCrud('specials'), taps: () => renderCrud('taps'), honor: () => renderCrud('honor'), menu: renderMenu, news: () => renderCrud('news'), shop: () => renderCrud('products'), 'shop-orders': renderShopOrders, volunteers: renderVolunteers, inquiries: renderInquiries, hall: renderHall, help: renderHelp, security: renderSecurity, settings: renderSettings, account: renderAccount };
       let cur = '', restoring = false;
       function show() {
         const v = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'dashboard';

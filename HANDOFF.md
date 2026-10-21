@@ -17,11 +17,11 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Shared files** (`src/styles/global.css`, `src/lib/state.js`, `server.js`, `src/pages/admin.astro`, `HANDOFF.md`): append rather than reorder, keep edits local to your feature, and pull right before editing them.
 - **When done:** remove your "Now working on" line, update the relevant HANDOFF.md section, and make sure `npm test` passes before pushing.
 - **Commits** are authored as Mish (see the top of this file).
+- **Test servers:** start throwaway servers on their own port with a temp `DATA_DIR`, and stop only that process by its PID. Never kill every node process (`taskkill /IM node.exe`, or `Stop-Process` on every `server.js`), because the owner's own local site runs as node too.
 - **Usage limits: hand off before you run out.** When a machine is near its usage limit, it stops its helpers, commits finished work, and stashes half-done work (never pushing broken code). It files what's left as task issues labeled for the other machine, with full briefs. Then it posts a "Handoff" comment on the coordination board (what's done, what's open and which issues), removes its claims below, and stops. The other machine takes those issues next. When the first machine is back, it reads the board and picks up whatever is labeled for it.
 - **Task issues:** work is handed out as GitHub issues labeled `laptop` or `desktop`, each a full brief with a "Done when" checklist. Check `gh issue list -l <your machine> --state open` at the start of a session and about every 15 minutes while idle. Take the lowest number, comment "Started", claim it below, and close it with the commit hash when done.
 
 ### Now working on
-- **Desktop:** hall booking calendar (owner approved): an admin view of booked dates and an availability calendar on /hall (a new hall-dates section in server.js, db.js, state.js and admin.astro; hall.astro).
 
 ## Status (handoff, 2026-10-20)
 **The site is feature-complete on the preview. The next steps are the owner's choices.**
@@ -87,6 +87,10 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - Tap logos: an optional `logo` slug per tap (`LOGOS` in `state.js`, files in `public/brand/taps/`: Yuengling, Coors Light, Budweiser, Blue Moon, Guinness, Miller Lite, Modelo; the owner approved real logos). Admin > Beers on tap has a Brand logo select. Bud Light and Michelob Ultra have no file and keep drawn badges. Existing databases keep their old taps: set each logo in the admin after deploying (and Miller Lite's shape to shield).
 - Pressing a handle pours beer (`src/scripts/pour.ts`, a canvas overlay drawn as merging liquid through an SVG blur-and-threshold filter, with a tapered stream and foam). Each beer has its own colour from the tap name (light, amber, wheat, stout; a tap can override with a `data-liquid` hex), and the stream is drawn on a second, unfiltered canvas. Boxes are oriented colliders (size, centre and the rotation summed over ancestors), so beer runs down tilted snapshots and off their low end (`SLIDE` scales the downhill pull). Foam, bubbles and after-drips sit on the pooled beer. Boxes are measured once per pour and shifted with the scroll. It only runs on desktop with a mouse (900px or wider) and is off with reduced motion; phones don't get the tower at all.
 - The taps are placeholders (9 common drafts). Staff edit them in Admin > Beers on tap: name, badge and text colours, accent, shape, sub-label, Show on website, order. Saved taps from before these fields default to an oval. Marker `taps`.
+
+### Hall booking calendar (2026-10-21)
+- Staff mark dates as Booked or On hold in Admin > Hall bookings (a month grid; a private note per date), or with "Mark this date booked" on a hall inquiry that has a future date. The `hall_bookings` table drops dates more than 30 days old.
+- /hall shows "Open dates": three months with Previous/Next (marker `hall-calendar`). Statuses use words and icons as well as colour. Tapping an open date fills the inquiry form's date. Notes never reach the public page. The static preview shows "Send an inquiry or call the post" instead.
 
 ### Post shop `/shop` (2026-10-20)
 - Products are added in Admin > Shop: name, price, description, sizes, picture (same upload as news), Show on website, Move up/down. With no products it shows "Coming soon".

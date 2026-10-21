@@ -29,7 +29,8 @@ export function openDb(dir) {
       handled INTEGER NOT NULL DEFAULT 0, emailed INTEGER NOT NULL DEFAULT 0);
     CREATE TABLE IF NOT EXISTS shop_orders (id INTEGER PRIMARY KEY, at INTEGER NOT NULL, day TEXT NOT NULL, product_id TEXT NOT NULL, product TEXT NOT NULL, option TEXT NOT NULL DEFAULT '',
       price TEXT NOT NULL DEFAULT '', qty INTEGER NOT NULL, name TEXT NOT NULL, phone TEXT NOT NULL DEFAULT '', email TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '',
-      handled INTEGER NOT NULL DEFAULT 0, emailed INTEGER NOT NULL DEFAULT 0);`);
+      handled INTEGER NOT NULL DEFAULT 0, emailed INTEGER NOT NULL DEFAULT 0);
+    CREATE TABLE IF NOT EXISTS hall_bookings (date TEXT PRIMARY KEY, status TEXT NOT NULL CHECK (status IN ('booked', 'hold')), note TEXT NOT NULL DEFAULT '', updated_at INTEGER NOT NULL) WITHOUT ROWID;`);
   return db;
 }
 
@@ -40,6 +41,9 @@ export const purgeInquiries = (db, days, now = Date.now()) => Number(db.prepare(
 
 /** Deletes shop orders older than `days` (SHOP_RETENTION_DAYS, default 365). Returns how many. */
 export const purgeOrders = (db, days, now = Date.now()) => Number(db.prepare('DELETE FROM shop_orders WHERE at < ?').run(now - days * 864e5).changes);
+
+/** Deletes hall bookings dated before `cutoff` (YYYY-MM-DD; the caller passes ET today minus 30 days). Returns how many. */
+export const purgeHall = (db, cutoff) => Number(db.prepare('DELETE FROM hall_bookings WHERE date < ?').run(cutoff).changes);
 
 export const getState = (db) => JSON.parse(db.prepare("SELECT value FROM kv WHERE key = 'state'").get()?.value ?? '{}');
 export const setState = (db, state) => db.prepare("INSERT INTO kv (key, value) VALUES ('state', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(JSON.stringify(state));
