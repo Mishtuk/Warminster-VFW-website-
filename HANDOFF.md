@@ -21,6 +21,10 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Task issues:** work is handed out as GitHub issues labeled `laptop` or `desktop`, each a full brief with a "Done when" checklist. Check `gh issue list -l <your machine> --state open` at the start of a session and about every 15 minutes while idle. Take the lowest number, comment "Started", claim it below, and close it with the commit hash when done.
 
 ### Now working on
+- **Desktop:** #14, #16 and #13: event photos, stable ids, galleries (the event parts of state.js, event-photos.js, events.astro, events.json).
+- **Desktop:** #15, pour polish (pour.ts, and the taps parts of state.js, admin.astro and taps.json for the liquid colour).
+- **Desktop:** #17, Wall of Honor editor (a new honor section in server.js, state.js and admin.astro; honor.astro; honor.js).
+- **Desktop:** #18, owner checks.
 
 ## Status (handoff, 2026-10-20)
 **The site is feature-complete on the preview. The next steps are the owner's choices.**
