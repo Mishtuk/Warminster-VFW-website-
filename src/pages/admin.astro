@@ -219,6 +219,7 @@
         <section data-section="events" hidden></section>
         <section data-section="specials" hidden></section>
         <section data-section="taps" hidden></section>
+        <section data-section="honor" hidden></section>
         <section data-section="menu" hidden></section>
         <section data-section="news" hidden></section>
         <section data-section="shop" hidden></section>
@@ -270,9 +271,9 @@
         upload: 'The picture could not be saved. Try again.', in_use: 'A news item or a product still uses that picture.',
         past: 'Pick today or a later date.', slots: 'Enter a number from 1 to 100.', responder: 'Add who answers before turning the form on.', responderEmail: 'That email address does not look right.',
         donateUrl: 'That link must start with https:// and be a full web address.', donateLabel: 'Keep the button words under 40 characters.',
-        checkoutUrl: 'That link must start with https:// and be a full web address.', options: 'Keep it to 12 choices, each under 30 characters.', name: 'Please enter a name of up to 40 characters.', bg: 'Pick a badge colour.', accent: 'Pick an accent colour.', shape: 'Pick a badge shape from the list.', fg: 'Pick a text colour.', order: 'The order could not be saved. Reload the page and try again.' };
+        checkoutUrl: 'That link must start with https:// and be a full web address.', options: 'Keep it to 12 choices, each under 30 characters.', name: 'Please enter a name of up to 40 characters.', bg: 'Pick a badge colour.', liquid: 'Pick a beer colour.', accent: 'Pick an accent colour.', shape: 'Pick a badge shape from the list.', fg: 'Pick a text colour.', order: 'The order could not be saved. Reload the page and try again.' };
       const ALT_HINT = 'For people who cannot see it, for example: Members at the 60th anniversary dinner. If you leave it empty, the headline is used.';
-      const ERRF = { title: 'title', date: 'date', start: 'start', end: 'end', label: 'label', body: 'body', range: 'end', name: 'name', bg: 'bg', fg: 'fg', checkoutUrl: 'checkoutUrl', options: 'options' }; // error key -> the field it belongs to
+      const ERRF = { title: 'title', date: 'date', start: 'start', end: 'end', label: 'label', body: 'body', range: 'end', name: 'name', bg: 'bg', fg: 'fg', checkoutUrl: 'checkoutUrl', options: 'options', branch: 'branch' }; // error key -> the field it belongs to
       const money = (n) => Number(n).toLocaleString('en-US');
       const plural = (n, one, many) => `${money(n)} ${n === 1 ? one : many}`;
       const UTC = (d, o) => new Date(d + 'T12:00:00Z').toLocaleDateString('en-US', { ...o, timeZone: 'UTC' });
@@ -332,7 +333,7 @@
         f.password.value = '';
         start();
       });
-      const NAV = [['dashboard', 'Dashboard', 'home'], ['events', 'Events', 'calendar'], ['specials', 'Drink specials', 'glass'], ['taps', 'Beers on tap', 'glass'], ['menu', 'Food menu', 'plate'], ['news', 'News', 'news'], ['shop', 'Shop', 'bag'],
+      const NAV = [['dashboard', 'Dashboard', 'home'], ['events', 'Events', 'calendar'], ['specials', 'Drink specials', 'glass'], ['taps', 'Beers on tap', 'glass'], ['honor', 'Wall of Honor', 'shield'], ['menu', 'Food menu', 'plate'], ['news', 'News', 'news'], ['shop', 'Shop', 'bag'],
         ['volunteers', 'Volunteers', 'hand'], ['inquiries', 'Hall inquiries', 'mail'], ['help', 'Help requests', 'lifebuoy'], ['security', 'Security log', 'shield'], ['settings', 'Site settings', 'gear'], ['account', 'Account', 'person']];
       const navLinks = () => NAV.map(([id, t, i]) => h('a', { href: '#' + id, 'data-view': id }, ico(i), h('span', {}, t), (id === 'inquiries' || id === 'help' || id === 'shop') && h('span', { class: 'count', 'data-count': id === 'inquiries' ? '' : id, hidden: true })));
       const navTail = () => [h('a', { href: '/', target: '_blank', rel: 'noopener' }, ico('ext'), 'View the website'), h('button', { class: 'linkbtn', type: 'button', onclick: signOut }, 'Sign out')];
@@ -380,13 +381,21 @@
         taps: { title: 'Beers on tap', one: 'beer tap', add: 'Add a beer', empty: 'No beers on tap yet.', more: ' The row of taps on the home page stays hidden until a beer is on the website.', gone: 'It will be gone for good. To keep it but take it off the website, choose Hide instead.', fields: [
           ['name', 'Name of the beer', 'text', null, null, { hint: 'Up to 40 characters, like Yuengling.' }], ['bg', 'Badge colour', 'color', null, null, { half: true }], ['fg', 'Text colour', 'color', null, null, { half: true }],
           ['accent', 'Accent colour', 'color', null, null, { half: true }],
+          ['liquid', 'Beer colour', 'color', null, null, { half: true, optional: true, hint: 'The colour of the beer when it pours down the page.' }],
           ['shape', 'Badge shape', 'select', [['oval', 'Oval'], ['circle', 'Circle'], ['shield', 'Shield'], ['banner', 'Banner'], ['crest', 'Crest']], null, { half: true }],
           ['sub', 'Small label under the name', 'text', null, null, { optional: true, hint: 'Up to 16 characters, like Light or Lager.' }],
           ['logo', 'Brand logo', 'select', [['', 'None (use the name)'], ['blue-moon', 'Blue Moon'], ['budweiser', 'Budweiser'], ['coors-light', 'Coors Light'], ['guinness', 'Guinness'], ['miller-lite', 'Miller Lite'], ['modelo', 'Modelo'], ['yuengling', 'Yuengling']], null, { optional: true, hint: 'Shows the real logo on the tap handle. Bud Light and Michelob Ultra have none.' }],
           ['preview', 'How the badge will look', 'preview'], ['enabled', 'Show on the website', 'check']],
-          blank: { name: '', bg: '#c8102e', fg: '#ffffff', accent: '#ffffff', shape: 'oval', sub: '', logo: '', enabled: true },
-          pre: (v) => ({ ...v, accent: v.accent || v.fg, shape: v.shape || 'oval', sub: v.sub || '', logo: v.logo || '' }),
+          blank: { name: '', bg: '#c8102e', fg: '#ffffff', accent: '#ffffff', liquid: '#e7bf43', shape: 'oval', sub: '', logo: '', enabled: true },
+          pre: (v) => ({ ...v, accent: v.accent || v.fg, liquid: v.liquid || '#e7bf43', shape: v.shape || 'oval', sub: v.sub || '', logo: v.logo || '' }),
           line: (x) => x.name, chips: (x) => h('span', { class: 'chip', style: `background:${x.bg};color:${x.fg}` }, x.name), sub: (x) => `Badge ${x.bg}, text ${x.fg}` },
+        honor: { title: 'Wall of Honor', one: 'entry', add: 'Add a veteran', empty: 'No veterans yet.', more: ' The Wall of Honor page says Coming soon until an entry is on the website.', gone: 'It will be gone for good. To keep it but take it off the website, choose Hide instead.', fields: [
+          ['name', 'Name', 'text'], ['branch', 'Branch', 'select', [['', 'Choose a branch'], ...['Army', 'Navy', 'Air Force', 'Marine Corps', 'Coast Guard', 'Space Force', 'Merchant Marine'].map((b) => [b, b])], null, { half: true }],
+          ['era', 'Era', 'text', null, null, { optional: true, half: true, hint: 'Like Vietnam War.' }], ['served', 'Years served', 'text', null, null, { optional: true, hint: 'Like 1968 to 1970.' }],
+          ['note', 'A few words about them', 'textarea', null, null, { optional: true, rows: 3, max: 400, hint: 'Up to 400 characters.' }], ['photo', 'Picture', 'photo'],
+          ['consent', 'The family agreed to show this', 'check'], ['enabled', 'Show on the website', 'check']],
+          blank: { name: '', branch: '', era: '', served: '', note: '', photo: '', consent: false, enabled: true },
+          line: (x) => x.name, chips: (x) => (x.consent ? h('span', { class: 'chip ok' }, 'Family agreed') : h('span', { class: 'chip warn' }, 'Family has not agreed yet')), sub: (x) => [x.branch, x.era, x.served].filter(Boolean).join(' · ') },
       };
       const thumbOf = (n) => '/media/photos/' + (S.photos.find((p) => p.name === n)?.thumb || n);
 
@@ -453,11 +462,11 @@
         h('a', { class: 'btn' + (here === 'shop-orders' ? '' : ' alt'), href: '#shop-orders' }, 'Orders' + (S.newOrders ? ` · ${S.newOrders} new` : '')));
       function renderCrud(name, hl, focus = []) {
         guard = null;
-        const c = CFG[name], sec = $(`[data-section=${c.sec || name}]`), items = S[name], shop = name === 'products', ordered = shop || name === 'taps';
+        const c = CFG[name], sec = $(`[data-section=${c.sec || name}]`), items = S[name], shop = name === 'products', ordered = shop || name === 'taps' || name === 'honor';
         const mvb = (it, i, d) => ((d < 0 ? i > 0 : i < items.length - 1) ? h('button', { class: 'btn alt mv', type: 'button', 'data-f': it.id + (d < 0 ? 'up' : 'down'), onclick: () => move(i, d) }, ico(d < 0 ? 'up' : 'down'), d < 0 ? 'Move up' : 'Move down') : h('span', { class: 'mv-gap', 'aria-hidden': 'true' }));
         const row = (it, i) => h('div', { class: 'item', 'data-id': it.id },
-          (name === 'news' || shop) && (it.photo ? h('img', { class: 'thumb', src: thumbOf(it.photo), alt: '', loading: 'lazy' }) : shop && h('img', { class: 'thumb thumb-ph', src: '/brand/logo-mark.svg', alt: '' })),
-          h('div', { class: 'what' }, h('div', { class: 't' }, h('strong', {}, c.line(it)), it.enabled ? h('span', { class: 'chip ok' }, 'On the website') : h('span', { class: 'chip muted' }, 'Not on the website'), c.chips?.(it)), h('div', { class: 'meta' }, c.sub(it))),
+          (name === 'news' || name === 'honor' || shop) && (it.photo ? h('img', { class: 'thumb', src: thumbOf(it.photo), alt: '', loading: 'lazy' }) : shop && h('img', { class: 'thumb thumb-ph', src: '/brand/logo-mark.svg', alt: '' })),
+          h('div', { class: 'what' }, h('div', { class: 't' }, h('strong', {}, c.line(it)), it.enabled && (name !== 'honor' || it.consent) ? h('span', { class: 'chip ok' }, 'On the website') : h('span', { class: 'chip muted' }, 'Not on the website'), c.chips?.(it)), h('div', { class: 'meta' }, c.sub(it))),
           h('div', { class: 'acts' },
             ordered && mvb(it, i, -1), ordered && mvb(it, i, 1),
             h('button', { class: 'btn alt', type: 'button', onclick: () => edit(it) }, 'Edit'),
@@ -842,9 +851,9 @@
         help_honeypot: ['Stopped a spam message on the help form', 'warn'], volunteer_honeypot: ['Stopped a spam message on the volunteer form', 'warn'],
         help_rate_limited: ['Too many messages from one visitor', 'warn'], volunteer_rate_limited: ['Too many messages from one visitor', 'warn'], settings_update: ['Changed the site settings', 'edit', 'gear'],
         shop_order: ['A shop order arrived', 'edit', 'bag'], order_delete: ['Deleted a shop order', 'edit', 'bin'], orders_purged: ['Old shop orders cleared automatically', 'muted', 'clock'],
-        shop_honeypot: ['Stopped a spam message on the shop form', 'warn'], shop_rate_limited: ['Too many shop orders from one visitor', 'warn'], products_reorder: ['Reordered the shop products', 'muted', 'bag'], taps_reorder: ['Reordered the beers on tap', 'muted', 'glass'] };
+        shop_honeypot: ['Stopped a spam message on the shop form', 'warn'], shop_rate_limited: ['Too many shop orders from one visitor', 'warn'], products_reorder: ['Reordered the shop products', 'muted', 'bag'], taps_reorder: ['Reordered the beers on tap', 'muted', 'glass'], honor_reorder: ['Reordered the Wall of Honor', 'muted', 'shield'] };
       for (const [a, w] of [['create', 'Added'], ['update', 'Changed'], ['delete', 'Deleted']]) EVT[`shifts_${a}`] = [`${w} a volunteer shift`, 'edit', a === 'delete' ? 'bin' : 'hand'];
-      for (const [k, t] of [['events', 'an event'], ['specials', 'a drink special'], ['news', 'a news item'], ['products', 'a shop product'], ['taps', 'a beer on tap']]) for (const [a, w] of [['create', 'Added'], ['update', 'Changed'], ['delete', 'Deleted']]) EVT[`${k}_${a}`] = [`${w} ${t}`, 'edit', a === 'delete' ? 'bin' : 'pencil'];
+      for (const [k, t] of [['events', 'an event'], ['specials', 'a drink special'], ['news', 'a news item'], ['products', 'a shop product'], ['taps', 'a beer on tap'], ['honor', 'a Wall of Honor entry']]) for (const [a, w] of [['create', 'Added'], ['update', 'Changed'], ['delete', 'Deleted']]) EVT[`${k}_${a}`] = [`${w} ${t}`, 'edit', a === 'delete' ? 'bin' : 'pencil'];
       const KIND_ICON = { ok: 'check', warn: 'warn', bad: 'bshield', edit: 'pencil', muted: 'clock' };
       function evInfo(e) {
         let [name, kind, icon] = EVT[e.type] || ['Other activity', 'muted'], detail = e.detail;
@@ -898,7 +907,7 @@
       }
 
       // ---------- navigation ----------
-      const VIEWS = { dashboard: renderDashboard, events: () => renderCrud('events'), specials: () => renderCrud('specials'), taps: () => renderCrud('taps'), menu: renderMenu, news: () => renderCrud('news'), shop: () => renderCrud('products'), 'shop-orders': renderShopOrders, volunteers: renderVolunteers, inquiries: renderInquiries, help: renderHelp, security: renderSecurity, settings: renderSettings, account: renderAccount };
+      const VIEWS = { dashboard: renderDashboard, events: () => renderCrud('events'), specials: () => renderCrud('specials'), taps: () => renderCrud('taps'), honor: () => renderCrud('honor'), menu: renderMenu, news: () => renderCrud('news'), shop: () => renderCrud('products'), 'shop-orders': renderShopOrders, volunteers: renderVolunteers, inquiries: renderInquiries, help: renderHelp, security: renderSecurity, settings: renderSettings, account: renderAccount };
       let cur = '', restoring = false;
       function show() {
         const v = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'dashboard';

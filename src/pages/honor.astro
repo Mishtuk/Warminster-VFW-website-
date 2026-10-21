@@ -1,65 +1,33 @@
 ---
 /*
  * Wall of Honor. It stays "Coming soon" until families give consent for a name to be shown.
- * Staff edit src/content/honor.json by hand for now (there is no admin editing).
+ * Staff add entries in the admin; this file's seed (src/content/honor.json) is only the first-run content and the static preview.
  * Entry shape: { id, name, branch, era, served, photo, note, consent: true }
  * Only entries with consent === true render. The rules live in src/lib/honor.js.
  */
-import { existsSync } from 'node:fs';
-import { join, sep } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { readdirSync } from 'node:fs';
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
 import Subnav from '../components/Subnav.astro';
 import InfoSection from '../components/info/InfoSection.astro';
 import { POST, ABOUT_TABS } from '../lib/site';
-import { honorList } from '../lib/honor.js';
+import { honorList, honorHtml } from '../lib/honor.js';
 import entries from '../content/honor.json';
 
-const veterans = honorList(entries).map((v) => {
-  if (!v.photo) return { ...v, img: null };
-  const dot = v.photo.lastIndexOf('.');
-  const small = `${v.photo.slice(0, dot)}-800${v.photo.slice(dot)}`;
-  const dir = pathToFileURL(join(process.cwd(), 'public/media/photos') + sep);
-  if (existsSync(new URL(small, dir))) return { ...v, img: { src: small, w: 800, h: 600 } };
-  if (existsSync(new URL(v.photo, dir))) return { ...v, img: { src: v.photo, w: 1024, h: 768 } };
-  return { ...v, img: null };
-});
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+let photos; try { photos = new Set(readdirSync('public/media/photos')); } catch {}
+const seed = `<!--vfw:honor-->${honorHtml(honorList(entries), { photos, photoBase: `${base}/media/photos/` })}<!--/vfw:honor-->`; // the live server replaces this region
 ---
 <Base title="Wall of Honor" sharePhoto="hero-memorial-flag" imageAlt="A flag at a Memorial Day ceremony" description={`Members of ${POST.name} in ${POST.city}, PA who served, shown with their families' permission.`}>
   <PageHead title="Wall of Honor" lede="Honoring the veterans of our post, with their families' permission." image="hero-memorial-flag" />
   <Subnav items={ABOUT_TABS} label="About" />
 
-  <InfoSection id="wall" title="Our veterans" summary={veterans.length ? 'Each name is shown with permission from the veteran or the family.' : 'Coming soon.'} band={veterans.length ? undefined : 'stone'}>
-    {veterans.length === 0 ? (
-      <div class="panel info-body honor-soon">
-        <h3>Coming soon</h3>
-        <p>The post is gathering names with families' permission. We will not show anyone until we have it.</p>
-        <p>To add a veteran, call the post.</p>
-        <p><a class="btn" href={POST.tel}>Call the post {POST.phone}</a></p>
-      </div>
-    ) : (
-      <>
-        <ul class="honor-grid">
-          {veterans.map((v) => (
-            <li class="honor-card">
-              {v.img && <img src={`${base}/media/photos/${v.img.src}`} alt={`Photo of ${v.name}`} width={v.img.w} height={v.img.h} loading="lazy" decoding="async" />}
-              <h3>{v.name}</h3>
-              <p class="honor-branch"><span class="star" aria-hidden="true"></span><span class="honor-pill">{v.branch}</span></p>
-              {v.era && <p class="honor-era">{v.era}</p>}
-              {v.served && <p class="honor-served">{v.served}</p>}
-              {v.note && <p class="honor-note">{v.note}</p>}
-            </li>
-          ))}
-        </ul>
-        <p class="honor-add">To add a veteran, call the post. <a class="btn" href={POST.tel}>Call the post {POST.phone}</a></p>
-      </>
-    )}
+  <InfoSection id="wall" title="Our veterans" summary="Each name is shown with permission from the veteran or the family.">
+    <Fragment set:html={seed} />
   </InfoSection>
 </Base>
 
-<style>
+<style is:global>
   .honor-grid { list-style: none; padding: 0; display: grid; gap: clamp(1rem, 0.6rem + 1.5vw, 1.5rem); }
   @media (min-width: 700px) { .honor-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (min-width: 1000px) { .honor-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

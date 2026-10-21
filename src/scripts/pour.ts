@@ -4,7 +4,7 @@ const DESKTOP = '(min-width: 900px) and (pointer: fine)', CALM = '(prefers-reduc
 const FIXED = '.snap, .menu-card, .card, [data-pour-collide]';
 const GENERIC = 'main img, main figure, main article, main aside, main section, main li, main div, main a';
 const MAX = 900, BURST = 1500, G = 1900, Z = 45, FEED = 120, FID = 'vfw-goo'; // FEED = film particles per second where a stream lands; z-index 45: the site header is 50, the theme button 40
-const V0 = 400, W0 = 9, SPOUT = 16, TAU = 6.2832, SLIDE = 4; // stream leaves the spout at V0 px/s, W0 px wide; the chrome spout hangs ~16px below .tap-nozzle; SLIDE boosts g·sinθ (page tilts are only 1-2°)
+const V0 = 400, W0 = 9, SPOUT = 16, TAU = 6.2832, SLIDE = 3; // stream leaves the spout at V0 px/s, W0 px wide; the chrome spout hangs ~16px below .tap-nozzle; SLIDE boosts g·sinθ (page tilts are only 1-2°)
 
 // a collider: centre, half size and angle (CSS rotation, clockwise), plus its screen bounding box l/r/t/b for quick rejects
 type Box = { el: Element; cx: number; cy: number; hw: number; hh: number; a: number; co: number; si: number; l: number; r: number; t: number; b: number; gone?: boolean };
@@ -19,7 +19,7 @@ const STYLES: Record<string, { b: string[]; hi: string; s: string; sh: string; f
   light: { b: ['#f1cc52', '#e7bf43', '#f7d86e'], hi: '#fff4c2', s: '#efc94e', sh: '#c39421', f: ['#fffbf2', '#f3ead3'], foam: 0.34, life: 2.2 },
   amber: { b: ['#dc8f0c', '#d4850a', '#e29a14'], hi: '#ffd25a', s: '#de920f', sh: '#9e5a04', f: ['#f9f2e1', '#eee1c0'], foam: 0.3, life: 2.2 },
   wheat: { b: ['#e9a33b', '#df9731', '#f0b453'], hi: '#ffdc96', s: '#eaa841', sh: '#b06c1c', f: ['#fdf6e7', '#f1e4c5'], foam: 0.36, life: 2.6 },
-  stout: { b: ['#2c1309', '#38180b', '#24100a'], hi: '#8e3c1d', s: '#3b1d10', sh: '#120805', f: ['#dbc193', '#ecdcb8'], foam: 0.22, life: 4.2, surge: true, hs: '#b07d50' },
+  stout: { b: ['#2c1309', '#38180b', '#24100a'], hi: '#b03048', s: '#3b1d10', sh: '#120805', f: ['#dbc193', '#ecdcb8'], foam: 0.22, life: 4.2, surge: true, hs: '#b07d50' },
 };
 const ink: string[] = [], role: number[] = []; // every colour in use; role 0 beer, 1 foam, 2 highlight (draw order)
 const inkOf = (c: string, k: number) => { let i = ink.findIndex((x, j) => x === c && role[j] === k); if (i < 0) { i = ink.push(c) - 1; role[i] = k; } return i; };
@@ -35,7 +35,7 @@ function palette(tap: Element): Pal {
   let b = S.b, hi = S.hi, s = S.s, sh = S.sh, hs = S.hs ?? hi;
   let hex = tap.getAttribute('data-liquid')?.trim() ?? '';
   if (/^#[0-9a-f]{3}$/i.test(hex)) hex = '#' + [...hex.slice(1)].map((h) => h + h).join('');
-  if (/^#[0-9a-f]{6}$/i.test(hex)) { b = [mix(hex, '#000000', 0.06), mix(hex, '#000000', 0.14), mix(hex, '#ffffff', 0.08)]; hi = hs = mix(hex, '#ffffff', 0.5); s = hex; sh = mix(hex, '#000000', 0.38); }
+  if (/^#[0-9a-f]{6}$/i.test(hex)) { b = [mix(hex, '#000000', 0.06), mix(hex, '#000000', 0.14), mix(hex, '#ffffff', 0.08)]; if (!S.surge) hi = hs = mix(hex, '#ffffff', 0.5); s = hex; sh = mix(hex, '#000000', 0.38); }
   p = { b: b.map((c) => inkOf(c, 0)), f: S.f.map((c) => inkOf(c, 1)), hi: inkOf(hi, 2), s, sh, hs, foam: S.foam, life: S.life, surge: !!S.surge };
   pals.set(tap, p); return p;
 }
@@ -171,7 +171,7 @@ function step(p: P, dt: number) {
   if (p.c) { // riding a box's top edge: slide, rub, run downhill, roll off the ends
     const c = p.c, f = p.fl > 0;
     if (p.ttl > 8) { p.y = 1e9; return; } // safety net only: beer normally runs off an edge first
-    if (c.gone || p.u < -c.hw || p.u > c.hw) { p.c = undefined; p.from = c; p.vy = p.vx * c.si; p.vx *= c.co; return; } // leaves along the slope
+    if (c.gone || p.u < -c.hw || p.u > c.hw) { p.c = undefined; p.from = c; p.vy = p.vx * c.si; p.vx *= c.co; if (!f) for (let i = 1; i < 4 && parts.length < MAX; i++) { const q = mk(p.pal, p.x - Math.sign(p.vx) * i * 3, p.y - p.vy / Math.abs(p.vx || 1) * i * 3, p.vx, p.vy, p.r); q.col = p.col; q.from = c; } return; } // leaves along the slope; a short tail of beer behind it keeps the first runoff one thread, not dashes
     p.ttl += dt;
     const flat = Math.max(0, 1 - Math.abs(c.a) / 0.012), out = p.u < 0 ? -1 : 1, k = 3.5 / p.r0; // level: spread to the nearest edge (big blobs and foam creep)
     if (flat && p.vx * out < (f ? 14 : 160)) p.vx += out * (f ? 30 : 420 * k * k) * flat * dt;
@@ -230,6 +230,7 @@ function column(c: CanvasRenderingContext2D, s: St, now: number) {
   c.globalAlpha = 0.55; c.fillStyle = s.pal.sh; band(c, s, now, 0.3, 1);
   c.globalAlpha = 0.6; c.fillStyle = s.pal.hs; band(c, s, now, -0.7, -0.12);
   c.globalAlpha = 0.45; c.fillStyle = '#ffffff'; band(c, s, now, -0.52, -0.36); // specular streak
+  if (s.pal.surge) { c.globalAlpha = 0.75; c.fillStyle = '#c23a52'; band(c, s, now, -1, -0.78); band(c, s, now, 0.8, 1); } // a stout is near black: a ruby rim on both edges keeps the stream visible
   const len = s.tip - s.top, k = Math.floor(len / 40);
   c.globalAlpha = s.pal.surge ? 0.75 : 0.5; c.beginPath();
   for (let i = 0; i < k; i++) {

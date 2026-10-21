@@ -3,7 +3,8 @@
 // Dates are "YYYY-MM-DD" strings, times "HH:MM" (24h). "Today" is always America/New_York.
 
 import { POST } from './post.js';
-import { eventPhotos } from './event-photos.js';
+import { eventGallery, eventPhotos } from './event-photos.js';
+import { BRANCHES, honorHtml } from './honor.js';
 const CALL = `Call the post at ${POST.phone}.`;
 
 export const TZ = 'America/New_York';
@@ -28,7 +29,7 @@ const parseDay = (s) => new Date(`${s}T00:00:00Z`);
 const fmtDay = (d) => d.toISOString().slice(0, 10);
 export const isDate = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(+parseDay(s)) && fmtDay(parseDay(s)) === s;
 export const isTime = (s) => typeof s === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(s);
-const id = (v) => (typeof v === 'string' && /^[a-z0-9]{4,24}$/.test(v) ? v : globalThis.crypto.randomUUID().replace(/-/g, '').slice(0, 10));
+const id = (v) => (typeof v === 'string' && /^[a-z0-9][a-z0-9-]{2,38}[a-z0-9]$/.test(v) ? v : globalThis.crypto.randomUUID().replace(/-/g, '').slice(0, 10));
 const flag = (v, dflt = true) => (v === undefined ? dflt : v === true || v === 'true' || v === 1 || v === 'on');
 const optDate = (v) => (v === undefined || v === null || v === '' ? '' : isDate(v) ? v : null);
 const optTime = (v) => (v === undefined || v === null || v === '' ? '' : isTime(v) ? v : null);
@@ -102,7 +103,7 @@ export const LOGOS = {
 };
 /** The logo img inside a tap badge ('' when none or unknown); base = the URL folder in front of /brand (default: site root). */
 export const tapLogoImg = (slug, base = '') => (Object.hasOwn(LOGOS, slug) ? `<img class="tap-logo" src="${base}/brand/taps/${slug}.webp" alt="" width="${LOGOS[slug].w}" height="${LOGOS[slug].h}" decoding="async">` : '');
-/** A beer tap on the home page (admin): name up to 40 characters, badge colour bg and text colour fg as strict #rrggbb; optional shape (default oval), accent (#rrggbb, default fg), sub-label up to 16 characters; optional logo (a LOGOS slug, '' for none). */
+/** A beer tap on the home page (admin): name up to 40 characters, badge colour bg and text colour fg as strict #rrggbb; optional shape (default oval), accent (#rrggbb, default fg), sub-label up to 16 characters; optional logo (a LOGOS slug, '' for none); optional liquid (#rrggbb beer colour for the pour, '' for the name-based default). */
 export function validateTap(b) {
   b = b ?? {};
   const name = text(b.name, 40);
@@ -111,15 +112,27 @@ export function validateTap(b) {
   const shape = b.shape == null || b.shape === '' ? 'oval' : b.shape;
   if (!TAP_SHAPES.includes(shape)) return { error: 'shape' };
   if (b.accent != null && b.accent !== '' && (typeof b.accent !== 'string' || !HEX.test(b.accent))) return { error: 'accent' };
+  if (b.liquid != null && b.liquid !== '' && (typeof b.liquid !== 'string' || !HEX.test(b.liquid))) return { error: 'liquid' };
   const logo = b.logo == null ? '' : b.logo;
   if (logo !== '' && (typeof logo !== 'string' || !Object.hasOwn(LOGOS, logo))) return { error: 'logo' };
   const fg = b.fg.toLowerCase(), accent = b.accent ? b.accent.toLowerCase() : fg;
-  return { value: { id: id(b.id), name, bg: b.bg.toLowerCase(), fg, shape, accent, sub: typeof b.sub === 'string' ? text(b.sub, 16) : '', logo, enabled: flag(b.enabled) } };
+  return { value: { id: id(b.id), name, bg: b.bg.toLowerCase(), fg, shape, accent, sub: typeof b.sub === 'string' ? text(b.sub, 16) : '', logo, liquid: b.liquid ? b.liquid.toLowerCase() : '', enabled: flag(b.enabled) } };
 }
 /** The beer taps (marker: taps): the ul.tap-row inside div.taps[data-pour]. Hidden taps are skipped; none enabled gives '' so the tower hides. */
 export function tapsHtml(taps = [], base = '') {
   const list = taps.filter((t) => t.enabled !== false && HEX.test(t.bg) && HEX.test(t.fg));
-  return list.length ? `<ul class="tap-row">${list.map((t) => `<li class="tap" data-shape="${TAP_SHAPES.includes(t.shape) ? t.shape : 'oval'}"${Object.hasOwn(LOGOS, t.logo) ? ` data-logo="${t.logo}"` : ''} style="--tap-bg:${t.bg};--tap-fg:${t.fg};--tap-accent:${HEX.test(t.accent) ? t.accent : t.fg}"><button type="button" class="tap-handle" aria-label="Pour a ${esc(t.name)}"><span class="tap-badge">${tapLogoImg(t.logo, base)}<span class="tap-name">${esc(t.name)}</span>${t.sub ? `<span class="tap-sub">${esc(t.sub)}</span>` : ''}</span></button><span class="tap-nozzle" aria-hidden="true"></span></li>`).join('')}</ul>` : '';
+  return list.length ? `<ul class="tap-row">${list.map((t) => `<li class="tap" data-shape="${TAP_SHAPES.includes(t.shape) ? t.shape : 'oval'}"${Object.hasOwn(LOGOS, t.logo) ? ` data-logo="${t.logo}"` : ''}${HEX.test(t.liquid) ? ` data-liquid="${t.liquid}"` : ''} style="--tap-bg:${t.bg};--tap-fg:${t.fg};--tap-accent:${HEX.test(t.accent) ? t.accent : t.fg}"><button type="button" class="tap-handle" aria-label="Pour a ${esc(t.name)}"><span class="tap-badge">${tapLogoImg(t.logo, base)}<span class="tap-name">${esc(t.name)}</span>${t.sub ? `<span class="tap-sub">${esc(t.sub)}</span>` : ''}</span></button><span class="tap-nozzle" aria-hidden="true"></span></li>`).join('')}</ul>` : '';
+}
+
+/** A Wall of Honor entry (admin): name, branch (one of BRANCHES), era, served, note, photo. consent is true only when it is exactly true; only those show publicly. */
+export function validateHonor(b, { photos } = {}) {
+  b = b ?? {};
+  const name = text(b.name, 120);
+  if (!name) return { error: 'name' };
+  if (!BRANCHES.includes(b.branch)) return { error: 'branch' };
+  const photo = photoName(b.photo, photos);
+  if (photo === null) return { error: 'photo' };
+  return { value: { id: id(b.id), name, branch: b.branch, era: text(b.era, 80), served: text(b.served, 80), photo, note: text(b.note, 400), consent: b.consent === true, enabled: flag(b.enabled) } };
 }
 
 /** A shop product (admin). options = choices like sizes, an array or one per line. checkoutUrl = optional https payment link. */
@@ -308,14 +321,28 @@ const shortDay = (ymd) => parseDay(ymd).toLocaleDateString('en-US', { weekday: '
 const clock = (t) => { const [h, m] = t.split(':').map(Number); return `${h % 12 || 12}${m ? `:${String(m).padStart(2, '0')}` : ''} ${h < 12 ? 'AM' : 'PM'}`; };
 export const timeLabel = (start, end) => (start ? clock(start) + (end ? ` to ${clock(end)}` : '') : '');
 const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-');
-// Anchor on /events for an event: a one-off sits in its calendar month list (by id, else title and date); a repeating night sits in its regular card (title and times).
-const anchorOf = (o) => 'ev-' + String((o.recurring ?? 'none') === 'none' ? (o.eventId ?? o.id ?? `${o.title}-${o.date}`) : `${o.title}-${o.start}-${o.end}`).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+// Anchor on /events for an event: its id (kept when the title or date is edited), else title and date. A repeating night sits in one regular card shared by all
+// events with the same title, times and text, so it uses the id of the first of them (lead = the Map from leadIds).
+const groupKey = (e) => [e.title, e.start, e.end, e.description].join('|');
+const leadIds = (events) => { const m = new Map(); for (const e of events) if (e.enabled !== false && e.recurring && e.recurring !== 'none' && !m.has(groupKey(e))) m.set(groupKey(e), e.id); return m; };
+const anchorOf = (o, lead) => 'ev-' + String((o.recurring ?? 'none') === 'none' ? (o.eventId ?? o.id ?? `${o.title}-${o.date}`) : (lead?.get(groupKey(o)) ?? o.eventId ?? o.id ?? `${o.title}-${o.start}-${o.end}`)).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+// Link to an event on /events. A one-off outside this year sits on another year's calendar, so the link names that year; the page shows this year by default.
+const eventHref = (base, o, today, lead) => `${base}${(o.recurring ?? 'none') === 'none' && o.date.slice(0, 4) !== today.slice(0, 4) ? `?year=${o.date.slice(0, 4)}` : ''}#${anchorOf(o, lead)}`;
 const empty = (msg) => `<p class="vfw-empty">${esc(msg)}</p>`;
+
+// A row of up to six thumbnails under an event on /events; each opens the Lightbox with the whole row (data-gallery, like the home hall band).
+const galleryHtml = (o, id, base = '/media/photos/') => {
+  const list = eventGallery(o);
+  if (!list.length) return '';
+  const imgs = list.map((x) => `<li><img src="${esc(base + x.name)}-800.webp" alt="${esc(x.alt)}" width="800" height="600" loading="lazy" decoding="async"></li>`).join('');
+  const data = JSON.stringify(list.map((x) => ({ src: `${base}${x.name}.webp`, alt: x.alt, cap: x.alt }))).replace(/</g, '\u003c');
+  return `<div class="vfw-evg" data-gallery="${id}"><ul class="gallery vfw-evg-row" aria-label="Photos: ${esc(o.title)}">${imgs}</ul><script type="application/json" data-gallery-list="${id}">${data}</script></div>`;
+};
 
 /** opts.today mutes past one-off events; opts.brief drops the description of recurring nights (shown once in regularHtml). */
 const eventItem = (o, { today, brief, anchor } = {}) => `<li${anchor ? ` id="${anchorOf(o)}"` : ''} class="vfw-event vfw-cat-${slug(o.category)}${today && o.recurring === 'none' && o.date < today ? ' vfw-past' : ''}"><time class="vfw-event-date" datetime="${o.date}">${esc(shortDay(o.date))}</time>`
   + `${o.start ? ` <span class="vfw-event-time">${esc(timeLabel(o.start, o.end))}</span>` : ''} <strong class="vfw-event-title">${esc(o.title)}</strong>`
-  + ` <span class="vfw-event-cat">${esc(o.category)}</span>${o.description && !(brief && o.recurring !== 'none') ? `<p class="vfw-event-desc">${esc(o.description)}</p>` : ''}</li>`;
+  + ` <span class="vfw-event-cat">${esc(o.category)}</span>${o.description && !(brief && o.recurring !== 'none') ? `<p class="vfw-event-desc">${esc(o.description)}</p>` : ''}${anchor ? galleryHtml(o, `evg-${anchorOf(o)}`) : ''}</li>`;
 
 /** Next events from today: <ul class="vfw-events">. opts: limit (5), days (120), empty. */
 export function upcomingHtml(events, today, { limit = 5, days = 120, empty: none = `No upcoming events are listed right now. ${CALL}` } = {}) {
@@ -380,11 +407,11 @@ export function regularHtml(events = [], { empty: none = 'No regular nights are 
   }
   if (!rows.size) return empty(none);
   for (const r of rows.values()) r.labels = r.labels.map((l) => (l.day ? `${list(r.ords.get(l.day).sort())} ${l.day} of the month` : l));
-  const seen = new Set(); // ids stay unique even when two cards share a title and times
-  const anchorId = (e) => { const a = anchorOf(e); return seen.has(a) ? '' : (seen.add(a), ` id="${a}"`); };
-  return `<ul class="vfw-events vfw-regular">${[...rows.values()].map(({ e, labels }) => `<li${anchorId(e)} class="vfw-event vfw-cat-${slug(e.category)}"><strong class="vfw-event-date">${esc(labels.join(', '))}</strong>`
+  const lead = leadIds(events), seen = new Set(); // ids stay unique even when two cards share a title and times
+  const anchorId = (e) => { const a = anchorOf(e, lead); return seen.has(a) ? '' : (seen.add(a), ` id="${a}"`); };
+  return `<ul class="vfw-events vfw-regular">${[...rows.values()].map(({ e, labels }) => { const idAttr = anchorId(e); return `<li${idAttr} class="vfw-event vfw-cat-${slug(e.category)}"><strong class="vfw-event-date">${esc(labels.join(', '))}</strong>`
     + `${e.start ? ` <span class="vfw-event-time">${esc(timeLabel(e.start, e.end))}</span>` : ''} <strong class="vfw-event-title">${esc(e.title)}</strong>`
-    + ` <span class="vfw-event-cat">${esc(e.category)}</span>${e.description ? `<p class="vfw-event-desc">${esc(e.description)}</p>` : ''}${guideLink(e.title)}</li>`).join('')}</ul>`;
+    + ` <span class="vfw-event-cat">${esc(e.category)}</span>${e.description ? `<p class="vfw-event-desc">${esc(e.description)}</p>` : ''}${guideLink(e.title)}${idAttr ? galleryHtml(e, `evg-${anchorOf(e, lead)}`) : ''}</li>`; }).join('')}</ul>`;
 }
 
 /** Daily first, then weekly Monday to Sunday, then monthly, then seasonal; ties by name. */
@@ -461,6 +488,7 @@ export function injectMarkers(html, state, today, year, { photos, photoBase, shi
     'help-form': () => helpFormHtml(settings),
     'donate-link': () => donateHtml(settings),
     taps: () => tapsHtml(state.taps),
+    honor: () => honorHtml(state.honor, { photos, photoBase }),
     shop: () => shopHtml(state.products, { photos, photoBase }),
     data: () => dataScript(state, today),
   };
@@ -476,9 +504,10 @@ const dateBox = (ymd, cls = '') => {
 const whenBadge = (ymd, today) => (ymd === today ? '<span class="vfw-badge vfw-badge-now">Tonight</span>' : ymd <= addDays(today, 6) ? '<span class="vfw-badge">This week</span>' : '');
 // Post photos picked from the event's title or category. alt is empty for decorative thumbs.
 // Three or more photos make a bundle: stacked imgs (the first is on; src/scripts/event-cycle.ts fades through the rest), so the box never changes size.
-const evImg = (o, base, cls, sizes, decorative = false) => {
+const evImg = (o, base, cls, sizes, decorative = false, turn = 0) => {
   const all = eventPhotos(o);
   const list = all.length >= 3 ? all.slice(0, 4) : all.slice(0, 1);
+  if (list.length > 1) list.push(...list.splice(0, turn % list.length)); // a repeat of the same title starts on the next photo
   return list.map((p, i) => {
     const src = `${base}${p.name}`;
     const still = decorative || i > 0; // only the first photo of a bundle speaks, so a screen reader hears one description
@@ -494,13 +523,15 @@ export function featuredHtml(events, today, { compact = 4, days = 120, empty: no
   const special = list.find((o) => (!o.recurring || o.recurring === 'none') && o.date <= addDays(today, 30));
   const top = special ?? list[0];
   const rest = list.filter((o) => o !== top);
+  const lead = leadIds(events);
   const time = (o) => (o.start ? `<span class="vfw-event-time">${esc(timeLabel(o.start, o.end))}</span>` : '');
   const big = `<article class="vfw-feature vfw-cat-${slug(top.category)}"><figure class="vfw-feature-photo snap"${cycleAttr(top)}>${evImg(top, photoBase, 'vfw-feature-img', '(min-width: 800px) 40vw, 100vw')}${dateBox(top.date, 'vfw-datebox-pin')}</figure><div class="vfw-feature-body">`
     + `<p class="vfw-badges">${whenBadge(top.date, today)}<span class="vfw-event-cat">${esc(top.category)}</span></p>`
     + `<h3 class="vfw-feature-title">${esc(top.title)}</h3><p class="vfw-feature-time">${time(top)}</p>`
     + `${top.description ? `<p class="vfw-feature-desc">${esc(top.description.split(/(?<=[.!?])\s/)[0])}</p>` : ''}`
-    + `<a class="vfw-feature-more btn btn-outline" href="${esc(eventsHref)}#${anchorOf(top)}">Details<span class="sr-only"> about ${esc(top.title)}</span><span aria-hidden="true"> ›</span></a></div></article>`;
-  const small = rest.slice(0, compact).map((o) => `<li class="vfw-card vfw-cat-${slug(o.category)}"><span class="vfw-card-photo"${cycleAttr(o)}>${evImg(o, photoBase, 'vfw-card-thumb', '(min-width: 1100px) 12rem, (min-width: 800px) 8rem, 7rem', true)}</span>${dateBox(o.date)}<div>${whenBadge(o.date, today)}<strong class="vfw-card-title"><a href="${esc(eventsHref)}#${anchorOf(o)}">${esc(o.title)}</a></strong>${time(o)}</div></li>`).join('');
+    + `<a class="vfw-feature-more btn btn-outline" href="${esc(eventHref(eventsHref, top, today, lead))}">Details<span class="sr-only"> about ${esc(top.title)}</span><span aria-hidden="true"> ›</span></a></div></article>`;
+  const used = new Map([[top.title, 1]]); // how many cards already show each title, so a repeat starts on a different photo
+  const small = rest.slice(0, compact).map((o) => { const turn = used.get(o.title) ?? 0; used.set(o.title, turn + 1); return `<li class="vfw-card vfw-cat-${slug(o.category)}"><span class="vfw-card-photo"${cycleAttr(o)}>${evImg(o, photoBase, 'vfw-card-thumb', '(min-width: 1100px) 12rem, (min-width: 800px) 8rem, 7rem', true, turn)}</span>${dateBox(o.date)}<div>${whenBadge(o.date, today)}<strong class="vfw-card-title"><a href="${esc(eventHref(eventsHref, o, today, lead))}">${esc(o.title)}</a></strong>${time(o)}</div></li>`; }).join('');
   return `<div class="vfw-featured">${big}${small ? `<ul class="vfw-cards">${small}</ul>` : ''}</div>`;
 }
 

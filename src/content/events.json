@@ -1,5 +1,6 @@
 [
  {
+  "id": "thursday-bingo",
   "title": "Thursday Bingo",
   "date": "2026-01-01",
   "start": "16:30",
@@ -10,6 +11,7 @@
   "enabled": true
  },
  {
+  "id": "line-dancing",
   "title": "Line dancing with Shotgun Jenny",
   "date": "2026-01-05",
   "start": "18:00",
@@ -20,6 +22,7 @@
   "enabled": true
  },
  {
+  "id": "line-dancing-2",
   "title": "Line dancing with Shotgun Jenny",
   "date": "2026-01-19",
   "start": "18:00",
@@ -30,6 +33,7 @@
   "enabled": true
  },
  {
+  "id": "line-dancing-3",
   "title": "Line dancing with Shotgun Jenny",
   "date": "2026-01-26",
   "start": "18:00",
@@ -40,6 +44,7 @@
   "enabled": true
  },
  {
+  "id": "live-band-dance",
   "title": "Live band dance",
   "date": "2026-01-02",
   "start": "19:30",
@@ -50,6 +55,7 @@
   "enabled": true
  },
  {
+  "id": "dance-party-dj",
   "title": "Dance Party with DJ Jim Tighe",
   "date": "2026-03-11",
   "start": "17:00",
@@ -60,6 +66,7 @@
   "enabled": true
  },
  {
+  "id": "dance-party-dj-2",
   "title": "Dance Party with DJ Jim Tighe",
   "date": "2026-03-25",
   "start": "17:00",
@@ -70,6 +77,7 @@
   "enabled": true
  },
  {
+  "id": "cornhole",
   "title": "Cornhole",
   "date": "2026-01-13",
   "start": "",
@@ -80,7 +88,8 @@
   "enabled": true
  },
  {
-  "title": "Monthly meeting, 2nd Monday",
+  "id": "monthly-meeting",
+  "title": "Monthly meeting",
   "date": "2026-01-12",
   "start": "18:00",
   "end": "",
@@ -90,6 +99,7 @@
   "enabled": true
  },
  {
+  "id": "eagles-brunch",
   "title": "Eagles brunch with The Loaded Belly",
   "date": "2026-10-11",
   "start": "09:00",
@@ -100,6 +110,7 @@
   "enabled": true
  },
  {
+  "id": "cash-bash",
   "title": "Auxiliary Cash Bash",
   "date": "2026-10-24",
   "start": "",
@@ -110,6 +121,7 @@
   "enabled": true
  },
  {
+  "id": "halloween",
   "title": "Halloween happy hour and costume contest",
   "date": "2026-10-30",
   "start": "",
@@ -120,6 +132,7 @@
   "enabled": true
  },
  {
+  "id": "marine-corps-birthday",
   "title": "Marine Corps birthday",
   "date": "2026-11-10",
   "start": "",
@@ -130,6 +143,7 @@
   "enabled": true
  },
  {
+  "id": "veterans-day",
   "title": "Veterans Day",
   "date": "2026-11-11",
   "start": "",
@@ -140,6 +154,7 @@
   "enabled": true
  },
  {
+  "id": "pre-blizzard-bash",
   "title": "Pre-Blizzard Bash",
   "date": "2026-01-24",
   "start": "",
@@ -150,6 +165,7 @@
   "enabled": true
  },
  {
+  "id": "winter-cornhole",
   "title": "Winter cornhole league starts",
   "date": "2026-01-13",
   "start": "",
@@ -160,6 +176,7 @@
   "enabled": true
  },
  {
+  "id": "valentines",
   "title": "Valentine's cocktails",
   "date": "2026-02-14",
   "start": "",
@@ -170,6 +187,7 @@
   "enabled": true
  },
  {
+  "id": "waterfowl-banquet",
   "title": "Delta Waterfowl banquet",
   "date": "2026-03-28",
   "start": "",
@@ -180,6 +198,7 @@
   "enabled": true
  },
  {
+  "id": "craft-fair",
   "title": "Cub Scout Pack 139 craft fair",
   "date": "2026-03-29",
   "start": "",
@@ -190,6 +209,7 @@
   "enabled": true
  },
  {
+  "id": "spring-cornhole",
   "title": "Spring cornhole league starts",
   "date": "2026-04-14",
   "start": "",
@@ -200,6 +220,7 @@
   "enabled": true
  },
  {
+  "id": "cinco-de-mayo",
   "title": "Cinco de Mayo",
   "date": "2026-05-05",
   "start": "",
@@ -210,6 +231,7 @@
   "enabled": true
  },
  {
+  "id": "flags-on-graves",
   "title": "Flags on veterans' graves",
   "date": "2026-05-16",
   "start": "",
@@ -220,6 +242,7 @@
   "enabled": true
  },
  {
+  "id": "memorial-day",
   "title": "Memorial Day ceremony and parade",
   "date": "2026-05-25",
   "start": "10:00",
@@ -230,6 +253,7 @@
   "enabled": true
  },
  {
+  "id": "line-dance-lessons",
   "title": "Line dance lessons",
   "date": "2026-06-14",
   "start": "",
@@ -240,6 +264,7 @@
   "enabled": true
  },
  {
+  "id": "iron-pigs",
   "title": "Iron Pigs night",
   "date": "2026-06-27",
   "start": "",
@@ -250,6 +275,7 @@
   "enabled": true
  },
  {
+  "id": "independence-day",
   "title": "Independence Day party",
   "date": "2026-07-04",
   "start": "",

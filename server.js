@@ -11,7 +11,7 @@ import {
   allow, adminRow, checkLogin, clearFailures, clientIp, cookieHeader, dataDirProblem, defaultInUse, locked, readCookie, recordFailure, sameOrigin, seedAdmin, setPassword,
   signSession, startupProblem, verifySession, SESSION_DAYS,
 } from './src/auth.js';
-import { etDay, HELP_KINDS, injectMarkers, specialOrder, validateEvent, validateHelp, validateMenu, validateNews, validateOrder, validateProduct, validateSettings, validateShift, validateSignup, validateSpecial, validateTap } from './src/lib/state.js';
+import { etDay, HELP_KINDS, injectMarkers, specialOrder, validateEvent, validateHelp, validateHonor, validateMenu, validateNews, validateOrder, validateProduct, validateSettings, validateShift, validateSignup, validateSpecial, validateTap } from './src/lib/state.js';
 import { createInquiryHandler, createMailer, HONEYPOT } from './src/email/index.js';
 import { createStats } from './src/stats/index.js';
 
@@ -65,7 +65,7 @@ if (defaultInUse(db)) log('Warning: the default admin/admin password is in use (
 {
   const state = getState(db);
   let changed = false;
-  for (const [key, check] of [['events', validateEvent], ['specials', validateSpecial], ['news', validateNews], ['menu', validateMenu], ['taps', validateTap]]) {
+  for (const [key, check] of [['events', validateEvent], ['specials', validateSpecial], ['news', validateNews], ['menu', validateMenu], ['taps', validateTap], ['honor', validateHonor]]) {
     const f = join(env.SEED_DIR || join(ROOT, 'src/content'), `${key}.json`);
     if (state[key] !== undefined || !existsSync(f)) continue;
     try {
@@ -239,7 +239,7 @@ async function login(req, url) {
 }
 
 // ---------- API ----------
-const FIELDS = { events: validateEvent, specials: validateSpecial, news: validateNews, products: validateProduct, taps: validateTap };
+const FIELDS = { events: validateEvent, specials: validateSpecial, news: validateNews, products: validateProduct, taps: validateTap, honor: validateHonor };
 const SORT = { events: (a, b) => a.date.localeCompare(b.date) || (a.start ?? '').localeCompare(b.start ?? ''), specials: specialOrder, news: (a, b) => b.date.localeCompare(a.date) }; // products have no sort: the array order is the display order
 
 const HALL_PAGES = { __proto__: null, '/hall': '/hall/', '/hall/': '/hall/' };
@@ -404,13 +404,13 @@ async function adminApi(req, url, user) {
   const ip = clientIp(req);
   const note = (what, detail = '') => audit.event(what, user, ip, detail); // who = the signed-in admin
 
-  if (key === 'GET state') return json({ user, defaultPassword: defaultInUse(db), newHelp: db.prepare('SELECT COUNT(*) n FROM help_requests WHERE handled = 0').get().n, newOrders: db.prepare('SELECT COUNT(*) n FROM shop_orders WHERE handled = 0').get().n, products: list('products'), taps: list('taps'), events: list('events'), specials: list('specials'), news: list('news'), menu: state.menu ?? emptyMenu, today: etDay(new Date()) });
+  if (key === 'GET state') return json({ user, defaultPassword: defaultInUse(db), newHelp: db.prepare('SELECT COUNT(*) n FROM help_requests WHERE handled = 0').get().n, newOrders: db.prepare('SELECT COUNT(*) n FROM shop_orders WHERE handled = 0').get().n, products: list('products'), taps: list('taps'), honor: list('honor'), events: list('events'), specials: list('specials'), news: list('news'), menu: state.menu ?? emptyMenu, today: etDay(new Date()) });
   if (key === 'GET stats') return json(stats.summary(url.searchParams.get('range') ?? '30d'));
   const photoList = () => { const all = photoFiles(); return pickablePhotos(all).map((name) => ({ name, thumb: all.has(name.replace('.', '-800.')) ? name.replace('.', '-800.') : name })); };
   if (key === 'GET photos') return json({ photos: photoList() });
   if (key === 'POST photos') return uploadPhoto(body, ip, note, photoList);
   if (key === 'DELETE photos' && /^news-\d{8}-[0-9a-f]{6}\.webp$/.test(a1 ?? '')) { // only uploads; built photos are never touched
-    if (list('news').some((n) => n.photo === a1) || list('products').some((n) => n.photo === a1)) return bad('in_use', 409);
+    if (list('news').some((n) => n.photo === a1) || list('products').some((n) => n.photo === a1) || list('honor').some((n) => n.photo === a1)) return bad('in_use', 409);
     if (!existsSync(join(PHOTOS, a1))) return bad('not_found', 404);
     for (const f of [a1, a1.replace('.', '-800.')]) try { unlinkSync(join(PHOTOS, f)); } catch {}
     note('photo_delete', a1);
@@ -430,7 +430,7 @@ async function adminApi(req, url, user) {
     note(`${section}_${a1 === 'new' ? 'create' : 'update'}`, (v.value.title ?? v.value.label ?? v.value.name) + (v.value.enabled === false ? ' · hidden' : ''));
     return json({ item: v.value, items: state[section] });
   }
-  for (const sec of ['products', 'taps']) if (key === `PUT ${sec}-order`) { // the new order of the shop products or beer taps: exactly the ids that exist now
+  for (const sec of ['products', 'taps', 'honor']) if (key === `PUT ${sec}-order`) { // the new order of the shop products or beer taps: exactly the ids that exist now
     const items = list(sec), ids = body?.ids;
     if (!Array.isArray(ids) || ids.length !== items.length || new Set(ids).size !== ids.length || !items.every((x) => ids.includes(x.id))) return bad('order');
     state[sec] = ids.map((i) => items.find((x) => x.id === i));

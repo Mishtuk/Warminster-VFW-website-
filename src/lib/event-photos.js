@@ -114,3 +114,19 @@ export function eventPhotos(o) {
 export function eventPhoto(o) {
   return eventPhotos(o)[0];
 }
+
+// Event galleries on /events: only for these regular events, where the photos clearly belong. Extra photos fill the matched bundle up to six.
+const GALLERY_FOR = /bingo|line danc|cash bash|memorial day|eagles|cornhole|halloween/i;
+const GALLERY_MORE = [
+  [/halloween|costume/i, [p('hero-halloween-2', 'Two members in baby costumes with bibs at the Halloween party'), p('hero-halloween-5', 'A member in a pumpkin costume at the Halloween party')]],
+  [/memorial day/i, [p('hero-memorial-vets', 'Two veterans smiling and waving at the Memorial Day parade'), p('hero-memorial-flag', 'A veteran raising the flag on the pole')]],
+  [/eagles/i, [p('hero-eagles-9', 'Two members in Eagles jerseys at a stadium photo backdrop'), p('hero-superbowl-2', 'Two members beside an inflatable Eagles mascot at the bar')]],
+];
+/** Up to six photos for an event's gallery on /events: [{ name, alt }, ...], or [] when the event has no gallery (not a listed event, or only one photo). */
+export function eventGallery(o) {
+  const title = String(o?.title ?? '');
+  if (!GALLERY_FOR.test(title)) return [];
+  const more = GALLERY_MORE.find(([re]) => re.test(title))?.[1] ?? [];
+  const all = [...eventPhotos(o), ...more.map((x) => ({ ...x }))].slice(0, 6);
+  return all.length > 1 ? all : [];
+}

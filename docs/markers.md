@@ -77,3 +77,9 @@ Retention: orders are deleted after SHOP_RETENTION_DAYS (default 365), logged as
 
 ## Beer taps (marker: taps)
 `tapsHtml(state.taps)`: `ul.tap-row > li.tap` (style `--tap-bg`/`--tap-fg`, only `#rrggbb`) with `button.tap-handle` and `span.tap-nozzle`, inside `div.taps[data-pour]` on the home page. Hidden taps are skipped; none shown renders an empty string. Seed: `src/content/taps.json`; admin: Beers on tap.
+
+## Wall of Honor (marker: honor)
+| NAME | Where | Output | Static seed |
+|---|---|---|---|
+| honor | /honor | `honorHtml(state.honor, {photos, photoBase})`: `ul.honor-grid > li.honor-card > img, h3, p.honor-branch > span.honor-pill, p.honor-era, p.honor-served, p.honor-note`, then `p.honor-add`; with nothing to show, the `div.honor-soon` Coming soon panel. | src/content/honor.json (`[]`) |
+Only entries with `consent === true` (the boolean) and not hidden render; the rules are `honorList` in src/lib/honor.js. Unconsented entries live only in the admin state (`GET /api/admin/state` `honor`) and never reach public HTML or the `data` script. Admin API: `PUT|DELETE /api/admin/honor/<id|new>`, `PUT /api/admin/honor-order {ids}`; audit types `honor_create|update|delete|reorder`. Entry: `{id, name, branch, era, served, note, photo, consent, enabled}`.

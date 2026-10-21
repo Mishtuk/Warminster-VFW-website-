@@ -11,7 +11,7 @@ const ok = { name: 'Yuengling', bg: '#C8102E', fg: '#ffffff' };
 
 test('validateTap: one assert per error code, colours strict', () => {
   const v = validateTap(ok).value;
-  assert.deepEqual(v, { id: v.id, name: 'Yuengling', bg: '#c8102e', fg: '#ffffff', shape: 'oval', accent: '#ffffff', sub: '', logo: '', enabled: true });
+  assert.deepEqual(v, { id: v.id, name: 'Yuengling', bg: '#c8102e', fg: '#ffffff', shape: 'oval', accent: '#ffffff', sub: '', logo: '', liquid: '', enabled: true });
   assert.equal(validateTap({ ...ok, name: ' ' }).error, 'name');
   assert.equal(validateTap({ ...ok, name: 'x'.repeat(41) }).value.name.length, 40); // text() trims to 40
   for (const c of ['red', '#fff', '#12345g', 'red;background:url(x)', '#ffffff"onload="x', '#1234567', undefined, 5]) {
@@ -103,4 +103,14 @@ test('tap logos: unknown slug refused, img escaped and sized, none when empty, b
   assert.ok(tapsHtml([{ id: 'a', name: 'Lite', bg: '#112233', fg: '#ffffff', logo: 'blue-moon' }], '/site').includes('src="/site/brand/taps/blue-moon.webp" alt="" width="297" height="240"'));
   const hostile = tapsHtml([{ id: 'a', name: 'X', bg: '#112233', fg: '#ffffff', logo: 'x"><script>' }, { id: 'b', name: 'Y', bg: '#112233', fg: '#ffffff' }]);
   assert.ok(!hostile.includes('<img') && !hostile.includes('data-logo') && !hostile.includes('<script'));
+});
+
+test('liquid: optional strict #rrggbb, emitted as data-liquid only when valid', () => {
+  assert.equal(validateTap({ ...ok, liquid: '#ABCDEF' }).value.liquid, '#abcdef');
+  assert.equal(validateTap(ok).value.liquid, '');
+  for (const c of ['red', '#fff', 'red;x:y', 5]) assert.equal(validateTap({ ...ok, liquid: c }).error, 'liquid', String(c));
+  const t = { id: 'a', name: 'Lite', bg: '#112233', fg: '#ffffff' };
+  assert.ok(tapsHtml([{ ...t, liquid: '#2a0f0c' }]).includes(' data-liquid="#2a0f0c"'));
+  assert.ok(!tapsHtml([{ ...t, liquid: 'x" onload="y' }]).includes('data-liquid'));
+  assert.ok(!tapsHtml([t]).includes('data-liquid'));
 });

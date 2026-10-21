@@ -43,3 +43,11 @@ test('featured block stacks a bundle (first photo on, the rest silent) and leave
   assert.match(bundle, /<span class="vfw-card-photo"><img /);
   assert.doesNotMatch(bundle, /onload|onerror|onclick/);
 });
+
+test('two cards for the same event start on different photos', () => {
+  const ev = (id, date) => ({ id, title: 'Line dancing with Shotgun Jenny', date, start: '18:00', end: '22:00', description: '', recurring: 'none', category: 'Bar', enabled: true });
+  const html = featuredHtml([ev('ld-a', '2026-10-21'), ev('ld-b', '2026-10-22'), ev('ld-c', '2026-10-23')], '2026-10-20', { compact: 4 });
+  const first = [...html.matchAll(/<img [^>]*src="([^"]+)"[^>]*is-on|<img class="[^"]*is-on"[^>]*src="([^"]+)"/g)].map((m) => m[1] ?? m[2]);
+  assert.equal(first.length, 3);
+  assert.equal(new Set(first).size, 3);
+});
