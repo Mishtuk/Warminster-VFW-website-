@@ -22,7 +22,7 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Task issues:** work is handed out as GitHub issues labeled `laptop` or `desktop`, each a full brief with a "Done when" checklist. Check `gh issue list -l <your machine> --state open` at the start of a session and about every 15 minutes while idle. Take the lowest number, comment "Started", claim it below, and close it with the commit hash when done.
 
 ### Now working on
-- **Laptop:** Dependabot PRs #1 to #4 (.github/workflows only).
+- **Laptop:** #20 privacy page (new src/pages/privacy.astro; a privacy link in Footer.astro and under the forms in hall, volunteer, help, shop and contact pages; sitemap.xml.ts).
 
 ## Status (handoff, 2026-10-20)
 **The site is feature-complete on the preview. The next steps are the owner's choices.**
