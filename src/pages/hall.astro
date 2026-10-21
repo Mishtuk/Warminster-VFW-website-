@@ -2,7 +2,7 @@
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
 import { POST, href, photo } from '../lib/site';
-import { HALL_PHOTOS } from '../lib/hall-photos';
+import { HALL_PHOTOS, HALL_FEATURED } from '../lib/hall-photos';
 import InfoSection from '../components/info/InfoSection.astro';
 import OnThisPage from '../components/info/OnThisPage.astro';
 import KeyFacts from '../components/info/KeyFacts.astro';
@@ -28,19 +28,25 @@ const gallery = JSON.stringify(HALL_PHOTOS.map((p) => ({ src: photo(p.name).src,
   </InfoSection>
 
   <InfoSection id="photos" title="Photos of the hall" summary="The building, the stage and the hall set for an event. Tap a photo to see it larger.">
-    <ul class="gallery" data-gallery="hall">
-      {HALL_PHOTOS.map((p) => (
-        <li><a href={photo(p.name).src}><img {...photo(p.name)} sizes="(min-width: 800px) 33vw, 100vw" alt={p.alt} loading="lazy" decoding="async" fetchpriority="low" /></a></li>
+    <ul class="gallery hall-gallery" data-gallery="hall">
+      {HALL_FEATURED.map((p) => (
+        <li><a href={photo(p.name).src}><img {...photo(p.name)} sizes="(min-width: 800px) 33vw, 50vw" alt={p.alt} loading="lazy" decoding="async" fetchpriority="low" /></a></li>
       ))}
     </ul>
+    <p class="hall-all"><button type="button" class="btn btn-outline" data-open-gallery="hall">See all {HALL_PHOTOS.length} hall photos</button></p>
     <script type="application/json" data-gallery-list="hall" set:html={gallery}></script>
   </InfoSection>
 
-  <InfoSection id="faq" title="Questions" summary="Kitchen, tours, price and capacity." panel>
+  <InfoSection id="faq" title="Questions" summary="Price, capacity, hours, food and drink, parking and tours." panel>
     <div class="faq">
-      <details><summary>Is the kitchen open on rental days?</summary><p>No. The kitchen is closed on rental days, so plan to bring your food.</p></details>
+      <details><summary>What does it cost?</summary><p>Call the post at <a href={POST.tel}>{POST.phone}</a> for the rate. The post offers discounted rates for non-profit events.</p></details>
+      <details><summary>How many people fit?</summary><p>Call the post at <a href={POST.tel}>{POST.phone}</a> for the capacity.</p></details>
+      <details><summary>Is there a deposit?</summary><p>Call the post at <a href={POST.tel}>{POST.phone}</a> to ask about a deposit.</p></details>
+      <details><summary>What hours can we use it, and how long do we get for setup?</summary><p>Setup and cleaning are venue assisted. Call the post at <a href={POST.tel}>{POST.phone}</a> for hours and setup time.</p></details>
+      <details><summary>Can we bring our own food and drinks, and who runs the bar?</summary><p>You supply your own food and entertainment, and staff are not included. The kitchen is closed on rental days, so plan to bring your food. The hall has complete bar facilities with full-service alcohol. Call the post at <a href={POST.tel}>{POST.phone}</a> to ask who runs the bar and about outside drinks.</p></details>
+      <details><summary>Is there parking?</summary><p>Yes. The post has its own parking lot. Call the post at <a href={POST.tel}>{POST.phone}</a> to ask about space for a large event.</p></details>
+      <details><summary>Is it step-free?</summary><p>Call the post at <a href={POST.tel}>{POST.phone}</a> to ask about step-free access.</p></details>
       <details><summary>Can I see the hall first?</summary><p>Yes. Tours are by phone appointment. Call <a href={POST.tel}>{POST.phone}</a>.</p></details>
-      <details><summary>What does it cost? How many people fit? Is there a deposit? Parking?</summary><p>Call the post at <a href={POST.tel}>{POST.phone}</a> for price, capacity, deposit, hours and parking.</p></details>
     </div>
   </InfoSection>
 
@@ -118,8 +124,35 @@ const gallery = JSON.stringify(HALL_PHOTOS.map((p) => ({ src: photo(p.name).src,
   </script>
 </Base>
 
+<div class="hall-sticky" role="region" aria-label="Hall inquiry">
+  <a class="btn" href="#inquiry">Ask about a date</a>
+  <a class="btn btn-outline" href={POST.tel}>Call</a>
+</div>
+
 <script>import '../scripts/hall-dates.ts';</script>
+<script>import '../scripts/hall-sticky.ts';</script>
 
 <style>
   .hall-cta { margin-top: 1.25rem; }
+  .hall-gallery { grid-template-columns: repeat(2, 1fr); gap: 0.9rem; }
+  .hall-gallery li:first-child { grid-column: auto; grid-row: auto; }
+  .hall-gallery li:first-child a { aspect-ratio: 4 / 3; height: auto; }
+  .hall-gallery a { border-width: 5px; }
+  .hall-all { margin-top: 1.25rem; }
+  @media (min-width: 700px) { .hall-gallery { grid-template-columns: repeat(3, 1fr); gap: 1.25rem; } .hall-gallery a { border-width: 8px; } }
+  /* Phone-only bar: sits left of the theme button (44px + 12px gutters) and above the home indicator */
+  .hall-sticky { display: none; }
+  @media (max-width: 699px) {
+    .hall-sticky {
+      display: flex; gap: 0.5rem; position: fixed; z-index: 39;
+      left: max(12px, env(safe-area-inset-left)); right: calc(max(12px, env(safe-area-inset-right)) + 56px); bottom: max(12px, env(safe-area-inset-bottom));
+      padding: 0.4rem; background: var(--card); border: 1px solid var(--ink-2); border-radius: 0.5rem; box-shadow: 0 2px 8px rgb(0 0 0 / 0.3);
+      transition: transform 0.25s ease, opacity 0.25s ease;
+    }
+    .hall-sticky .btn { flex: 1; min-height: 44px; padding-inline: 0.5rem; text-align: center; }
+    .hall-sticky .btn:first-child { flex: 2; }
+    .hall-sticky.is-away { transform: translateY(150%); opacity: 0; visibility: hidden; }
+  }
+  @media (prefers-reduced-motion: reduce) { .hall-sticky { transition: none; } }
+  @media print { .hall-sticky { display: none; } }
 </style>
