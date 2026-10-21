@@ -23,7 +23,6 @@ Two machines work on this repo at the same time. Live coordination happens on th
 
 ### Now working on
 - **Laptop:** #23 bar status strip on phones (src/components/Header.astro masthead, src/components/TodayHours.astro).
-- **Laptop:** #21 structured data (JSON-LD in src/layouts/Base.astro head via a prop, src/pages/index.astro and contact.astro Base props, a new src/lib/jsonld.js; Event data on /events via a new marker only if needed, coordinated on #5).
 
 ## Status (handoff, 2026-10-20)
 **The site is feature-complete on the preview. The next steps are the owner's choices.**
