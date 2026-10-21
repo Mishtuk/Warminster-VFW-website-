@@ -120,3 +120,9 @@ Not confirmed / leave out: Walmart (not researched, no claim); Giant and ShopRit
 | blogs.va.gov/VAntage/feed | - | NO (returns HTML) | |
 | hiringourheroes.org, dav.org /feed | - | NO (403) | |
 Build-time tips: items are full HTML in content:encoded (VA); use title/link/pubDate/description only; link out, don't republish full text; cap to ~6 items, cache, and fall back to static links if fetch fails.
+
+## 9. Post membership and the Home Association (from the post's Facebook group)
+Source: the post's public Facebook group, https://www.facebook.com/groups/845409237204566/ (posts and flyers from 2026).
+- The bar is for members and guests: "joining is easy for veterans and non-veterans starting at $35/year" (2026 flyer text).
+- Home Association social membership: $35 a year in dues, due December 31. This is a post-level membership, not national VFW membership. Used for `POST.joinPrice` on /bar and /join.
+- Meetings on the 2nd Monday of the month: Home Association at 6 PM, Auxiliary at 6:45 PM, the general VFW meeting at 7 PM (some earlier posts give other times).

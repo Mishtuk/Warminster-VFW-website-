@@ -14,9 +14,8 @@ import InfoSection from '../components/info/InfoSection.astro';
 import OnThisPage from '../components/info/OnThisPage.astro';
 import KeyFacts from '../components/info/KeyFacts.astro';
 import { POST, ABOUT_TABS } from '../lib/site';
-// Home Association price. docs/research.md has no source for POST.joinPrice yet, so this stays null
-// (the page says "Call the post"). To publish the price, change this one line to: POST.joinPrice
-const homePrice: string | null = null;
+// Home Association price, sourced in docs/research.md (the post's 2026 Facebook posts).
+const homePrice: string | null = POST.joinPrice;
 const [meetWhen] = POST.meetings.replace(/\.$/, '').split(': ');
 const sections = [
   { id: 'who', label: 'Who can join' },
