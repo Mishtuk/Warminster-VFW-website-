@@ -19,8 +19,8 @@ export const seed = {
   calendar: wrap('calendar', calendarHtml(events, year, today, { photoBase: href('/media/photos/') })),
   specials: wrap('specials', specialsHtml(specials, today, { empty })),
   menu: wrap('menu', menuHtml(menu, { empty })),
-  news: wrap('news', newsHtml(news, { empty: 'No post news yet. Check back soon.' })),
-  newsLatest: wrap('news-latest', newsHtml(news, { limit: 3, teaser: true, empty: 'No post news yet.' })),
+  news: wrap('news', newsHtml(news, { photoBase: href('/media/photos/'), empty: 'No post news yet. Check back soon.' })),
+  newsLatest: wrap('news-latest', newsHtml(news, { limit: 3, teaser: true, photoBase: href('/media/photos/'), empty: 'No post news yet.' })),
   tv: wrap('tv-slides', tvHtml({ events, specials, menu, news }, today, { shifts: [] })),
   data: wrap('data', dataScript({ events, specials, menu, news }, today)),
 };

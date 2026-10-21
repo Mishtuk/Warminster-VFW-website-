@@ -1,6 +1,7 @@
 ---
 // Post admin. A static page with no secrets: signed-out visitors see the sign-in form, and every read or save goes to /api/admin/*,
 // where server.js checks the session cookie. Plain on purpose: big text, big buttons, one thing per screen (volunteers use it).
+import { href } from '../lib/site';
 ---
 
 <!doctype html>
@@ -205,7 +206,7 @@
   <body>
     <div class="gate" id="gate" hidden>
       <form class="card" id="login" novalidate>
-        <img src="/brand/logo.svg" width="200" height="103" alt="VFW Post 6493" />
+        <img src={href('/brand/logo.svg')} width="200" height="103" alt="VFW Post 6493" />
         <h1>Website admin</h1>
         <p class="meta">Sign in to update the post's website.</p>
         <div class="fld"><label for="lu">Username</label><input id="lu" type="text" name="username" autocomplete="username" autocapitalize="off" spellcheck="false" required /></div>
@@ -218,14 +219,14 @@
 
     <div class="wrap" id="app" hidden>
       <header class="top">
-        <a href="#dashboard"><img src="/brand/logo-mark-reverse.svg" width="152" height="60" alt="VFW Post 6493" /></a>
+        <a href="#dashboard"><img src={href('/brand/logo-mark-reverse.svg')} width="152" height="60" alt="VFW Post 6493" /></a>
         <details class="mnav" id="mnav">
           <summary><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>Menu</summary>
           <div id="mlinks"></div>
         </details>
       </header>
       <aside class="side">
-        <div class="brand"><a href="#dashboard"><img src="/brand/logo-mark-reverse.svg" width="152" height="60" alt="VFW Post 6493" /></a><p>Website admin</p></div>
+        <div class="brand"><a href="#dashboard"><img src={href('/brand/logo-mark-reverse.svg')} width="152" height="60" alt="VFW Post 6493" /></a><p>Website admin</p></div>
         <nav id="links" aria-label="Admin sections"></nav>
         <div class="tail" id="tail"></div>
       </aside>
