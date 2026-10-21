@@ -21,7 +21,6 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Task issues:** work is handed out as GitHub issues labeled `laptop` or `desktop`, each a full brief with a "Done when" checklist. Check `gh issue list -l <your machine> --state open` at the start of a session and about every 15 minutes while idle. Take the lowest number, comment "Started", claim it below, and close it with the commit hash when done.
 
 ### Now working on
-- **Laptop:** #19 Bar open now badge (src/components/TodayHours.astro, new src/lib/bar-hours.js and src/scripts/bar-status.ts, test/bar-hours.test.js; the TodayHours spot in Header.astro only if needed).
 - **Desktop:** hall booking calendar (owner approved): an admin view of booked dates and an availability calendar on /hall (a new hall-dates section in server.js, db.js, state.js and admin.astro; hall.astro).
 
 ## Status (handoff, 2026-10-20)
@@ -30,6 +29,7 @@ Two machines work on this repo at the same time. Live coordination happens on th
 ### What's live
 - **Pages:** 11 pages in the cozy "Canteen" look, plus a light/dark theme.
   - The theme switch is a small moon/sun button at the bottom right (`ThemeFab.astro`). It follows the system setting and is remembered per visitor.
+- **Bar open now badge:** `TodayHours.astro` shows today's hours at build time, then `src/scripts/bar-status.ts` switches every instance to the live state each minute from `barStatus()` in `src/lib/bar-hours.js` (parses `POST.hours`, Eastern time, a 12 AM close belongs to the night before; tested in `test/bar-hours.test.js`). The masthead, menu sheet and /tv show a dot; on phones the masthead has no room, so it shows in the Menu sheet and the home hero.
 - **Home:**
   - Hero posters come as AVIF (portrait 15 KB / 35 KB, landscape 32 KB / 130 KB) with WebP and JPEG fallbacks in `<picture>`; only the AVIF is preloaded. The hero video starts after load and is skipped with Save-Data or on 2g and 3g.
   - The hero has a background video and a polaroid stack showing a random 9 from a 150-photo bank (`HeroCarousel.astro`, `src/lib/hero-photos.ts`). The page carries 9 spread-out bank photos; the full bank is `/media/hero-bank.json` (`src/pages/media/hero-bank.json.ts`, built by `src/lib/hero-bank.ts`), fetched after load to reshuffle slides 2 to 9. `BeerTaps.astro` loads `pour-loader.ts`, which imports `pour.ts` on the first touch of a tap. On phones the stack is a strip below the hero.
