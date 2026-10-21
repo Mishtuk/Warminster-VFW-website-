@@ -87,7 +87,7 @@ export const POST_DOES = {
     "A Veteran Muster in October 2025, and veterans service hours with elected officials' offices at the post in May 2025.",
   ],
   youth: [
-    "Voice of Democracy for grades 9 to 12 and Patriot's Pen for grades 6 to 8. The deadline for the 2026-27 contest is October 31, 2026.",
+    "Voice of Democracy for grades 9 to 12 and Patriot's Pen for grades 6 to 8. The national deadline for the 2026-27 contest is October 31, 2026. Call the post to confirm it is taking entries this year.",
     'The post sponsors youth teams: Hatboro Little League, Warrington-Warwick Softball, Centennial, Hatboro and Warwick baseball, and Warminster Spartans Youth Wrestling.',
     'Cub Scout Pack 139 holds events at the post, including its spring craft fair, and the post works with Scout Troop 139.',
   ],

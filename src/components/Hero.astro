@@ -36,6 +36,7 @@ const sources = ['hero-portrait.mp4', 'hero-720.mp4', 'hero.av1.mp4', 'hero.mp4'
       <h1 id="welcome-title">Pull up a chair at VFW Post 6493</h1>
       <p class="welcome-lede">The bar, the Loaded Belly kitchen and the hall of the Veterans of Foreign Wars in {POST.city}. Members and their guests are welcome.</p>
       <p class="welcome-motto">{POST.motto}.</p>
+      <p class="welcome-join"><a href={href('/join')}>Veteran or family? Join the post</a></p>
       <div class="btn-row">
         <a class="btn btn-brass" href={href('/bar')}>Food and drink</a>
         <a class="btn btn-ghost" href={href('/events')}>What's going on</a>
@@ -48,7 +49,7 @@ const sources = ['hero-portrait.mp4', 'hero-720.mp4', 'hero.av1.mp4', 'hero.mp4'
   {sources.length > 0 && (
     <button class="video-toggle" type="button" hidden>
       <span class="icon" aria-hidden="true"></span>
-      <span class="sr-only">Pause the background video</span>
+      <span class="video-label">Pause video</span>
     </button>
   )}
 </section>
@@ -58,8 +59,8 @@ const sources = ['hero-portrait.mp4', 'hero-720.mp4', 'hero.av1.mp4', 'hero.mp4'
     const v = document.getElementById('hero-video');
     if (!v) return;
     const b = document.querySelector('.video-toggle');
-    const label = b && b.querySelector('.sr-only');
-    const sync = () => { if (!b) return; b.dataset.paused = String(v.paused); label.textContent = v.paused ? 'Play the background video' : 'Pause the background video'; };
+    const label = b && b.querySelector('.video-label');
+    const sync = () => { if (!b) return; b.dataset.paused = String(v.paused); label.textContent = v.paused ? 'Play video' : 'Pause video'; };
     const c = navigator.connection;
     const still = matchMedia('(prefers-reduced-motion: reduce)').matches || (c && (c.saveData || /^(slow-2g|2g|3g)$/.test(c.effectiveType)));
     // The poster image paints first. The video file is chosen and fetched only after the page has loaded (never on Save-Data or a 3g or slower link: the poster stays).
@@ -131,16 +132,20 @@ const sources = ['hero-portrait.mp4', 'hero-720.mp4', 'hero.av1.mp4', 'hero.mp4'
   }
   .welcome-lede { margin-top: 1rem; font-size: var(--step-1); line-height: 1.5; color: var(--on-dark); max-width: 34ch; }
   .welcome-motto { margin-top: 0.9rem; font-family: var(--font-display); font-style: italic; font-weight: 650; font-size: var(--step-1); color: var(--brass); }
+  .welcome-join { margin-top: 0.6rem; font-size: var(--step-0); }
+  .welcome-join a { color: var(--on-dark); text-decoration: underline 1px var(--brass); text-underline-offset: 4px; }
+  .welcome-join a:hover { color: var(--brass); }
   .welcome .btn-row { margin-top: 1.75rem; }
 
 
   .video-toggle {
-    position: absolute; left: max(var(--gutter), env(safe-area-inset-left)); bottom: 16px; display: grid; place-items: center; width: 48px; height: 48px;
+    position: absolute; left: max(var(--gutter), env(safe-area-inset-left)); bottom: 16px; display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem; min-width: 48px; height: 48px; padding-inline: 14px; font-weight: 700; font-size: var(--step--1);
     border: 2px solid var(--on-dark); border-radius: var(--radius); background: rgb(23 18 14 / 0.7); color: var(--on-dark); cursor: pointer;
   }
   .video-toggle:hover { background: var(--on-dark); color: var(--night); }
   .video-toggle[hidden] { display: none; }
   .welcome:has(.video-toggle:not([hidden])) { padding-bottom: calc(clamp(3.5rem, 2rem + 5vw, 6.5rem) + 84px); }
+  .video-label { white-space: nowrap; }
   .icon { width: 12px; height: 14px; border-inline: 4px solid currentColor; }
   [data-paused='true'] .icon { width: 0; height: 0; margin-left: 4px; border: 0; border-block: 8px solid transparent; border-left: 13px solid currentColor; }
   @media print { .welcome { background: none; color: #000; min-height: 0; } }

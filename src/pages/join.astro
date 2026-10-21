@@ -16,18 +16,16 @@ import KeyFacts from '../components/info/KeyFacts.astro';
 import { POST, ABOUT_TABS } from '../lib/site';
 // Home Association price, sourced in docs/research.md (the post's 2026 Facebook posts).
 const homePrice: string | null = POST.joinPrice;
-const [meetWhen] = POST.meetings.replace(/\.$/, '').split(': ');
 const sections = [
   { id: 'who', label: 'Who can join' },
   { id: 'paths', label: 'Three ways to join' },
   { id: 'how', label: 'How to join' },
   { id: 'renew', label: 'Renewing' },
-  { id: 'meetings', label: 'Meetings' },
 ];
 const EXT = 'noopener noreferrer';
 ---
-<Base title="Join the post" sharePhoto="life-60th-dinner" imageAlt="Members and guests at a post anniversary dinner" description={`Who can join ${POST.name} in ${POST.city}, PA, and how to sign up as a veteran, a family member or a neighbour.`}>
-  <PageHead title="Join the post" lede="Veterans, family members and neighbours are all welcome. Find your way in below." image="life-60th-dinner" />
+<Base title="Join the post" sharePhoto="hero-aux-5" imageAlt="Auxiliary members gathered at the post" description={`Who can join ${POST.name} in ${POST.city}, PA, and how to sign up as a veteran, a family member or a neighbour.`}>
+  <PageHead title="Join the post" lede="Veterans, family members and neighbours are all welcome. Find your way in below." image="hero-aux-5" />
   <Subnav items={ABOUT_TABS} label="About" />
   <OnThisPage items={sections} />
 
@@ -41,9 +39,7 @@ const EXT = 'noopener noreferrer';
         </ul>
         <p>{POST.barRule}</p>
       </div>
-      <KeyFacts office>
-        <div><dt>Meetings</dt><dd>{meetWhen}</dd></div>
-      </KeyFacts>
+      <KeyFacts office />
     </div>
   </InfoSection>
 
@@ -120,10 +116,6 @@ const EXT = 'noopener noreferrer';
     </div>
   </InfoSection>
 
-  <InfoSection id="meetings" title="Meetings" summary={`${meetWhen}.`} panel>
-    <p>{POST.meetings}</p>
-    <p>{POST.address}</p>
-  </InfoSection>
 </Base>
 
 <style>

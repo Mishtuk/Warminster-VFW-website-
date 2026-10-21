@@ -16,8 +16,8 @@ const sections = [
 const steps = [
   ['Step 1', 'Write your essay, or record it for Voice of Democracy, on the theme for this year.'],
   ['Step 2', 'Fill in the entry form for the 2026-27 contest.'],
-  ['Step 3', `Bring or send it to the post by ${longDate}.`],
-  ['Step 4', `To arrange the drop-off, ${POST.callText.replace('Call', 'call')}.`],
+  ['Step 3', `Get it in by the national deadline, ${longDate}.`],
+  ['Step 4', `To confirm the post is taking entries this year and arrange a drop-off, ${POST.callText.replace('Call', 'call')}.`],
 ];
 ---
 <Base title="Youth contests and scholarships" description="Voice of Democracy and Patriot's Pen essay contests for grades 6 to 12, and VFW scholarships, at VFW Post 6493.">
@@ -26,16 +26,17 @@ const steps = [
   <section class="section info-sec" id="deadline" aria-labelledby="deadline-h">
     <div class="container">
       <div class="callout deadline" data-deadline={YOUTH.deadline}>
-        <h2 id="deadline-h" data-open>Entries are due by {longDate}</h2>
+        <h2 id="deadline-h" data-open>National deadline: {longDate}</h2>
+        <p data-open>The national contests run with this deadline. <a href={POST.tel}>Call the post {POST.phone}</a> to confirm it is taking entries this year.</p>
         <p class="countdown" data-countdown={YOUTH.deadline}></p>
-        <p data-closed hidden>This year's entries are closed. {POST.callText} to ask about next year's contest.</p>
+        <p data-closed hidden>This year's national deadline has passed. {POST.callText} to ask about next year's contest.</p>
       </div>
     </div>
   </section>
 
   <OnThisPage items={sections} />
 
-  <InfoSection id="contests" title="The contests" summary="Both are run by the VFW, and the post takes entries. Rules and entry forms are on the VFW's page.">
+  <InfoSection id="contests" title="The contests" summary="Both are national VFW contests. Rules and entry forms are on the VFW's page.">
     <div class="card-grid">
       {YOUTH.contests.map((c) => (
         <article class="panel info-body">
@@ -49,7 +50,7 @@ const steps = [
     </div>
   </InfoSection>
 
-  <InfoSection id="enter" title="How to enter" summary="Four steps, and the post helps with the last one." band="stone">
+  <InfoSection id="enter" title="How to enter" summary="Four steps. Call the post to confirm it is taking entries this year." band="stone">
     <div class="info-two">
       <div class="panel info-body">
         <ol class="tl">
@@ -92,10 +93,10 @@ const steps = [
     const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date()).split('-').map(Number);
     const days = Math.round((Date.UTC(y, m - 1, d) - Date.UTC(today[0], today[1] - 1, today[2])) / 864e5);
     if (days < 0) {
-      box.querySelector<HTMLElement>('[data-open]')!.hidden = true;
+      box.querySelectorAll<HTMLElement>('[data-open]').forEach((e) => { e.hidden = true; });
       out.hidden = true;
       box.querySelector<HTMLElement>('[data-closed]')!.hidden = false;
-    } else out.textContent = days === 0 ? 'Due today' : days === 1 ? '1 day left' : `${days} days left`;
+    } else out.textContent = days === 0 ? 'National deadline is today' : days === 1 ? '1 day to the national deadline' : `${days} days to the national deadline`;
   }
 </script>
 

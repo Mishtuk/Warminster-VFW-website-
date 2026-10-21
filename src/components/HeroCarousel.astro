@@ -25,7 +25,7 @@ const bankUrl = href('/media/hero-bank.json');
   </ol>
   <div class="car-ctrl">
     <button type="button" class="car-btn car-prev" aria-label="Previous photo"><Arrow dir="left" /></button>
-    <button type="button" class="car-btn car-play" aria-label="Pause the photo slideshow"><span class="car-ico" aria-hidden="true"></span></button>
+    <button type="button" class="car-btn car-play" aria-label="Pause photos" title="Pause photos"><span class="car-ico" aria-hidden="true"></span></button>
     <button type="button" class="car-btn car-next" aria-label="Next photo"><Arrow /></button>
     <span class="car-count">1 of 9</span>
   </div>
@@ -110,7 +110,7 @@ const bankUrl = href('/media/hero-bank.json');
       const go = (to: number, announce = false) => { cur = (to + n) % n; place(announce); };
       const sync = () => {
         clearTimeout(timer);
-        play.setAttribute('aria-label', userPaused ? 'Play the photo slideshow' : 'Pause the photo slideshow');
+        var pl = userPaused ? 'Play photos' : 'Pause photos'; play.setAttribute('aria-label', pl); play.title = pl;
         play.dataset.paused = String(userPaused);
         if (!userPaused && !hovering && !document.hidden) timer = window.setTimeout(() => { go(cur + 1); sync(); }, 5500);
       };
