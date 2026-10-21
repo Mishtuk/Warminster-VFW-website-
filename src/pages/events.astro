@@ -5,7 +5,9 @@ import InfoSection from '../components/info/InfoSection.astro';
 import OnThisPage from '../components/info/OnThisPage.astro';
 import Subnav from '../components/Subnav.astro';
 import { POST, href, EVENT_TABS } from '../lib/site';
-import { seed, year } from '../lib/seed';
+import { seed, year, today } from '../lib/seed';
+import { eventsLd } from '../lib/jsonld.js';
+import events from '../content/events.json';
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((label, i) => ({ label, id: `month-${i + 1}` }));
 const sections = [
   { id: 'upcoming', label: 'Coming up' },
@@ -14,7 +16,7 @@ const sections = [
   { id: 'add', label: 'Add to your calendar' },
 ];
 ---
-<Base title="Events and calendar" description={`Upcoming events and the ${year} calendar at ${POST.name}.`}>
+<Base title="Events and calendar" description={`Upcoming events and the ${year} calendar at ${POST.name}.`} jsonLd={eventsLd(events, today, new URL(href('/'), Astro.site).href)}>
   <PageHead title="Events and calendar" lede={`What's coming up, the nights that repeat every week, and the full ${year} calendar.`} />
   <Subnav items={EVENT_TABS} label="Events" />
   <OnThisPage items={sections} />

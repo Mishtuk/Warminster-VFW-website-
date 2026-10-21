@@ -17,6 +17,8 @@ interface Props {
   overlay?: boolean;
   /** Kiosk screens (the bar TV): no header, footer or theme button, always dark, hidden from search. */
   bare?: boolean;
+  /** schema.org JSON-LD object or array, rendered as one ld+json block (the server hashes it for the CSP). */
+  jsonLd?: object | object[];
 }
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -28,6 +30,7 @@ const {
   imageAlt = `${POST.name}, ${POST.city}, PA. ${POST.motto}.`,
   overlay = false,
   bare = false,
+  jsonLd,
 } = Astro.props;
 
 const full = title.startsWith('VFW') ? title : `${title} | ${POST.short}`;
@@ -86,6 +89,7 @@ const fontCss = [
     <link rel="preload" as="font" type="font/woff2" href={`${base}/fonts/archivo.woff2`} crossorigin />
     <link rel="preload" as="font" type="font/woff2" href={`${base}/fonts/literata.woff2`} crossorigin />
     <style set:html={fontCss}></style>
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd).replace(/</g, '\\u003c')} />}
     <slot name="head" />
   </head>
   <body>

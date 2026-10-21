@@ -5,9 +5,10 @@ import Subnav from '../components/Subnav.astro';
 import InfoSection from '../components/info/InfoSection.astro';
 import KeyFacts from '../components/info/KeyFacts.astro';
 import { POST, ABOUT_TABS, href, photo } from '../lib/site';
+import { orgLd } from '../lib/jsonld.js';
 const tabs = ABOUT_TABS;
 ---
-<Base title="Contact" description={`Address, phone and Facebook group for ${POST.name}.`}>
+<Base title="Contact" description={`Address, phone and Facebook group for ${POST.name}.`} jsonLd={orgLd(new URL(href('/'), Astro.site).href)}>
   <PageHead title="Contact" lede="Phone, address, email and opening hours for the post." />
   <Subnav items={tabs} label="About" />
 

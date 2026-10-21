@@ -325,9 +325,9 @@ const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-');
 // events with the same title, times and text, so it uses the id of the first of them (lead = the Map from leadIds).
 const groupKey = (e) => [e.title, e.start, e.end, e.description].join('|');
 const leadIds = (events) => { const m = new Map(); for (const e of events) if (e.enabled !== false && e.recurring && e.recurring !== 'none' && !m.has(groupKey(e))) m.set(groupKey(e), e.id); return m; };
-const anchorOf = (o, lead) => 'ev-' + String((o.recurring ?? 'none') === 'none' ? (o.eventId ?? o.id ?? `${o.title}-${o.date}`) : (lead?.get(groupKey(o)) ?? o.eventId ?? o.id ?? `${o.title}-${o.start}-${o.end}`)).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+export const anchorOf = (o, lead) => 'ev-' + String((o.recurring ?? 'none') === 'none' ? (o.eventId ?? o.id ?? `${o.title}-${o.date}`) : (lead?.get(groupKey(o)) ?? o.eventId ?? o.id ?? `${o.title}-${o.start}-${o.end}`)).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 // Link to an event on /events. A one-off outside this year sits on another year's calendar, so the link names that year; the page shows this year by default.
-const eventHref = (base, o, today, lead) => `${base}${(o.recurring ?? 'none') === 'none' && o.date.slice(0, 4) !== today.slice(0, 4) ? `?year=${o.date.slice(0, 4)}` : ''}#${anchorOf(o, lead)}`;
+export const eventHref = (base, o, today, lead) => `${base}${(o.recurring ?? 'none') === 'none' && o.date.slice(0, 4) !== today.slice(0, 4) ? `?year=${o.date.slice(0, 4)}` : ''}#${anchorOf(o, lead)}`;
 const empty = (msg) => `<p class="vfw-empty">${esc(msg)}</p>`;
 
 // ---- Event photos on /events: a 4:3 lead photo per event, and "See all N photos" opening the whole set in the Lightbox ----
