@@ -24,7 +24,6 @@ Two machines work on this repo at the same time. Live coordination happens on th
 ### Now working on
 - **Laptop:** hall page: photos 2-up with the outside first and See all, the FAQ split, a sticky Ask button on phones (src/pages/hall.astro outside the Open dates section, src/lib/hall-photos.ts; page styles only).
 - **Laptop:** Dependabot PRs #1 to #4 (.github/workflows only).
-- **Desktop:** /events redesign around photos, owner request (events.astro; the event renderers in state.js: eventItem, regularHtml, calendarHtml, galleryHtml; event-photos.js; the event styles in global.css).
 
 ## Status (handoff, 2026-10-20)
 **The site is feature-complete on the preview. The next steps are the owner's choices.**

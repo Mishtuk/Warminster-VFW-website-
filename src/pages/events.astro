@@ -4,7 +4,7 @@ import PageHead from '../components/PageHead.astro';
 import InfoSection from '../components/info/InfoSection.astro';
 import OnThisPage from '../components/info/OnThisPage.astro';
 import Subnav from '../components/Subnav.astro';
-import { POST, photo, href, EVENT_TABS } from '../lib/site';
+import { POST, href, EVENT_TABS } from '../lib/site';
 import { seed, year } from '../lib/seed';
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((label, i) => ({ label, id: `month-${i + 1}` }));
 const sections = [
@@ -20,13 +20,7 @@ const sections = [
   <OnThisPage items={sections} />
 
   <InfoSection id="upcoming" title="Coming up" summary="The next events at the post.">
-    <div class="info-two">
-      <div class="panel"><Fragment set:html={seed.upcoming} /></div>
-      <figure class="snap" style="--tilt:1.4deg">
-        <img {...photo('life-linedance')} sizes="(min-width: 900px) 35vw, 100vw" alt="Line dancing at the post" loading="lazy" decoding="async" fetchpriority="low" />
-        <figcaption>Line dancing at the post, 2026</figcaption>
-      </figure>
-    </div>
+    <Fragment set:html={seed.upcoming} />
   </InfoSection>
 
   <InfoSection id="regular" title="Every week and every month" summary="These nights repeat. Their dates are marked on the calendar below.">
@@ -44,6 +38,7 @@ const sections = [
   </InfoSection>
   <Fragment set:html={seed.data} />
   <script>
+    import '../scripts/event-cycle.ts';
     document.getElementById('print-cal')?.addEventListener('click', () => print());
   </script>
 </Base>
@@ -59,11 +54,5 @@ const sections = [
   :global(.vfw-event[id]:target) { background: var(--olive-tint); outline: 3px solid var(--gold); outline-offset: 4px; border-radius: var(--radius); }
   @media (prefers-reduced-motion: no-preference) { :global(.vfw-event[id]:target) { animation: ev-flash 1.6s ease-out; } }
   @keyframes ev-flash { from { outline-color: var(--red); } to { outline-color: var(--gold); } }
-  /* Photo row under an event: opens the viewer. Fixed 4:3 boxes, so nothing shifts while the photos load. */
-  :global(.vfw-evg .vfw-evg-row) { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0 0; padding: 0; list-style: none; }
-  :global(.vfw-evg .vfw-evg-row li) { flex: 0 0 auto; width: calc((100% - 1rem) / 3); max-width: 9rem; aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--radius); background: var(--stone); }
-  :global(.vfw-evg .vfw-evg-row img) { display: block; width: 100%; height: 100%; object-fit: cover; }
-  :global(.vfw-evg .vfw-evg-row img:focus-visible) { outline: 3px solid var(--gold); outline-offset: -3px; }
-  @media print { :global(.vfw-evg) { display: none; } }
   @media print { :global(.otp) { display: none; } }
 </style>

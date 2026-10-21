@@ -59,15 +59,20 @@ test('an event in another year links to that year, and the link lands on the eve
   assert.ok(ids(calendarHtml(list, 2027, dec)).includes('ev-new-years-eve'));
 });
 
-test('listed events get a gallery of up to six lazy thumbnails with a Lightbox list; others do not', () => {
-  const list = [ev({ id: 'halloween', title: 'Halloween happy hour', date: '2026-10-30', category: 'Bar' }), ev({ id: 'bingo', title: 'Thursday Bingo', recurring: 'weekly', date: '2026-01-01' }), ev({ id: 'craft', title: 'Craft fair', date: '2026-10-26' })];
-  const html = regularHtml(list) + calendarHtml(list, 2026, TODAY);
-  const g = html.match(/<div class="vfw-evg" data-gallery="evg-ev-halloween">(.*?)<\/div>/)[1];
-  const imgs = g.match(/<img [^>]*>/g);
-  assert.ok(imgs.length >= 3 && imgs.length <= 6);
-  for (const i of imgs) assert.match(i, /width="800" height="600" loading="lazy" decoding="async"/);
-  const json = JSON.parse(g.match(/data-gallery-list="evg-ev-halloween">(.*?)<\/script>/)[1]);
-  assert.equal(json.length, imgs.length);
-  assert.equal(html.match(/data-gallery="/g).length, 1); // bingo has one photo, the craft fair is not a listed event
+test('events with photos lead with a lazy 4:3 photo and See all N photos; a night without one gets a paper header', () => {
+  const list = [ev({ id: 'halloween', title: 'Halloween happy hour', date: '2026-10-30', category: 'Bar' }), ev({ id: 'bingo', title: 'Thursday Bingo', recurring: 'weekly', date: '2026-01-01' }), ev({ id: 'nope', title: 'Something new', date: '2026-10-26', category: 'Post' })];
+  const html = regularHtml(list) + calendarHtml(list, 2026, TODAY) + upcomingHtml(list, TODAY);
+  const li = html.match(/<li id="ev-halloween"[^>]*>(.*?)<\/li>/)[1];
+  assert.match(li, /<div class="vfw-evph" data-open-gallery="evg-ev-halloween"><img /);
+  for (const i of li.match(/<img [^>]*>/g)) assert.match(i, /srcset="[^"]+-400\.webp 400w, [^"]+-800\.webp 800w, [^"]+\.webp 1024w" sizes="[^"]+"[^>]* width="800" height="600" loading="lazy" decoding="async"/);
+  const json = JSON.parse(li.match(/data-gallery-list="evg-ev-halloween">(.*?)<\/script>/)[1]);
+  assert.ok(json.length >= 3 && json.length <= 6);
+  assert.match(li, new RegExp(`See all ${json.length} photos`));
+  const bingo = html.match(/<li id="ev-bingo"[^>]*>(.*?)<\/li>/)[1];
+  assert.match(bingo, /<div class="vfw-evhead vfw-evpaper"><strong class="vfw-event-date">Every Thursday<\/strong>/); // one photo, not of bingo: no photo
+  assert.doesNotMatch(bingo, /<img /);
+  assert.doesNotMatch(html.match(/<li id="ev-nope"[^>]*>(.*?)<\/li>/)[1], /<img |data-open-gallery/); // only a category photo: none
+  assert.match(html, /<ul class="vfw-events vfw-upcoming">.*<div class="vfw-evpaper" aria-hidden="true">/); // upcoming: the date stamped on paper instead
+  assert.equal(html.match(/data-gallery-list="/g).length, 1);
   assert.equal(new Set(ids(html)).size, ids(html).length);
 });

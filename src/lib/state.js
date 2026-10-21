@@ -330,30 +330,54 @@ const anchorOf = (o, lead) => 'ev-' + String((o.recurring ?? 'none') === 'none' 
 const eventHref = (base, o, today, lead) => `${base}${(o.recurring ?? 'none') === 'none' && o.date.slice(0, 4) !== today.slice(0, 4) ? `?year=${o.date.slice(0, 4)}` : ''}#${anchorOf(o, lead)}`;
 const empty = (msg) => `<p class="vfw-empty">${esc(msg)}</p>`;
 
-// A row of up to six thumbnails under an event on /events; each opens the Lightbox with the whole row (data-gallery, like the home hall band).
-const galleryHtml = (o, id, base = '/media/photos/') => {
-  const list = eventGallery(o);
-  if (!list.length) return '';
-  const imgs = list.map((x) => `<li><img src="${esc(base + x.name)}-400.webp" srcset="${esc(base + x.name)}-400.webp 400w, ${esc(base + x.name)}-800.webp 800w" sizes="9rem" alt="${esc(x.alt)}" width="800" height="600" loading="lazy" decoding="async"></li>`).join('');
-  const data = JSON.stringify(list.map((x) => ({ src: `${base}${x.name}.webp`, alt: x.alt, cap: x.alt }))).replace(/</g, '\u003c');
-  return `<div class="vfw-evg" data-gallery="${id}"><ul class="gallery vfw-evg-row" aria-label="Photos: ${esc(o.title)}">${imgs}</ul><script type="application/json" data-gallery-list="${id}">${data}</script></div>`;
+// ---- Event photos on /events: a 4:3 lead photo per event, and "See all N photos" opening the whole set in the Lightbox ----
+// The set: the event's gallery (eventGallery), else a title-matched bundle of three or more. [] = no photo that clearly belongs (a paper header instead).
+const evSet = (o) => { const g = eventGallery(o); if (g.length) return g; const b = eventPhotos(o); return b.length >= 3 ? b : []; };
+// Start on the first photo this list hasn't shown yet, so two events with the same set don't lead with the same picture.
+const evPick = (set, used) => { const i = Math.max(0, set.findIndex((p) => !used?.has(p.name))); used?.add(set[i].name); return i; };
+// cycle: the first four stack and fade (src/scripts/event-cycle.ts; only the first speaks). open: a click on the photo opens that Lightbox list
+// (a mouse shortcut; the "See all" button is the keyboard way in).
+const evLead = (set, base, sizes, { cycle = false, pick = 0, open = '' } = {}) => {
+  const list = cycle ? set.slice(0, 4) : [set[pick]];
+  const fade = list.length > 1;
+  return `<div class="vfw-evph"${fade ? ' data-cycle' : ''}${open ? ` data-open-gallery="${esc(open)}"` : ''}>${list.map((p, i) => { const s = esc(base + p.name); return `<img${fade && !i ? ' class="is-on"' : ''} src="${s}-800.webp" srcset="${s}-400.webp 400w, ${s}-800.webp 800w, ${s}.webp 1024w" sizes="${sizes}" alt="${i ? '' : esc(p.alt)}"${i ? ' aria-hidden="true"' : ''} width="800" height="600" loading="lazy" decoding="async">`; }).join('')}</div>`;
+};
+const evSeeAll = (o, set, id, base) => `<button class="btn btn-outline vfw-seeall" type="button" data-open-gallery="${esc(id)}">See all ${set.length} photos<span class="sr-only"> from ${esc(o.title)}</span></button>`
+  + `<script type="application/json" data-gallery-list="${esc(id)}">${JSON.stringify(set.map((x) => ({ src: `${base}${x.name}.webp`, alt: x.alt, cap: x.alt }))).replace(/</g, '\u003c')}</script>`;
+const SIZES_CARD = '(min-width: 1200px) 25rem, (min-width: 760px) 45vw, 100vw';
+const SIZES_SIDE = '(min-width: 700px) 17rem, 100vw';
+const SIZES_LEAD = '(min-width: 1200px) 36rem, (min-width: 700px) 50vw, 100vw'; // the upcoming event that leads, shown larger
+// No photo beside an upcoming item: its date stamped on paper (silent, the date is in the text too).
+const evPaperDate = (ymd) => { const d = parseDay(ymd), f = (x) => esc(d.toLocaleDateString('en-US', { ...x, timeZone: 'UTC' })); return `<div class="vfw-evpaper" aria-hidden="true"><span class="vfw-evstamp"><span>${f({ weekday: 'long' })}</span><b>${d.getUTCDate()}</b><span>${f({ month: 'long' })}</span></span></div>`; };
+
+/** opts.today mutes past one-off events; opts.brief drops the description of recurring nights (shown once in regularHtml).
+ *  opts.media: 'side' (upcoming: a photo or a stamped date beside the text) or 'card' (calendar: a lead photo and See all, when the event has photos). */
+const eventItem = (o, { today, brief, anchor, photoBase = '/media/photos/', media, used, sizes = SIZES_SIDE, cls = '' } = {}) => {
+  const set = media ? evSet(o) : [];
+  const gid = anchor && set.length ? `evg-${anchorOf(o)}` : '';
+  const lead = media === 'side' ? (set.length ? evLead(set, photoBase, sizes, { pick: evPick(set, used) }) : evPaperDate(o.date))
+    : set.length ? evLead(set, photoBase, SIZES_CARD, { pick: evPick(set, used), open: gid }) : '';
+  const body = `<time class="vfw-event-date" datetime="${o.date}">${esc(shortDay(o.date))}</time>`
+    + `${o.start ? ` <span class="vfw-event-time">${esc(timeLabel(o.start, o.end))}</span>` : ''} <strong class="vfw-event-title">${esc(o.title)}</strong>`
+    + ` <span class="vfw-event-cat">${esc(o.category)}</span>${o.description && !(brief && o.recurring !== 'none') ? `<p class="vfw-event-desc">${esc(o.description)}</p>` : ''}`;
+  return `<li${anchor ? ` id="${anchorOf(o)}"` : ''} class="vfw-event vfw-cat-${slug(o.category)}${today && o.recurring === 'none' && o.date < today ? ' vfw-past' : ''}${lead ? ` vfw-media-${media}` : ''}${cls}">`
+    + (lead ? `${lead}<div class="vfw-evbody">${body}</div>${gid ? evSeeAll(o, set, gid, photoBase) : ''}` : body) + '</li>';
 };
 
-/** opts.today mutes past one-off events; opts.brief drops the description of recurring nights (shown once in regularHtml). */
-const eventItem = (o, { today, brief, anchor, photoBase } = {}) => `<li${anchor ? ` id="${anchorOf(o)}"` : ''} class="vfw-event vfw-cat-${slug(o.category)}${today && o.recurring === 'none' && o.date < today ? ' vfw-past' : ''}"><time class="vfw-event-date" datetime="${o.date}">${esc(shortDay(o.date))}</time>`
-  + `${o.start ? ` <span class="vfw-event-time">${esc(timeLabel(o.start, o.end))}</span>` : ''} <strong class="vfw-event-title">${esc(o.title)}</strong>`
-  + ` <span class="vfw-event-cat">${esc(o.category)}</span>${o.description && !(brief && o.recurring !== 'none') ? `<p class="vfw-event-desc">${esc(o.description)}</p>` : ''}${anchor ? galleryHtml(o, `evg-${anchorOf(o)}`, photoBase) : ''}</li>`;
-
-/** Next events from today: <ul class="vfw-events">. opts: limit (5), days (120), empty. */
-export function upcomingHtml(events, today, { limit = 5, days = 120, empty: none = `No upcoming events are listed right now. ${CALL}` } = {}) {
+/** Next events from today, each with a photo (or its date stamped on paper) beside it: <ul class="vfw-events vfw-upcoming">.
+ *  The next special (one-off) event with photos within 30 days leads, larger, like the home page feature. opts: limit (5), days (120), empty, photoBase. */
+export function upcomingHtml(events, today, { limit = 5, days = 120, empty: none = `No upcoming events are listed right now. ${CALL}`, photoBase = '/media/photos/' } = {}) {
   const list = expand(events, today, addDays(today, days)).slice(0, limit);
-  return list.length ? `<ul class="vfw-events">${list.map(eventItem).join('')}</ul>` : empty(none);
+  const top = list.find((o) => (o.recurring ?? 'none') === 'none' && o.date <= addDays(today, 30) && evSet(o).length);
+  const used = new Set();
+  return list.length ? `<ul class="vfw-events vfw-upcoming">${(top ? [top, ...list.filter((o) => o !== top)] : list).map((o) => eventItem(o, { photoBase, media: 'side', used, ...(o === top && { sizes: SIZES_LEAD, cls: ' vfw-lead' }) })).join('')}</ul>` : empty(none);
 }
 
 /** Full-year calendar, 12 month grids with event days marked, plus each month's list of one-off events and a pointer to the regular nights. Works with no JS.
  *  opts: nav (previous/next year links as ?year=N, for the live server), empty. */
 export function calendarHtml(events, year, today, { nav = false, photoBase = '/media/photos/' } = {}) {
   const all = expand(events, `${year}-01-01`, `${year}-12-31`);
+  const used = new Set(); // photos already leading an event this year
   const head = DAYS.map((d) => `<th scope="col" abbr="${d}">${d.slice(0, 3)}</th>`).join('');
   const months = Array.from({ length: 12 }, (_, m) => {
     const prefix = `${year}-${String(m + 1).padStart(2, '0')}`;
@@ -375,7 +399,7 @@ export function calendarHtml(events, year, today, { nav = false, photoBase = '/m
     const label = new Date(Date.UTC(year, m, 1)).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
     return `<section class="vfw-month" id="month-${m + 1}"><h3 class="vfw-month-title">${label}</h3><table class="vfw-grid"><caption class="vfw-sr">${label}</caption>`
       + `<thead><tr>${head}</tr></thead><tbody>${rows.join('')}</tbody></table>`
-      + (oneOff.length ? `<ul class="vfw-month-list vfw-events">${oneOff.map((o) => eventItem(o, { today, brief: true, anchor: true, photoBase })).join('')}</ul>` : '')
+      + (oneOff.length ? `<ul class="vfw-month-list vfw-events">${oneOff.map((o) => eventItem(o, { today, brief: true, anchor: true, photoBase, media: 'card', used })).join('')}</ul>` : '')
       + (evs.length === oneOff.length ? '' : '<p class="vfw-month-regular">Plus the regular nights: <a href="#regular">see Every week and every month</a>.</p>')
       + (evs.length ? '' : '<p class="vfw-month-none">No events listed this month.</p>') + '</section>';
   });
@@ -409,9 +433,13 @@ export function regularHtml(events = [], { empty: none = 'No regular nights are 
   for (const r of rows.values()) r.labels = r.labels.map((l) => (l.day ? `${list(r.ords.get(l.day).sort())} ${l.day} of the month` : l));
   const lead = leadIds(events), seen = new Set(); // ids stay unique even when two cards share a title and times
   const anchorId = (e) => { const a = anchorOf(e, lead); return seen.has(a) ? '' : (seen.add(a), ` id="${a}"`); };
-  return `<ul class="vfw-events vfw-regular">${[...rows.values()].map(({ e, labels }) => { const idAttr = anchorId(e); return `<li${idAttr} class="vfw-event vfw-cat-${slug(e.category)}"><strong class="vfw-event-date">${esc(labels.join(', '))}</strong>`
-    + `${e.start ? ` <span class="vfw-event-time">${esc(timeLabel(e.start, e.end))}</span>` : ''} <strong class="vfw-event-title">${esc(e.title)}</strong>`
-    + ` <span class="vfw-event-cat">${esc(e.category)}</span>${e.description ? `<p class="vfw-event-desc">${esc(e.description)}</p>` : ''}${guideLink(e.title)}${idAttr ? galleryHtml(e, `evg-${anchorOf(e, lead)}`, photoBase) : ''}</li>`; }).join('')}</ul>`;
+  // Each card leads with a 4:3 photo of that night (a bundle fades through), its days stamped on below; no photo = the days stamped on a paper header.
+  return `<ul class="vfw-events vfw-regular">${[...rows.values()].map(({ e, labels }) => {
+    const idAttr = anchorId(e), set = evSet(e), gid = idAttr && set.length ? `evg-${anchorOf(e, lead)}` : '';
+    const day = `<strong class="vfw-event-date">${esc(labels.join(', '))}</strong>`;
+    return `<li${idAttr} class="vfw-event vfw-cat-${slug(e.category)}">${set.length ? `<div class="vfw-evhead">${evLead(set, photoBase, SIZES_CARD, { cycle: true, open: gid })}${day}</div>` : `<div class="vfw-evhead vfw-evpaper">${day}</div>`}`
+    + `<strong class="vfw-event-title">${esc(e.title)}</strong>${e.start ? ` <span class="vfw-event-time">${esc(timeLabel(e.start, e.end))}</span>` : ''}`
+    + ` <span class="vfw-event-cat">${esc(e.category)}</span>${e.description ? `<p class="vfw-event-desc">${esc(e.description)}</p>` : ''}${guideLink(e.title)}${gid ? evSeeAll(e, set, gid, photoBase) : ''}</li>`; }).join('')}</ul>`;
 }
 
 /** Daily first, then weekly Monday to Sunday, then monthly, then seasonal; ties by name. */
@@ -475,7 +503,7 @@ const MARKER = /<!--vfw:([a-z-]+)-->(?:[\s\S]*?<!--\/vfw:\1-->)?/g;
 export function injectMarkers(html, state, today, year, { photos, photoBase, shifts = [], settings = {}, hall } = {}) {
   const y = Number.isInteger(+year) && year >= 2000 && year <= 2100 ? +year : +today.slice(0, 4);
   const parts = {
-    'events-upcoming': () => upcomingHtml(state.events, today),
+    'events-upcoming': () => upcomingHtml(state.events, today, { photoBase }),
     'events-regular': () => regularHtml(state.events, { photoBase }),
     'events-featured': () => featuredHtml(state.events, today),
     calendar: () => calendarHtml(state.events, y, today, { nav: true, photoBase }),

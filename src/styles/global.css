@@ -587,28 +587,95 @@ li.car-slide:nth-child(4n+4) > .snap figcaption, .snap:nth-child(4n+4) figcaptio
 .card-grid { display: grid; gap: clamp(1rem, 0.6rem + 1.5vw, 1.5rem); grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); align-items: start; }
 .card-grid > .panel { border-top: 6px double var(--gold); scroll-margin-top: calc(var(--header-h) + 0.5rem); }
 
-/* Regular nights: a row of cards, each with its day as a badge (markup from state.js regularHtml) */
-.vfw-regular { display: grid; gap: clamp(1rem, 0.6rem + 1.5vw, 1.5rem); grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr)); }
-.vfw-regular > .vfw-event {
+/* ---------- /events photos (markup from state.js: regularHtml, eventItem, upcomingHtml, calendarHtml) ----------
+   Every event with photos leads with a real 4:3 photo on photo paper; a bundle fades through (src/scripts/event-cycle.ts);
+   a night with no photo that clearly belongs gets its day stamped on ruled paper instead. "See all N photos" opens the Lightbox. */
+.vfw-evph { position: relative; aspect-ratio: 4 / 3; overflow: hidden; background: var(--stone); cursor: zoom-in; }
+.vfw-evph img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.vfw-evph[data-cycle] { display: grid; }
+.vfw-evph[data-cycle] > img { grid-area: 1 / 1; opacity: 0; transition: opacity 1.2s ease-in-out; }
+.vfw-evph[data-cycle] > img.is-on { opacity: 1; }
+.vfw-evpaper {
+  --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.2 0 0 0 1.95'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  display: grid; place-items: center; aspect-ratio: 4 / 3; padding: 1rem; color: #a52a2e;
+  background: linear-gradient(90deg, transparent 2.2rem, rgb(165 42 46 / 0.35) 2.2rem calc(2.2rem + 2px), transparent 0),
+    repeating-linear-gradient(transparent 0 1.85rem, rgb(31 58 95 / 0.16) 1.85rem calc(1.85rem + 1px)) var(--snap);
+}
+/* Stamps: condensed bold capitals in a ruled box, speckled like the photo captions; inks rotate red, navy, green, brass (AA on the paper). */
+.vfw-evstamp, .vfw-evhead .vfw-event-date {
+  font-family: 'Archivo', 'Archivo Fallback', sans-serif; font-stretch: 62%; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; line-height: 1.15;
+  border: 3px solid currentColor; border-radius: 3px;
+}
+.vfw-evstamp { display: flex; flex-direction: column; align-items: center; padding: 0.4em 0.9em 0.35em; font-size: var(--step-1); transform: rotate(-4deg); -webkit-mask-image: var(--noise); mask-image: var(--noise); }
+.vfw-evstamp b { font-family: var(--font-display); font-stretch: normal; font-size: 2.6em; line-height: 1; font-variant-numeric: lining-nums; }
+.vfw-events > li:nth-child(4n+2) .vfw-evpaper, .vfw-events > li:nth-child(4n+2) .vfw-evhead .vfw-event-date { color: #1f3a5f; }
+.vfw-events > li:nth-child(4n+3) .vfw-evpaper, .vfw-events > li:nth-child(4n+3) .vfw-evhead .vfw-event-date { color: #2f5d3a; }
+.vfw-events > li:nth-child(4n+4) .vfw-evpaper, .vfw-events > li:nth-child(4n+4) .vfw-evhead .vfw-event-date { color: #6e5418; }
+.vfw-seeall { margin-top: 0.75rem; }
+
+/* Regular nights: a row of photo cards. Each card is the photo paper: the photo inset, its days stamped on the bottom edge, then the words. */
+.vfw-regular { display: grid; gap: clamp(1.5rem, 1rem + 2vw, 2.5rem); grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); }
+.vfw-regular > .vfw-event, .vfw-events.vfw-regular > .vfw-event:first-child {
+  --pad: clamp(0.6rem, 0.4rem + 0.6vw, 1rem);
   display: flex; flex-direction: column; align-items: flex-start; gap: 0.35rem;
-  padding: clamp(1.1rem, 1rem + 0.8vw, 1.5rem); border-top: 0; border-radius: 4px; background: var(--card); box-shadow: var(--shadow);
+  padding: 10px 10px 1.5rem; border-top: 0; border-radius: 4px; background: var(--card); box-shadow: var(--shadow);
 }
-.vfw-regular .vfw-event-date {
-  order: -2; display: inline-block; padding: 0.3rem 0.75rem; border-radius: 3px; background: var(--night); color: var(--brass);
-  box-shadow: inset 0 -3px 0 var(--gold); font-weight: 700; line-height: 1.3;
+.vfw-regular > .vfw-event > :not(.vfw-evhead, script) { margin-inline: var(--pad); max-width: calc(100% - 2 * var(--pad)); }
+.vfw-evhead { align-self: stretch; margin-bottom: 0.5rem; }
+.vfw-evhead .vfw-event-date {
+  position: relative; display: block; width: fit-content; max-width: calc(100% - 1.5rem); margin: -1.4rem 0 0 0.75rem; padding: 0.2em 0.6em 0.15em;
+  background: var(--snap); color: #a52a2e; outline: 5px solid var(--snap); box-shadow: 0 2px 8px rgb(0 0 0 / 0.3); font-size: var(--step-0); transform: rotate(-2deg);
 }
-.vfw-regular .vfw-event-title { order: -1; margin-top: 0.35rem; font-size: var(--step-1); }
+.vfw-evhead.vfw-evpaper { margin-bottom: 0.75rem; }
+.vfw-evhead.vfw-evpaper .vfw-event-date { margin: 0; max-width: 100%; padding: 0.35em 0.8em 0.3em; outline: 0; box-shadow: none; background: none; color: inherit; font-size: var(--step-2); text-align: center; transform: rotate(-4deg); -webkit-mask-image: var(--noise); mask-image: var(--noise); }
+.vfw-regular .vfw-event-title { margin-top: 0.35rem; font-size: var(--step-1); }
 .vfw-regular .vfw-event-time { font-weight: 650; color: var(--ink); }
 .vfw-regular .vfw-event-cat { justify-self: auto; }
-.vfw-regular > .vfw-event > * { max-width: 100%; }
 .vfw-guide-link { display: inline-flex; align-items: center; min-height: 44px; font-weight: 650; }
 .vfw-regular .vfw-event-desc { margin-top: 0.25rem; overflow-wrap: anywhere; }
-/* Cards keep their own top padding (the list rule above drops it on the first item), and side by side every day badge is
-   two lines tall with its text centred, so badges and titles line up across a row. */
-.vfw-events.vfw-regular > .vfw-event:first-child { padding-top: clamp(1.1rem, 1rem + 0.8vw, 1.5rem); }
-@media (min-width: 600px) { .vfw-regular .vfw-event-date { display: flex; align-items: center; align-self: stretch; min-height: calc(2.6em + 0.6rem); font-size: var(--step--1); font-stretch: 92%; } }
-/* Event photo rows: three thumbnails, one tidy row; the photo viewer still opens the whole set. */
-.vfw-evg .vfw-evg-row li:nth-child(n + 4) { display: none; }
+.vfw-regular .vfw-seeall { margin-top: auto; }
+.vfw-regular .vfw-event-desc:has(+ .vfw-seeall), .vfw-regular .vfw-guide-link:has(+ .vfw-seeall) { margin-bottom: 0.6rem; }
+
+/* Coming up: the next event large, the rest in pairs, each with its photo (or its date stamped on paper) beside the words. */
+.vfw-upcoming { display: grid; gap: clamp(1.25rem, 1rem + 1.5vw, 2rem); }
+.vfw-upcoming > .vfw-event, .vfw-events.vfw-upcoming > .vfw-event:first-child {
+  display: grid; grid-template-columns: 1fr; gap: 1rem; align-items: center;
+  padding: 10px 10px 1.25rem; border-top: 0; border-radius: 4px; background: var(--card); box-shadow: var(--shadow);
+}
+.vfw-evbody { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 0.2rem 1rem; min-width: 0; }
+.vfw-evbody .vfw-event-cat { grid-column: 2; }
+.vfw-evbody .vfw-event-time { grid-row: 2; grid-column: 1 / -1; }
+.vfw-evbody .vfw-event-desc { overflow-wrap: anywhere; }
+.vfw-upcoming .vfw-evbody { padding-inline: 0.6rem; }
+@media (min-width: 700px) {
+  .vfw-upcoming { grid-template-columns: 1fr 1fr; }
+  .vfw-upcoming > .vfw-event, .vfw-events.vfw-upcoming > .vfw-event:first-child { grid-template-columns: minmax(0, 13rem) minmax(0, 1fr); padding: 10px; gap: 1.25rem; }
+  .vfw-upcoming .vfw-evbody { padding-inline: 0 0.5rem; }
+  .vfw-events.vfw-upcoming > .vfw-event.vfw-lead { grid-column: 1 / -1; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: clamp(1.25rem, 3vw, 2.5rem); }
+  .vfw-upcoming > .vfw-lead .vfw-event-title { font-size: var(--step-2); }
+}
+@media (min-width: 1100px) { .vfw-upcoming > .vfw-event:not(.vfw-lead) { grid-template-columns: minmax(0, 17rem) minmax(0, 1fr); } }
+@media (max-width: 699px) { .vfw-evpaper { aspect-ratio: 2 / 1; } }
+
+/* Calendar months: an event with photos shows one snapshot, card-wide, then its words and See all. Months keep their own height. */
+.vfw-calendar { align-items: start; }
+.vfw-month-list .vfw-media-card { display: flex; flex-direction: column; align-items: stretch; gap: 0.75rem; padding-block: 1rem; }
+.vfw-month-list .vfw-media-card .vfw-evph { margin: 0.25rem 0.15rem 0.35rem; border: 8px solid var(--snap); box-shadow: var(--shadow); transform: rotate(-0.8deg); }
+.vfw-month-list .vfw-media-card:nth-child(even) .vfw-evph { transform: rotate(0.7deg); }
+.vfw-month-list .vfw-media-card .vfw-seeall { align-self: flex-start; margin-top: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .vfw-evph[data-cycle] > img { transition: none; }
+  .vfw-month-list .vfw-media-card .vfw-evph, .vfw-month-list .vfw-media-card:nth-child(even) .vfw-evph, .vfw-evstamp, .vfw-evhead .vfw-event-date { transform: none; }
+}
+@media print {
+  .vfw-evph, .vfw-evpaper:not(.vfw-evhead), .vfw-seeall { display: none !important; }
+  .vfw-evhead { margin: 0; aspect-ratio: auto; background: none; padding: 0; }
+  .vfw-evhead .vfw-event-date { position: static; border: 0; outline: 0; box-shadow: none; background: none; color: #000; transform: none; -webkit-mask-image: none; mask-image: none; font-size: inherit; }
+  .vfw-upcoming, .vfw-regular { display: block; }
+  .vfw-upcoming > .vfw-event, .vfw-regular > .vfw-event, .vfw-events.vfw-upcoming > .vfw-event:first-child, .vfw-events.vfw-regular > .vfw-event:first-child { display: block; box-shadow: none; padding: 2mm 0; }
+  .vfw-month-list .vfw-media-card { display: block; padding: 0; }
+  .vfw-month-list .vfw-evbody { display: block; }
+}
 
 /* ---------- Volunteer board and help request form (markup made by state.js, so these stay global) ---------- */
 .vfw-vol { max-width: none; }

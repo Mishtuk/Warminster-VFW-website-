@@ -13,7 +13,7 @@ const empty = POST.callText;
 const wrap = (name: string, html: string) => `<!--vfw:${name}-->${html}<!--/vfw:${name}-->`;
 
 export const seed = {
-  upcoming: wrap('events-upcoming', upcomingHtml(events, today, { empty })),
+  upcoming: wrap('events-upcoming', upcomingHtml(events, today, { empty, photoBase: href('/media/photos/') })),
   featured: wrap('events-featured', featuredHtml(events, today, { empty, photoBase: href('/media/photos/'), eventsHref: href('/events') })),
   regular: wrap('events-regular', regularHtml(events, { guide: href('/events/first-visit'), photoBase: href('/media/photos/') })),
   calendar: wrap('calendar', calendarHtml(events, year, today, { photoBase: href('/media/photos/') })),
