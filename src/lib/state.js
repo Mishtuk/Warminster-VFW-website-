@@ -545,8 +545,13 @@ const phoneEmail = (p, who) => `<div class="field"><label for="${p}-phone">Phone
 const spotsLeft = (s) => (s.left <= 0 ? 'Full, thank you' : s.left === 1 ? '1 spot left' : `${s.left} of ${s.slots} spots left`);
 
 /** The sign-up form: shifts are radio cards (work with no JS). shifts = public shape [{id,title,date,start,end,notes,slots,left}], already sorted. */
-export function volunteerHtml(shifts = [], { empty: none = `No volunteer shifts are posted right now. Want to help? ${CALL}` } = {}) {
-  if (!shifts.length) return empty(none);
+const VOL_NONE = `No volunteer shifts are posted right now. Want to help? ${CALL}`;
+export function volunteerHtml(shifts = [], { empty: none = VOL_NONE } = {}) {
+  if (!shifts.length) {
+    if (none !== VOL_NONE) return empty(none);
+    return `<div class="panel vfw-empty vfw-vol-empty"><h3>Want to help? Call the post</h3><p>No shifts are posted right now, but hands are always welcome. Helpers pitch in with flags on veterans' graves, Memorial Day, poppy sales, drives and veterans home visits. Call ${POST.phone} and tell the post what you would like to do.</p>`
+      + `<p class="btn-row"><a class="btn" href="tel:${tel}">Call ${POST.phone}</a></p></div>`;
+  }
   const cards = shifts.map((s) => `<label class="vfw-shift${s.left <= 0 ? ' vfw-full' : ''}"><input type="radio" name="shift" value="${esc(s.id)}" required${s.left <= 0 ? ' disabled' : ''}>`
     + `${dateBox(s.date)}<span class="vfw-shift-body"><strong class="vfw-shift-title">${esc(s.title)}</strong>${s.start ? ` <span class="vfw-event-time">${esc(timeLabel(s.start, s.end))}</span>` : ''}`
     + `${s.notes ? `<span class="vfw-shift-notes">${esc(s.notes)}</span>` : ''}<span class="vfw-badge">${esc(spotsLeft(s))}</span></span></label>`).join('');
@@ -561,8 +566,8 @@ const tel = POST.phone.replace(/\D/g, '');
 /** The help request form plus its "what happens next" column, or the call-the-post panel when the form is off. */
 export function helpFormHtml(settings = {}) {
   if (!settings.helpEnabled || !settings.responderName) {
-    return `<div class="panel vfw-help-off"><h3>Call the post to ask for help</h3><p>The online request form isn't open yet. Call ${POST.phone} and ask for help for a veteran. For benefits and claims help now, see the Resources page.</p>`
-      + `<p class="btn-row"><a class="btn" href="tel:${tel}">Call ${POST.phone}</a><a class="btn btn-outline" href="/resources">Go to Resources</a></p></div>`;
+    return `<div class="panel vfw-help-off"><h3>Call the post and ask for help for a veteran</h3><p>Call the post and tell them what you need. They can point you to free help like VFW Service Officers, who help with benefits and VA claims at no cost.</p>`
+      + `<p class="btn-row"><a class="btn" href="tel:${tel}">Call ${POST.phone}</a><a class="btn btn-outline" href="/resources">See the Resources page</a></p></div>`;
   }
   const who = settings.responderName + (settings.responderRole ? `, ${settings.responderRole}` : '');
   const kinds = Object.entries(HELP_KINDS).map(([k, v], i) => `<label class="vfw-choice"><input type="radio" name="kind" value="${k}"${i ? '' : ' required'}><span>${esc(v)}</span></label>`).join('');

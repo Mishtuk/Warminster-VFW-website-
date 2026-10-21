@@ -1,12 +1,29 @@
 ---
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
-import { NAV, href } from '../lib/site';
+import { POST, NAV, href } from '../lib/site';
+const popular = [
+  { path: '/bar', label: 'Bar hours', line: 'When the bar is open' },
+  { path: '/hall', label: 'Rent the hall', line: 'Parties, showers and meetings' },
+  { path: '/events', label: 'Events', line: 'What is coming up at the post' },
+  { path: '/contact', label: 'Contact', line: 'Address, phone and email' },
+];
 ---
 <Base title="Page not found">
-  <PageHead title="Page not found" lede="We could not find that page. Try one of these." />
+  <PageHead title="Page not found" lede="That page has moved or never existed. The pages below are the ones people look for most, or give the post a call and we will help." />
   <section class="section">
     <div class="container">
+      <div class="panel nf-call">
+        <h2>Can't find what you need? Call the post.</h2>
+        <p class="btn-row"><a class="btn" href={POST.tel}>Call {POST.phone}</a></p>
+      </div>
+      <h2 class="nf-h">Most wanted</h2>
+      <div class="panel">
+        <ul class="link-list">
+          {popular.map((l) => <li><a href={href(l.path)}><span>{l.label}</span><small>{l.line}</small></a></li>)}
+        </ul>
+      </div>
+      <h2 class="nf-h">Everything else</h2>
       <div class="panel">
         <ul class="link-list">
           {NAV.map((l) => <li><a href={href(l.path)}><span>{l.label}</span></a></li>)}
@@ -15,3 +32,9 @@ import { NAV, href } from '../lib/site';
     </div>
   </section>
 </Base>
+
+<style>
+  .nf-call h2, .nf-h { font-size: var(--step-2); }
+  .nf-call p { margin-top: 1rem; }
+  .nf-h { margin: 2rem 0 1rem; }
+</style>

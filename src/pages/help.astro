@@ -7,12 +7,12 @@ import OnThisPage from '../components/info/OnThisPage.astro';
 import CrisisBox from '../components/CrisisBox.astro';
 import { POST, href, PROGRAM_TABS } from '../lib/site';
 import { BENEFITS } from '../lib/resources.js';
-const sections = [{ id: 'request', label: 'Send a request' }, { id: 'other', label: 'Other help' }];
+const sections = [{ id: 'request', label: 'Ask for help' }, { id: 'other', label: 'Other help' }];
 const other = ['VFW free claims help', 'Bucks County Military and Veterans Affairs', 'VA.gov'].map((n) => BENEFITS.find((b) => b.name === n)!);
 // Static seed = the off state ("Call the post"). The server swaps in the live form when the admin turns it on.
-const seed = `<!--vfw:help-form--><div class="panel vfw-help-off"><h3>Call the post to ask for help</h3>`
-  + `<p>The online request form isn't open yet. Call ${POST.phone} and ask for help for a veteran. For benefits and claims help now, see the Resources page.</p>`
-  + `<p class="btn-row"><a class="btn" href="${POST.tel}">Call ${POST.phone}</a><a class="btn btn-outline" href="${href('/resources')}">Go to Resources</a></p></div><!--/vfw:help-form-->`;
+const seed = `<!--vfw:help-form--><div class="panel vfw-help-off"><h3>Call the post and ask for help for a veteran</h3>`
+  + `<p>Call the post and tell them what you need. They can point you to free help like VFW Service Officers, who help with benefits and VA claims at no cost.</p>`
+  + `<p class="btn-row"><a class="btn" href="${POST.tel}">Call ${POST.phone}</a><a class="btn btn-outline" href="${href('/resources')}">See the Resources page</a></p></div><!--/vfw:help-form-->`;
 ---
 <Base title="Ask the post for help" description={`Veterans and families can ask ${POST.name} for a ride to a VA appointment, a visit, or help finding benefits.`}>
   <PageHead title="Ask the post for help" lede="For veterans and their families: a ride to a VA appointment, a visit, or help finding benefits." />
@@ -20,7 +20,7 @@ const seed = `<!--vfw:help-form--><div class="panel vfw-help-off"><h3>Call the p
   <CrisisBox><p><strong>In an emergency, call 911.</strong></p></CrisisBox>
   <OnThisPage items={sections} />
 
-  <InfoSection id="request" title="Send a request" summary="Ask for a ride, a visit or help with benefits." band="stone">
+  <InfoSection id="request" title="Ask for help" summary="Call the post for a ride, a visit or help with benefits." band="stone">
     <div id="help-status" class="form-status" role="status" data-phone={POST.phone} hidden></div>
     <Fragment set:html={seed} />
   </InfoSection>

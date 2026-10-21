@@ -9,14 +9,14 @@ import { POST, href, PROGRAM_TABS } from '../lib/site';
 import { VOLUNTEER_JOBS } from '../lib/resources.js';
 const sections = [{ id: 'signup', label: 'Open shifts' }, { id: 'jobs', label: 'What helpers do' }];
 // Static seed: no shifts and no form. The server replaces the marker with the live board.
-const seed = `<!--vfw:volunteer-board--><p class="vfw-empty">No volunteer shifts are posted right now. Want to help? Call the post at ${POST.phone}.</p><!--/vfw:volunteer-board-->`;
+const seed = `<!--vfw:volunteer-board--><div class="panel vfw-empty vfw-vol-empty"><h3>Want to help? Call the post</h3><p>No shifts are posted right now, but hands are always welcome. Helpers pitch in with flags on veterans' graves, Memorial Day, poppy sales, drives and veterans home visits. Call ${POST.phone} and tell the post what you would like to do.</p><p class="btn-row"><a class="btn" href="${POST.tel}">Call ${POST.phone}</a></p></div><!--/vfw:volunteer-board-->`;
 ---
 <Base title="Volunteer" description={`Sign up for a volunteer shift with ${POST.name}: flags, Memorial Day, drives and post nights.`}>
-  <PageHead title="Volunteer" lede="Help with flags, Memorial Day, drives and post nights. Pick a shift and leave a name and a phone or email." />
+  <PageHead title="Volunteer" lede="Help with flags, Memorial Day, drives and post nights. Join a posted shift, or call the post to pitch in." />
   <Subnav items={PROGRAM_TABS} label="Programs and resources" />
   <OnThisPage items={sections} />
 
-  <InfoSection id="signup" title="Open shifts" summary="Choose one shift, then tell us who you are." band="stone">
+  <InfoSection id="signup" title="Open shifts" summary="Open shifts appear here when the post needs hands." band="stone">
     <div id="vol-status" class="form-status" role="status" data-phone={POST.phone} hidden></div>
     <Fragment set:html={seed} />
   </InfoSection>
