@@ -22,7 +22,7 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Task issues:** work is handed out as GitHub issues labeled `laptop` or `desktop`, each a full brief with a "Done when" checklist. Check `gh issue list -l <your machine> --state open` at the start of a session and about every 15 minutes while idle. Take the lowest number, comment "Started", claim it below, and close it with the commit hash when done.
 
 ### Now working on
-- **Desktop:** #26 staff guide (in the private planning repo); #25 placeholders (waiting on the owner's tap list).
+- **Desktop:** nothing claimed; waiting on Laptop's proposal edits (private planning repo).
 
 ## Status (handoff, 2026-10-20)
 **The site is feature-complete on the preview. The next steps are the owner's choices.**
@@ -90,7 +90,7 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - A tap tower sits above the food snapshots (`src/components/BeerTaps.astro`, styles in the `.taps` block of global.css). Each handle has a name badge evoking the brand (colours, type style, shape: oval, circle, shield, banner or crest; an accent ring and a sub-label), on a back-bar backdrop of wood, smoky mirror, bottle shelf and amber glow. No logo artwork is copied.
 - Tap logos: an optional `logo` slug per tap (`LOGOS` in `state.js`, files in `public/brand/taps/`: Yuengling, Coors Light, Budweiser, Blue Moon, Guinness, Miller Lite, Modelo; the owner approved real logos). Admin > Beers on tap has a Brand logo select. Bud Light and Michelob Ultra have no file and keep drawn badges. Existing databases keep their old taps: set each logo in the admin after deploying (and Miller Lite's shape to shield).
 - Pressing a handle pours beer (`src/scripts/pour.ts`, a canvas overlay drawn as merging liquid through an SVG blur-and-threshold filter, with a tapered stream and foam). Each beer has its own colour from the tap name (light, amber, wheat, stout; a tap can override with a `data-liquid` hex), and the stream is drawn on a second, unfiltered canvas. Boxes are oriented colliders (size, centre and the rotation summed over ancestors), so beer runs down tilted snapshots and off their low end (`SLIDE` scales the downhill pull). Foam, bubbles and after-drips sit on the pooled beer. Boxes are measured once per pour and shifted with the scroll. It only runs on desktop with a mouse (900px or wider) and is off with reduced motion; phones don't get the tower at all.
-- The taps are placeholders (9 common drafts). Staff edit them in Admin > Beers on tap: name, badge and text colours, accent, shape, sub-label, Show on website, order. Saved taps from before these fields default to an oval. Marker `taps`.
+- The taps are a decoration, by the owner's choice (9 common drafts, not the real tap list; no label needed). Staff edit them in Admin > Beers on tap: name, badge and text colours, accent, shape, sub-label, Show on website, order. Saved taps from before these fields default to an oval. Marker `taps`.
 
 ### Hall booking calendar (2026-10-21)
 - Staff mark dates as Booked or On hold in Admin > Hall bookings (a month grid; a private note per date), or with "Mark this date booked" on a hall inquiry that has a future date. The `hall_bookings` table drops dates more than 30 days old.
@@ -261,3 +261,8 @@ Staff only: `/admin` (noindex, blocked in robots.txt). Bar TV: `/tv` (linked now
 
 ## Backups and down-alert (launch plan)
 `scripts/backup.mjs` and `scripts/restore.mjs` are built and tested (`test/backup.test.js`). At launch: run the backup nightly as an App Service WebJob, copy each archive to an Azure Blob cool-tier container, and add a free UptimeRobot monitor on `/` every 5 minutes with email alerts. Steps and the restore drill are in [docs/backups.md](docs/backups.md).
+
+## Placeholder check (#25)
+- Beer taps: decoration by the owner's choice, not a claim about what's pouring.
+- Shop and Wall of Honor: each shows a Coming soon panel until staff put an item on the website.
+- No sample data in the seeded pages; local test entries live only in `.data`, which is never deployed.
