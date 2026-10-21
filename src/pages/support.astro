@@ -5,12 +5,12 @@ import Subnav from '../components/Subnav.astro';
 import InfoSection from '../components/info/InfoSection.astro';
 import OnThisPage from '../components/info/OnThisPage.astro';
 import KeyFacts from '../components/info/KeyFacts.astro';
-import { POST, href, PROGRAM_TABS } from '../lib/site';
+import { POST, href, photo, PROGRAM_TABS } from '../lib/site';
 import { SUPPORT } from '../lib/resources.js';
 const sections = [{ id: 'give', label: 'Ways to give' }, { id: 'drives', label: 'Drives' }, { id: 'fundraisers', label: 'Fundraisers' }, { id: 'time', label: 'Give your time' }];
 ---
-<Base title="Support the Post" description={`Give money, goods or time to the drives and fundraisers of ${POST.name}.`}>
-  <PageHead title="Support the Post" lede="Give money, goods or time to the post's drives and the Auxiliary's fundraisers." />
+<Base title="Support the Post" sharePhoto="hero-check" imageAlt="Members of the post posing with a large check" description={`Give money, goods or time to the drives and fundraisers of ${POST.name}.`}>
+  <PageHead title="Support the Post" lede="Give money, goods or time to the post's drives and the Auxiliary's fundraisers." image="hero-check" focus="center 60%" />
   <Subnav items={PROGRAM_TABS} label="Programs and resources" />
   <OnThisPage items={sections} />
 
@@ -41,11 +41,17 @@ const sections = [{ id: 'give', label: 'Ways to give' }, { id: 'drives', label: 
   </InfoSection>
 
   <InfoSection id="fundraisers" title="Auxiliary fundraisers" summary="The Auxiliary raises money for the post's work.">
-    <div class="panel info-body">
-      <dl class="rows">
-        {SUPPORT.fundraisers.map(([n, l]) => <div><dt>{n}</dt><dd>{l}</dd></div>)}
-      </dl>
-      <p class="btn-row"><a class="btn btn-outline" href={href('/events#upcoming')}>See what's coming up</a></p>
+    <div class="info-two">
+      <div class="panel info-body">
+        <dl class="rows">
+          {SUPPORT.fundraisers.map(([n, l]) => <div><dt>{n}</dt><dd>{l}</dd></div>)}
+        </dl>
+        <p class="btn-row"><a class="btn btn-outline" href={href('/events#upcoming')}>See what's coming up</a></p>
+      </div>
+      <figure class="snap" style="--tilt:1.2deg">
+        <img {...photo('hero-cookie-3')} sizes="(min-width: 900px) 35vw, 100vw" alt="Auxiliary members behind a long table of cookies at the cookie exchange" loading="lazy" decoding="async" fetchpriority="low" />
+        <figcaption>Holiday cookie exchange, December 2025</figcaption>
+      </figure>
     </div>
   </InfoSection>
 

@@ -29,6 +29,7 @@ const YEAR: [string, string, string?, string?][] = [
   ['December', 'Army-Navy game party.'],
   ['Fridays', 'Red Shirt Friday: RED means Remember Everyone Deployed.'],
 ];
+const SHOW = 4; // days shown before "More days through the year"
 const host = (u: string) => new URL(u).host.replace(/^www\./, '');
 const sections = [{ id: 'vfw', label: 'The VFW' }, { id: 'post', label: 'Post 6493' }, { id: 'year', label: 'Through the year' }];
 ---
@@ -61,18 +62,47 @@ const sections = [{ id: 'vfw', label: 'The VFW' }, { id: 'post', label: 'Post 64
         </ol>
         <p>Have a story or a photo from the post's past? <a href={POST.tel}>Call {POST.phone}</a> and tell us.</p>
       </div>
-      <figure class="snap" style="--tilt:-1.2deg">
-        <img {...photo('life-memorial')} sizes="(min-width: 900px) 35vw, 100vw" alt="Memorial Day at the post" loading="lazy" decoding="async" fetchpriority="low" />
-        <figcaption>Memorial Day, May 2026</figcaption>
-      </figure>
+      <div class="pics">
+        <figure class="snap" style="--tilt:-1.2deg">
+          <img {...photo('life-memorial')} sizes="(min-width: 900px) 35vw, 100vw" alt="Memorial Day at the post" loading="lazy" decoding="async" fetchpriority="low" />
+          <figcaption>Memorial Day, May 2026</figcaption>
+        </figure>
+        <figure class="snap" style="--tilt:1.1deg">
+          <img {...photo('hero-60th-crowd')} sizes="(min-width: 900px) 35vw, 100vw" alt="Guests seated at round tables for dinner in the hall" loading="lazy" decoding="async" fetchpriority="low" />
+          <figcaption>The post's 60th anniversary dinner, September 2025</figcaption>
+        </figure>
+      </div>
     </div>
   </InfoSection>
 
-  <InfoSection id="year" title="Through the year" summary="The days and traditions the post keeps every year." panel>
-    <ol class="tl">
-      {YEAR.map(([w, t, u, l]) => (
-        <li><span class="when">{w}</span><div class="what"><p>{t}</p>{u && <a class="src" href={u} rel="noopener">Source: {l}</a>}</div></li>
-      ))}
-    </ol>
+  <InfoSection id="year" title="Through the year" summary="The days and traditions the post keeps every year.">
+    <div class="info-two">
+      <div class="panel info-body">
+        <ol class="tl">
+          {YEAR.slice(0, SHOW).map(([w, t, u, l]) => (
+            <li><span class="when">{w}</span><div class="what"><p>{t}</p>{u && <a class="src" href={u} rel="noopener">Source: {l}</a>}</div></li>
+          ))}
+        </ol>
+        <div class="faq">
+          <details>
+            <summary>More days through the year</summary>
+            <ol class="tl more-tl">
+              {YEAR.slice(SHOW).map(([w, t, u, l]) => (
+                <li><span class="when">{w}</span><div class="what"><p>{t}</p>{u && <a class="src" href={u} rel="noopener">Source: {l}</a>}</div></li>
+              ))}
+            </ol>
+          </details>
+        </div>
+      </div>
+      <figure class="snap" style="--tilt:-1deg">
+        <img {...photo('hero-redfriday-1')} sizes="(min-width: 900px) 35vw, 100vw" alt="Members in red shirts posing together in the hall" loading="lazy" decoding="async" fetchpriority="low" />
+        <figcaption>Red Friday gathering, May 2026</figcaption>
+      </figure>
+    </div>
   </InfoSection>
 </Base>
+
+<style>
+  .pics { display: grid; gap: 2rem; }
+  .more-tl li:first-child { border-top: 1px solid var(--line); padding-top: 0.9rem; }
+</style>
