@@ -22,7 +22,7 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Task issues:** work is handed out as GitHub issues labeled `laptop` or `desktop`, each a full brief with a "Done when" checklist. Check `gh issue list -l <your machine> --state open` at the start of a session and about every 15 minutes while idle. Take the lowest number, comment "Started", claim it below, and close it with the commit hash when done.
 
 ### Now working on
-- **Desktop:** #24 backups (scripts/backup.mjs, scripts/restore.mjs, docs/backups.md, test/backup.test.js); #27 admin on phones and safer Delete (admin.astro); #26 staff guide (in the private planning repo); #25 placeholders (waiting on the owner's tap list).
+- **Desktop:** #27 admin on phones and safer Delete (admin.astro); #26 staff guide (in the private planning repo); #25 placeholders (waiting on the owner's tap list).
 
 ## Status (handoff, 2026-10-20)
 **The site is feature-complete on the preview. The next steps are the owner's choices.**
@@ -258,3 +258,6 @@ Staff only: `/admin` (noindex, blocked in robots.txt). Bar TV: `/tv` (linked now
 - The charter year, and who Harry C. Wilson II and Douglas A. Post were.
 - Hall rental prices and capacity.
 - Hosting and domain.
+
+## Backups and down-alert (launch plan)
+`scripts/backup.mjs` and `scripts/restore.mjs` are built and tested (`test/backup.test.js`). At launch: run the backup nightly as an App Service WebJob, copy each archive to an Azure Blob cool-tier container, and add a free UptimeRobot monitor on `/` every 5 minutes with email alerts. Steps and the restore drill are in [docs/backups.md](docs/backups.md).
