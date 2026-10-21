@@ -709,8 +709,8 @@ export function hallCalendarHtml(bookings, today, { month } = {}) {
         const date = `${ym}-${String(d).padStart(2, '0')}`, st = date < today ? 'past' : by.get(date) ?? 'open';
         if (st === 'past') return `<td class="hc-day hc-past"><span class="hc-n">${d}</span></td>`;
         const nice = new Date(Date.UTC(y, m, d)).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' });
-        const inner = `<span class="hc-n">${d}</span><span class="hc-s"><span class="hc-i" aria-hidden="true"></span>${HALL_LABEL[st]}</span>`;
-        return `<td class="hc-day hc-${st}${date === today ? ' hc-today' : ''}">${st === 'open' ? `<a href="#inquiry" data-date="${date}" aria-label="${nice}, open. Ask about this date">${inner}</a>` : `<div role="group" aria-label="${nice}, ${HALL_LABEL[st].toLowerCase()}">${inner}</div>`}</td>`;
+        const inner = `<span class="hc-n">${d}</span> <span class="hc-s"><span class="hc-i" aria-hidden="true"></span>${HALL_LABEL[st]}</span>`;
+        return `<td class="hc-day hc-${st}${date === today ? ' hc-today' : ''}">${st === 'open' ? `<a href="#inquiry" data-date="${date}" aria-label="${d} Open, ${nice}. Ask about this date">${inner}</a>` : `<div role="group" aria-label="${nice}, ${HALL_LABEL[st].toLowerCase()}">${inner}</div>`}</td>`;
       }).join('')}</tr>`);
     }
     return `<section class="vfw-month"><h3 class="vfw-month-title">${label}</h3><table class="vfw-grid"><caption class="vfw-sr">${label}</caption><thead><tr>${head}</tr></thead><tbody>${rows.join('')}</tbody></table></section>`;
