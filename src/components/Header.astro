@@ -21,7 +21,7 @@ const cur = (l: { path: string; match: readonly string[] }) =>
     </a>
 
     <div class="mast-info">
-      <p class="mast-today"><TodayHours prefix="Bar open today" fallback="Bar hours are on The Bar page" /></p>
+      <p class="mast-today"><TodayHours prefix="Bar open today" fallback="Bar hours are on The Bar page" dot /></p>
       <a class="mast-tel" href={POST.tel}><span class="sr-only">Call the post: </span>{POST.phone}</a>
     </div>
 
@@ -49,7 +49,7 @@ const cur = (l: { path: string; match: readonly string[] }) =>
           </ul>
         </nav>
         <div class="sheet-info">
-          <p><TodayHours prefix="Bar open today" fallback="" /></p>
+          <p><TodayHours prefix="Bar open today" fallback="" dot /></p>
           <a class="btn btn-block" href={POST.tel}>Call {POST.phone}</a>
           <a class="link" href={POST.mapsUrl} rel="noopener">Directions to {POST.street}</a>
           <a class="link" href={POST.facebook} rel="noopener">Facebook group</a>

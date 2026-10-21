@@ -1,11 +1,11 @@
 ---
 /**
  * Today's bar hours, picked in the visitor's browser from POST.hours (e.g. "Monday to Thursday").
- * Without JS it shows the fallback text. Used by the masthead, the home board and /bar.
+ * Without JS it shows the fallback text; src/scripts/bar-status.ts then swaps in the live open or closed label (dot = show a status dot). Used by the masthead, the home board and /bar.
  */
 import { POST } from '../lib/site';
-interface Props { prefix?: string; fallback?: string }
-const { prefix = 'Open today', fallback = 'See bar hours' } = Astro.props;
+interface Props { prefix?: string; fallback?: string; dot?: boolean }
+const { prefix = 'Open today', fallback = 'See bar hours', dot = false } = Astro.props;
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const week: (string | null)[] = Array(7).fill(null);
 for (const [d, h] of POST.hours) {
@@ -16,11 +16,25 @@ for (const [d, h] of POST.hours) {
   for (;;) { week[i] = h; if (i === j) break; i = (i + 1) % 7; }
 }
 ---
-<span class="today-hours" data-week={JSON.stringify(week)} data-prefix={prefix}>{fallback}</span>
+<span class="today-hours" data-week={JSON.stringify(week)} data-prefix={prefix} data-live data-dot={dot ? '1' : undefined}>{fallback}</span>
 
 <script>
   for (const el of document.querySelectorAll<HTMLElement>('.today-hours')) {
     const h = JSON.parse(el.dataset.week || '[]')[new Date().getDay()];
-    if (h) el.textContent = `${el.dataset.prefix} ${h}`;
+    if (h && !el.dataset.label) el.textContent = `${el.dataset.prefix} ${h}`;
   }
 </script>
+
+<script>
+  import '../scripts/bar-status.ts';
+</script>
+
+<style is:global>
+  /* Status dot made by bar-status.ts: filled green when open, a hollow ring in the text colour when closed. */
+  .today-hours .bs-dot {
+    display: inline-block; width: 0.6em; height: 0.6em; margin-right: 0.45em; vertical-align: 0.05em;
+    border-radius: 50%; border: 2px solid currentColor; box-sizing: border-box;
+  }
+  .today-hours[data-state='open'] .bs-dot { background: #2e9e4f; border-color: #2e9e4f; }
+  .today-hours[data-state='closed'] .bs-dot { opacity: 0.75; }
+</style>

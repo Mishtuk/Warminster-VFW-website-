@@ -9,7 +9,7 @@ import { seed } from '../lib/seed';
   <div class="tv" id="tv">
     <header class="tv-top">
       <img src={href('/brand/logo-mark-reverse.svg')} width="152" height="60" alt="" />
-      <p class="tv-open"><TodayHours prefix="Bar open today" fallback="" /></p>
+      <p class="tv-open"><TodayHours prefix="Bar open today" fallback="" dot /></p>
       <time class="tv-clock" id="tv-clock"></time>
     </header>
     <div class="tv-stage" id="tv-slides" aria-live="off"><Fragment set:html={seed.tv} /></div>
