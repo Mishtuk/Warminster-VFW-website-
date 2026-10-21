@@ -22,6 +22,7 @@ Two machines work on this repo at the same time. Live coordination happens on th
 - **Task issues:** work is handed out as GitHub issues labeled `laptop` or `desktop`, each a full brief with a "Done when" checklist. Check `gh issue list -l <your machine> --state open` at the start of a session and about every 15 minutes while idle. Take the lowest number, comment "Started", claim it below, and close it with the commit hash when done.
 
 ### Now working on
+- **Laptop:** photos and shorter lists on Programs, Support and History (src/pages/programs.astro, src/pages/support.astro, src/pages/history.astro; PageHead image props only).
 - **Desktop:** /events redesign around photos, owner request (events.astro; the event renderers in state.js: eventItem, regularHtml, calendarHtml, galleryHtml; event-photos.js; the event styles in global.css).
 
 ## Status (handoff, 2026-10-20)
